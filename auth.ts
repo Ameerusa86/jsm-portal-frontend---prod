@@ -62,7 +62,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
  */
 export function resolveTargetResource(
   resources: Array<{ id: string; url: string; name: string }>,
-  configuredBaseUrl = "https://emsmc.atlassian.net",
+  configuredBaseUrl = "https://emsmc1.atlassian.net",
 ): { id: string; url: string; name: string } | undefined {
   if (!resources || resources.length === 0) return undefined;
 
@@ -128,9 +128,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, account }) {
       const configuredBaseUrl = (
-        process.env.JIRA_BASE_URL && !process.env.JIRA_BASE_URL.includes("sandbox")
+        process.env.JIRA_BASE_URL &&
+        !process.env.JIRA_BASE_URL.includes("sandbox")
           ? process.env.JIRA_BASE_URL
-          : "https://emsmc.atlassian.net"
+          : "https://emsmc1.atlassian.net"
       )
         .trim()
         .replace(/\/+$/, "");
@@ -142,10 +143,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.expiresAt = account.expires_at;
         token.siteUrl = configuredBaseUrl;
 
-        console.log("\n========================================================");
+        console.log(
+          "\n========================================================",
+        );
         console.log("🔐 [Atlassian Production OAuth] Login event detected");
         console.log(`   Target Production URL:    "${configuredBaseUrl}"`);
-        console.log(`   OAuth Client ID:          "${clientId ? clientId.substring(0, 10) + '...' : 'Not set'}"`);
+        console.log(
+          `   OAuth Client ID:          "${clientId ? clientId.substring(0, 10) + "..." : "Not set"}"`,
+        );
 
         // Fetch accessible resources (Atlassian Cloud sites)
         try {
@@ -173,32 +178,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                   configuredBaseUrl,
                 );
 
-                console.log(`   Atlassian authorized site(s) (${resources.length}):`);
+                console.log(
+                  `   Atlassian authorized site(s) (${resources.length}):`,
+                );
                 resources.forEach((r, idx) => {
-                  console.log(`     [${idx + 1}] ID: ${r.id} | Name: "${r.name}" | URL: "${r.url}"`);
+                  console.log(
+                    `     [${idx + 1}] ID: ${r.id} | Name: "${r.name}" | URL: "${r.url}"`,
+                  );
                 });
-                console.log(`   Selected Production Site:  ${targetResource?.url} (${targetResource?.name}) [Cloud ID: ${targetResource?.id}]`);
+                console.log(
+                  `   Selected Production Site:  ${targetResource?.url} (${targetResource?.name}) [Cloud ID: ${targetResource?.id}]`,
+                );
 
                 if (targetResource) {
                   token.cloudId = targetResource.id;
                   token.siteUrl = targetResource.url.replace(/\/+$/, "");
                 }
               } else {
-                console.warn("   ⚠️ Warning: Atlassian returned 0 accessible resources! Check user site permissions.");
+                console.warn(
+                  "   ⚠️ Warning: Atlassian returned 0 accessible resources! Check user site permissions.",
+                );
               }
             } else {
               const errBody = await res.text();
-              console.error(`   ❌ Failed to fetch accessible-resources: HTTP ${res.status} - ${errBody}`);
+              console.error(
+                `   ❌ Failed to fetch accessible-resources: HTTP ${res.status} - ${errBody}`,
+              );
             }
           }
         } catch (err: unknown) {
-          console.error("   ❌ Error fetching Atlassian accessible resources:", err);
+          console.error(
+            "   ❌ Error fetching Atlassian accessible resources:",
+            err,
+          );
         }
-        console.log("========================================================\n");
+        console.log(
+          "========================================================\n",
+        );
 
         // Force sanitation: token.siteUrl MUST NOT be sandbox
         if (!token.siteUrl || token.siteUrl.includes("sandbox")) {
-          token.siteUrl = "https://emsmc.atlassian.net";
+          token.siteUrl = "https://emsmc1.atlassian.net";
         }
 
         return token;
@@ -206,7 +226,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       // Safety check on existing tokens: purge any legacy sandbox siteUrl from old cookies
       if (token.siteUrl && token.siteUrl.includes("sandbox")) {
-        token.siteUrl = "https://emsmc.atlassian.net";
+        token.siteUrl = "https://emsmc1.atlassian.net";
       }
 
       // 2. Return current token if it has not expired yet (with 60-second safety window)
@@ -223,7 +243,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.siteUrl =
         token.siteUrl && !token.siteUrl.includes("sandbox")
           ? token.siteUrl
-          : "https://emsmc.atlassian.net";
+          : "https://emsmc1.atlassian.net";
       session.error = token.error;
       session.accessibleResources = token.accessibleResources;
       return session;

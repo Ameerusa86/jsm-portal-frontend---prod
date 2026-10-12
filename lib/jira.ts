@@ -59,7 +59,7 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
             if (Array.isArray(resources) && resources.length > 0) {
               const configuredUrl =
                 process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
-                "https://emsmc.atlassian.net";
+                "https://emsmc1.atlassian.net";
               // Strictly exclude any sandbox environment to guarantee PURE production
               const prodResources = resources.filter(
                 (r: { url: string; name?: string }) =>
@@ -111,7 +111,7 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
   // 2. Fallback to Basic Auth if environment variables are provided
   const targetBaseUrl =
     process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
-    "https://emsmc.atlassian.net";
+    "https://emsmc1.atlassian.net";
 
   if (JIRA_USER_EMAIL && JIRA_API_TOKEN) {
     return {

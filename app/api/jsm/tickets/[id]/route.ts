@@ -49,7 +49,7 @@ interface JsmCommentsResponse {
 
 export async function GET(
   _req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: ticketKey } = await params;
   const authCtx = await getJiraAuthContext();
@@ -108,7 +108,7 @@ export async function GET(
           isPublic: true,
         },
       ],
-      backendUrl: `https://emsmc.atlassian.net/browse/${ticketKey}`,
+      backendUrl: `https://emsmc1.atlassian.netbrowse/${ticketKey}`,
       isMock: true,
     };
 
@@ -125,7 +125,7 @@ export async function GET(
           Accept: "application/json",
         },
         cache: "no-store",
-      }
+      },
     );
 
     let jsmData: JsmRequestResponse | null = null;
@@ -145,7 +145,7 @@ export async function GET(
             Accept: "application/json",
           },
           cache: "no-store",
-        }
+        },
       );
       if (issueRes.ok) {
         const issueData = await issueRes.json();
@@ -168,7 +168,7 @@ export async function GET(
             Accept: "application/json",
           },
           cache: "no-store",
-        }
+        },
       );
 
       if (statusRes.ok) {
@@ -203,7 +203,7 @@ export async function GET(
             Accept: "application/json",
           },
           cache: "no-store",
-        }
+        },
       );
 
       if (commentsRes.ok) {
@@ -251,7 +251,9 @@ export async function GET(
       statusHistory,
       comments,
       portalUrl: jsmData?._links?.web,
-      backendUrl: jsmData?._links?.web ? `${new URL(jsmData._links.web).origin}/browse/${ticketKey}` : undefined,
+      backendUrl: jsmData?._links?.web
+        ? `${new URL(jsmData._links.web).origin}/browse/${ticketKey}`
+        : undefined,
     };
 
     return NextResponse.json(detail);

@@ -78,7 +78,7 @@ export default function ArticleViewerPage() {
     const baseUrl =
       articleData?.baseUrl && !articleData.baseUrl.includes("sandbox")
         ? articleData.baseUrl
-        : "https://emsmc.atlassian.net";
+        : "https://emsmc1.atlassian.net";
 
     const sdId = serviceDeskId || "1";
     const targetUrl = `${baseUrl}/servicedesk/customer/portal/${sdId}/create/${finalRequestTypeId}`;

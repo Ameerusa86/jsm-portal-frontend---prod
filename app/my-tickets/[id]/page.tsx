@@ -11,9 +11,9 @@ export default async function SingleTicketPage({
   const baseUrl =
     process.env.JIRA_BASE_URL && !process.env.JIRA_BASE_URL.includes("sandbox")
       ? process.env.JIRA_BASE_URL.replace(/\/+$/, "")
-      : "https://emsmc.atlassian.net";
-  
+      : "https://emsmc1.atlassian.net";
+
   const myTicketsUrl = `${baseUrl}/servicedesk/customer/user/requests?issueKey=${resolvedParams.id}`;
-  
+
   redirect(myTicketsUrl);
 }

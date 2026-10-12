@@ -10,9 +10,10 @@ import { classifyRequestType } from "@/lib/classifier";
 
 export async function GET(req: NextRequest) {
   const authCtx = await getJiraAuthContext();
-  
+
   const searchParams = req.nextUrl.searchParams;
-  const serviceDeskId = searchParams.get("serviceDeskId") || authCtx.serviceDeskId;
+  const serviceDeskId =
+    searchParams.get("serviceDeskId") || authCtx.serviceDeskId;
 
   // If credentials are not configured, seamlessly return mock data for local testing
   if (!authCtx.isConfigured || !serviceDeskId) {
@@ -24,16 +25,24 @@ export async function GET(req: NextRequest) {
 
   try {
     let serviceDeskIdsToFetch: string[] = [];
-    
+
     if (serviceDeskId === "all") {
       // Fetch all service desks
-      const sdRes = await fetch(`${authCtx.baseUrl}/rest/servicedeskapi/servicedesk`, {
-        headers: { Authorization: authCtx.authHeader, Accept: "application/json" },
-        cache: "no-store",
-      });
+      const sdRes = await fetch(
+        `${authCtx.baseUrl}/rest/servicedeskapi/servicedesk`,
+        {
+          headers: {
+            Authorization: authCtx.authHeader,
+            Accept: "application/json",
+          },
+          cache: "no-store",
+        },
+      );
       if (sdRes.ok) {
         const sdData = await sdRes.json();
-        serviceDeskIdsToFetch = (sdData.values || []).map((sd: any) => String(sd.id));
+        serviceDeskIdsToFetch = (sdData.values || []).map((sd: any) =>
+          String(sd.id),
+        );
       } else {
         serviceDeskIdsToFetch = [authCtx.serviceDeskId || "1"]; // fallback
       }
@@ -74,23 +83,23 @@ export async function GET(req: NextRequest) {
 
           let groupName = "General Requests";
           switch (categoryKey) {
-            case 'WORK_ORDERS':
+            case "WORK_ORDERS":
               groupName = "Work Orders";
               break;
-            case 'PROBLEMS':
+            case "PROBLEMS":
               groupName = "Problems";
               break;
-            case 'AUTOMATIONS':
+            case "AUTOMATIONS":
               groupName = "Automations and Reports";
               break;
-            case 'SUGGESTIONS':
+            case "SUGGESTIONS":
               groupName = "Suggestions";
               break;
           }
 
           const baseUrl =
             process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
-            "https://emsmc.atlassian.net";
+            "https://emsmc1.atlassian.net";
           const portalUrl = `${baseUrl}/servicedesk/customer/portal/${currentSdId}/create/${rt.id}`;
 
           return {
@@ -100,7 +109,7 @@ export async function GET(req: NextRequest) {
             group: groupName,
             portalUrl,
             // Track the original service desk ID for cross-board scenarios
-            serviceDeskId: currentSdId
+            serviceDeskId: currentSdId,
           };
         },
       );

@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useRef,
-  useCallback,
-  Suspense,
-} from "react";
+import { useState, useRef, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 
@@ -37,7 +32,7 @@ function HelpCenterContent() {
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [boardFilter, setBoardFilter] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || "all"
+    searchParams.get("category") || "all",
   );
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isFinderOpen, setIsFinderOpen] = useState(false);
@@ -78,11 +73,13 @@ function HelpCenterContent() {
 
   // 5. Open request type form directly in a NEW TAB (Pure Production)
   const handleSelectType = useCallback(
-    (rt: RequestTypeWithGroup & { portalUrl?: string; serviceDeskId?: string }) => {
+    (
+      rt: RequestTypeWithGroup & { portalUrl?: string; serviceDeskId?: string },
+    ) => {
       setSearchQuery("");
       setIsSearchOpen(false);
 
-      const baseUrl = "https://emsmc.atlassian.net";
+      const baseUrl = "https://emsmc1.atlassian.net";
       const sdId = rt.serviceDeskId || spaceParamId || "1";
 
       const targetPortalUrl =
@@ -93,7 +90,7 @@ function HelpCenterContent() {
       // Open Jira request creation form in a new tab
       window.open(targetPortalUrl, "_blank", "noopener,noreferrer");
     },
-    [spaceParamId]
+    [spaceParamId],
   );
 
   const handleBackToSpaces = () => {
