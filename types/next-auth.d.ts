@@ -7,6 +7,7 @@ declare module "next-auth" {
     cloudId?: string;
     siteUrl?: string;
     error?: string;
+    accessibleResources?: Array<{ id: string; url: string; name: string }>;
     user: {
       id?: string;
     } & DefaultSession["user"];
@@ -21,5 +22,6 @@ declare module "next-auth/jwt" {
     cloudId?: string;
     siteUrl?: string;
     error?: string;
+    accessibleResources?: Array<{ id: string; url: string; name: string }>;
   }
 }

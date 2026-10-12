@@ -75,15 +75,15 @@ export default function ArticleViewerPage() {
     const finalRequestTypeId =
       requestTypeId || articleData?.mappedRequestTypeId;
 
-    if (USE_NATIVE_PORTAL && articleData?.baseUrl) {
-      // Option A: Redirect to Native Atlassian Portal
-      window.location.href = `${articleData.baseUrl}/servicedesk/customer/portal/${serviceDeskId}/create/${finalRequestTypeId}`;
-    } else {
-      // Option B: Stay in custom Next.js portal
-      router.push(
-        `/?space=${serviceDeskId}&request=${finalRequestTypeId}&forceForm=true`,
-      );
-    }
+    const baseUrl =
+      articleData?.baseUrl && !articleData.baseUrl.includes("sandbox")
+        ? articleData.baseUrl
+        : "https://emsmc.atlassian.net";
+
+    const sdId = serviceDeskId || "1";
+    const targetUrl = `${baseUrl}/servicedesk/customer/portal/${sdId}/create/${finalRequestTypeId}`;
+
+    window.open(targetUrl, "_blank", "noopener,noreferrer");
   };
 
   return (

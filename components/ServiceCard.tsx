@@ -11,17 +11,18 @@ import {
   FileText,
   Layers,
   ArrowRight,
-  Clock,
 } from "lucide-react";
 
 interface ServiceCardProps {
   requestType: RequestType & { group?: string };
+  boardName?: string;
   onClick: () => void;
   variant?: "grid" | "list";
 }
 
 export const ServiceCard: React.FC<ServiceCardProps> = ({
   requestType,
+  boardName,
   onClick,
   variant = "grid",
 }) => {
@@ -31,7 +32,6 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     // Dynamically assign icons and colors based on keywords
     let icon = FileText;
     let bg = "bg-slate-100 text-slate-700 border-slate-200 group-hover:bg-slate-800 group-hover:text-white";
-    let badgeColor = "bg-slate-100 text-slate-700 border-slate-200/60";
 
     if (
       text.includes("vpn") ||
@@ -42,7 +42,6 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       icon = Wifi;
       bg = "bg-blue-50 text-blue-600 border-blue-200/80 group-hover:bg-blue-600 group-hover:text-white";
-      badgeColor = "bg-blue-50 text-blue-700 border-blue-200/60";
     } else if (
       text.includes("password") ||
       text.includes("access") ||
@@ -55,7 +54,6 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       icon = KeyRound;
       bg = "bg-amber-50 text-amber-600 border-amber-200/80 group-hover:bg-amber-600 group-hover:text-white";
-      badgeColor = "bg-amber-50 text-amber-700 border-amber-200/60";
     } else if (
       text.includes("hardware") ||
       text.includes("laptop") ||
@@ -69,7 +67,6 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       icon = Laptop;
       bg = "bg-purple-50 text-purple-600 border-purple-200/80 group-hover:bg-purple-600 group-hover:text-white";
-      badgeColor = "bg-purple-50 text-purple-700 border-purple-200/60";
     } else if (
       text.includes("software") ||
       text.includes("license") ||
@@ -80,7 +77,6 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       icon = Layers;
       bg = "bg-indigo-50 text-indigo-600 border-indigo-200/80 group-hover:bg-indigo-600 group-hover:text-white";
-      badgeColor = "bg-indigo-50 text-indigo-700 border-indigo-200/60";
     } else if (
       text.includes("onboard") ||
       text.includes("employee") ||
@@ -91,7 +87,6 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       icon = Users;
       bg = "bg-emerald-50 text-emerald-600 border-emerald-200/80 group-hover:bg-emerald-600 group-hover:text-white";
-      badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
     } else if (
       text.includes("incident") ||
       text.includes("bug") ||
@@ -101,18 +96,15 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       icon = AlertCircle;
       bg = "bg-rose-50 text-rose-600 border-rose-200/80 group-hover:bg-rose-600 group-hover:text-white";
-      badgeColor = "bg-rose-50 text-rose-700 border-rose-200/60";
     }
 
     return {
       icon,
       bg,
-      badge: requestType.group || "General Request",
-      badgeColor,
     };
   };
 
-  const { icon: IconComponent, bg, badge, badgeColor } = getMetadata();
+  const { icon: IconComponent, bg } = getMetadata();
 
   // -------------------------------------------------------------
   // VARIANT 1: COMPACT LIST VIEW
@@ -135,6 +127,11 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
               <h3 className="font-bold text-slate-900 group-hover:text-blue-700 transition-colors text-sm sm:text-base leading-snug tracking-tight">
                 {requestType.name}
               </h3>
+              {boardName && (
+                <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-600 rounded-full border border-slate-200">
+                  {boardName}
+                </span>
+              )}
             </div>
 
             <p className="text-xs text-slate-500 line-clamp-1 leading-relaxed">
@@ -164,12 +161,17 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
       <div className="absolute top-0 inset-x-0 h-1.5 bg-slate-100 group-hover:bg-blue-500 transition-colors duration-300" />
 
       <div>
-        <div className="flex items-start mb-5">
+        <div className="flex items-start justify-between mb-5 gap-2">
           <div
-            className={`w-14 h-14 rounded-2xl border flex items-center justify-center transition-all duration-300 shadow-sm ${bg}`}
+            className={`w-14 h-14 rounded-2xl border flex items-center justify-center transition-all duration-300 shadow-sm shrink-0 ${bg}`}
           >
             <IconComponent className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
           </div>
+          {boardName && (
+            <span className="px-2.5 py-1 text-[11px] font-medium bg-slate-100 text-slate-600 rounded-lg border border-slate-200/60 line-clamp-2 text-right">
+              {boardName}
+            </span>
+          )}
         </div>
 
         <h3 className="font-extrabold text-slate-900 group-hover:text-blue-700 transition-colors text-base sm:text-lg leading-snug tracking-tight mb-2">

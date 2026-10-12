@@ -183,3 +183,20 @@ export interface TicketDetail {
   backendUrl?: string;
   isMock?: boolean;
 }
+
+export interface JsmSpace {
+  id: string;
+  projectName: string;
+  category?: string;
+  [key: string]: unknown;
+}
+
+export interface KnowledgeBaseArticle {
+  title?: string;
+  excerpt?: string;
+  portalUrl?: string;
+  content?: {
+    iframeSrc?: string;
+  };
+  [key: string]: unknown;
+}

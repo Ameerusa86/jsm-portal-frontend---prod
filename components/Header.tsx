@@ -142,13 +142,15 @@ export const Header: React.FC<HeaderProps> = ({ onHomeClick }) => {
 
           {/* Navigation / User Controls */}
           <div className="flex items-center gap-3">
-            <Link
+            <a
               href="/my-tickets"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs sm:text-sm font-semibold transition-all cursor-pointer"
             >
               <Ticket className="w-4 h-4 text-blue-400" />
               <span>My Tickets</span>
-            </Link>
+            </a>
 
             {status === "loading" ? (
               <div className="w-8 h-8 rounded-full bg-slate-800 animate-pulse" />
@@ -189,14 +191,16 @@ export const Header: React.FC<HeaderProps> = ({ onHomeClick }) => {
                       </p>
                     </div>
 
-                    <Link
+                    <a
                       href="/my-tickets"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-200 hover:bg-slate-700 hover:text-white transition-colors"
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-200 hover:bg-slate-700 hover:text-white transition-colors cursor-pointer"
                     >
                       <Ticket className="w-4 h-4 text-blue-400" />
                       <span>View My Tickets</span>
-                    </Link>
+                    </a>
 
                     <button
                       onClick={() => {
