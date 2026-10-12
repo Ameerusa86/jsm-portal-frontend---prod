@@ -108,7 +108,7 @@ export async function GET(
           isPublic: true,
         },
       ],
-      backendUrl: `https://mock.atlassian.net/browse/${ticketKey}`,
+      backendUrl: `https://emsmc.atlassian.net/browse/${ticketKey}`,
       isMock: true,
     };
 

@@ -88,7 +88,9 @@ export async function GET(req: NextRequest) {
               break;
           }
 
-          const baseUrl = process.env.JIRA_BASE_URL?.replace(/\/+$/, "") || "https://emsmc-sandbox.atlassian.net";
+          const baseUrl =
+            process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
+            "https://emsmc.atlassian.net";
           const portalUrl = `${baseUrl}/servicedesk/customer/portal/${currentSdId}/create/${rt.id}`;
 
           return {

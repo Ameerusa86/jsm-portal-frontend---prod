@@ -81,15 +81,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
 
-        const configuredBaseUrl = process.env.JIRA_BASE_URL?.replace(
-          /\/+$/,
-          "",
-        );
-        if (configuredBaseUrl) {
-          token.siteUrl = configuredBaseUrl;
-        }
+        const configuredBaseUrl =
+          process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
+          "https://emsmc.atlassian.net";
+        token.siteUrl = configuredBaseUrl;
 
-        // Fetch accessible resources (Atlassian Cloud sites)
+        // Fetch accessible resources (Atlassian Cloud sites) - STRICTLY production only
         try {
           if (account.access_token) {
             const res = await fetch(
@@ -109,13 +106,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 name: string;
               }>;
               if (Array.isArray(resources) && resources.length > 0) {
-                let targetResource = resources[0];
-                if (configuredBaseUrl) {
-                  const match = resources.find(
-                    (r) => r.url.replace(/\/+$/, "") === configuredBaseUrl,
-                  );
-                  if (match) targetResource = match;
-                }
+                // Strictly exclude any sandbox environment to guarantee PURE production
+                const prodResources = resources.filter(
+                  (r) =>
+                    !r.url.toLowerCase().includes("sandbox") &&
+                    !(r.name || "").toLowerCase().includes("sandbox"),
+                );
+                const candidates =
+                  prodResources.length > 0 ? prodResources : resources;
+
+                const match = candidates.find(
+                  (r) =>
+                    r.url.replace(/\/+$/, "").toLowerCase() ===
+                    configuredBaseUrl.toLowerCase(),
+                );
+                const targetResource = match || candidates[0];
+
                 token.cloudId = targetResource.id;
                 token.siteUrl = targetResource.url.replace(/\/+$/, "");
               }

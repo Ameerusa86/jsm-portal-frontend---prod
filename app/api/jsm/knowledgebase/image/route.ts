@@ -12,12 +12,13 @@ export async function GET(request: NextRequest) {
     }
 
     const { JIRA_BASE_URL, JIRA_USER_EMAIL, JIRA_API_TOKEN } = process.env;
+    const cleanBaseUrl =
+      process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
+      "https://emsmc.atlassian.net";
 
-    if (!JIRA_BASE_URL || !JIRA_USER_EMAIL || !JIRA_API_TOKEN) {
+    if (!JIRA_USER_EMAIL || !JIRA_API_TOKEN) {
       return new NextResponse("System Account API token is missing.", { status: 501 });
     }
-
-    const cleanBaseUrl = JIRA_BASE_URL.replace(/\/+$/, "");
 
     // If the image URL is relative (starts with /), append it to the base URL
     if (imageUrl.startsWith("/")) {

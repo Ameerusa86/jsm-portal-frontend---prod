@@ -15,15 +15,16 @@ export async function GET(request: NextRequest) {
     // To bypass the restrictive OAuth scope requirements for Confluence,
     // we use the System Account API token if available in the environment.
     const { JIRA_BASE_URL, JIRA_USER_EMAIL, JIRA_API_TOKEN } = process.env;
+    const cleanBaseUrl =
+      process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
+      "https://emsmc.atlassian.net";
 
-    if (!JIRA_BASE_URL || !JIRA_USER_EMAIL || !JIRA_API_TOKEN) {
+    if (!JIRA_USER_EMAIL || !JIRA_API_TOKEN) {
       return NextResponse.json({
         error: "System Account API token is missing.",
         message: "To render Knowledge Base articles natively, please add JIRA_API_TOKEN and JIRA_USER_EMAIL to your .env.local file. Otherwise, we must revert to opening articles in a new tab."
       }, { status: 501 });
     }
-
-    const cleanBaseUrl = JIRA_BASE_URL.replace(/\/+$/, "");
     
     // Confluence API using Basic Auth
     // Expand body.view for content, and metadata.labels to parse rt-* labels
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
       (match: string, url: string) => `src="/api/jsm/knowledgebase/image?url=${encodeURIComponent(url)}"`
     );
     
-    // Match absolute Atlassian images (e.g. https://emsmc-sandbox.atlassian.net/wiki/...)
+    // Match absolute Atlassian images (e.g. https://emsmc.atlassian.net/wiki/...)
     // Safely escape the cleanBaseUrl for regex
     const escapedBaseUrl = cleanBaseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const absoluteRegex = new RegExp(`src=["'](${escapedBaseUrl}[^"']+)["']`, "g");

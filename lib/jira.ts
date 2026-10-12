@@ -40,7 +40,7 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
   try {
     const session = await auth();
     if (session?.accessToken) {
-      let cloudId = session.cloudId;
+      let cloudId = session.cloudId || process.env.ATLASSIAN_CLOUD_ID;
 
       // If cloudId wasn't cached in session yet, resolve from accessible-resources
       if (!cloudId) {
@@ -57,12 +57,24 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
           if (res.ok) {
             const resources = await res.json();
             if (Array.isArray(resources) && resources.length > 0) {
-              const configuredUrl = process.env.JIRA_BASE_URL?.replace(/\/+$/, "");
-              let targetResource = resources[0];
-              if (configuredUrl) {
-                const match = resources.find(r => r.url.replace(/\/+$/, "") === configuredUrl);
-                if (match) targetResource = match;
-              }
+              const configuredUrl =
+                process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
+                "https://emsmc.atlassian.net";
+              // Strictly exclude any sandbox environment to guarantee PURE production
+              const prodResources = resources.filter(
+                (r: { url: string; name?: string }) =>
+                  !r.url.toLowerCase().includes("sandbox") &&
+                  !(r.name || "").toLowerCase().includes("sandbox"),
+              );
+              const candidates =
+                prodResources.length > 0 ? prodResources : resources;
+
+              const match = candidates.find(
+                (r: { url: string }) =>
+                  r.url.replace(/\/+$/, "").toLowerCase() ===
+                  configuredUrl.toLowerCase(),
+              );
+              const targetResource = match || candidates[0];
               cloudId = targetResource.id;
             }
           }
@@ -97,15 +109,19 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
   }
 
   // 2. Fallback to Basic Auth if environment variables are provided
-  if (JIRA_BASE_URL && JIRA_USER_EMAIL && JIRA_API_TOKEN) {
-    const cleanUrl = JIRA_BASE_URL.replace(/\/+$/, "");
+  const targetBaseUrl =
+    process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
+    "https://emsmc.atlassian.net";
+
+  if (JIRA_USER_EMAIL && JIRA_API_TOKEN) {
     return {
       isConfigured: true,
       authType: "basic",
       authHeader: `Basic ${Buffer.from(
         `${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}`,
       ).toString("base64")}`,
-      baseUrl: cleanUrl,
+      baseUrl: targetBaseUrl,
+      cloudId: process.env.ATLASSIAN_CLOUD_ID,
       serviceDeskId: JIRA_SERVICE_DESK_ID,
       userEmail: JSM_EMPLOYEE_EMAIL || JIRA_USER_EMAIL,
     };

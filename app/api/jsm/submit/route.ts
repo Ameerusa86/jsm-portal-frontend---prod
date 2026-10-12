@@ -275,20 +275,6 @@ export async function POST(req: Request) {
         createText,
       );
 
-      // If the requestTypeId was a mock ID (e.g. 101, 106, 107) that doesn't exist in live Jira,
-      // fallback to mock ticket creation for a smooth developer/demo experience
-      if (createRes.status === 404 || String(requestTypeId).startsWith("10")) {
-        console.warn(
-          `Request type '${requestTypeId}' not found in live Jira Service Desk. Returning simulated ticket.`,
-        );
-        const mockIssueNum = Math.floor(1000 + Math.random() * 9000);
-        return NextResponse.json({
-          success: true,
-          issueKey: `ITSD-${mockIssueNum}`,
-          isMock: true,
-          notice: "Simulated response: request type not found in connected Jira project.",
-        });
-      }
 
       const jiraError = [
         createData.errorMessage,
