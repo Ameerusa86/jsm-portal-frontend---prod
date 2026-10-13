@@ -1,15 +1,17 @@
 import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 
-export const dynamic = "force-dynamic";
+export default async function MyTicketsPage() {
+  const session = await auth();
+  
+  if (!session) {
+    redirect("/");
+  }
 
-export default function MyTicketsPage() {
-  const baseUrl =
-    process.env.JIRA_BASE_URL && !process.env.JIRA_BASE_URL.includes("sandbox")
-      ? process.env.JIRA_BASE_URL.replace(/\/+$/, "")
-      : "https://emsmc1.atlassian.net";
-
-  // Direct URL to the customer portal "My Requests" page in production
+  const baseUrl = session.siteUrl || process.env.JIRA_BASE_URL?.replace(/\/+$/, "") || "https://emsmc1.atlassian.net";
+  
+  // URL to the customer portal "My Requests" page
   const myTicketsUrl = `${baseUrl}/servicedesk/customer/user/requests`;
-
+  
   redirect(myTicketsUrl);
 }

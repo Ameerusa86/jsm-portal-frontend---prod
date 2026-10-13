@@ -18,7 +18,6 @@ interface JiraSearchResponse {
 
 export async function GET() {
   const authCtx = await getJiraAuthContext();
-  const JIRA_PROJECT_KEY = process.env.JIRA_PROJECT_KEY || "ITSD";
 
   if (!authCtx.isConfigured) {
     return NextResponse.json(

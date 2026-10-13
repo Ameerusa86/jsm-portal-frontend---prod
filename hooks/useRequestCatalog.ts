@@ -57,18 +57,29 @@ export function useRequestCatalog({
   boardFilter,
 }: UseRequestCatalogProps) {
   const [requestTypes, setRequestTypes] = useState<RequestTypeWithGroup[]>([]);
+  const [globalRequestTypes, setGlobalRequestTypes] = useState<RequestTypeWithGroup[]>([]);
   const [requestTypesLoading, setRequestTypesLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // Fetch Request Types when space is selected
+  // Fetch Global Request Types once for Omni-Search (available on all pages/spaces)
   useEffect(() => {
-    if (!spaceParamId) {
-      return;
-    }
+    fetch(`/api/jsm/request-types?serviceDeskId=all`)
+      .then(async (res) => {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setGlobalRequestTypes(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
+  // Fetch Request Types for current view (scoped to specific space or department)
+  useEffect(() => {
     const timer = window.setTimeout(() => {
       setRequestTypesLoading(true);
-      const params = new URLSearchParams({ serviceDeskId: spaceParamId });
+      const params = new URLSearchParams({
+        serviceDeskId: spaceParamId || "all",
+      });
       if (spaceCategoryParam) {
         params.set("spaceCategory", spaceCategoryParam);
       }
@@ -79,7 +90,11 @@ export function useRequestCatalog({
           if (!res.ok || (data && data.error)) {
             throw new Error(data?.error || "Failed to load request catalog");
           }
-          setRequestTypes(Array.isArray(data) ? data : []);
+          const list = Array.isArray(data) ? data : [];
+          setRequestTypes(list);
+          if (!spaceParamId || spaceParamId === "all") {
+            setGlobalRequestTypes(list);
+          }
         })
         .catch((err: unknown) => {
           const message =
@@ -95,28 +110,49 @@ export function useRequestCatalog({
   }, [spaceParamId, spaceCategoryParam]);
 
   const baseRequestTypes = useMemo(() => {
-    if (!spaceCategoryParam) return requestTypes;
-
-    if (spacesLoading) {
-      return [];
-    }
-
-    if (spaces.length === 0) {
-      return requestTypes;
-    }
-
-    const filtered = requestTypes.filter((rt) => {
-      const space = spaces.find(
-        (s) => String(s.id) === String(rt.serviceDeskId),
+    // 1. If viewing a specific space (e.g. /?space=2 for Billing), strictly restrict to that space
+    if (spaceParamId && spaceParamId !== "all") {
+      const scoped = requestTypes.filter(
+        (rt) => String(rt.serviceDeskId) === String(spaceParamId),
       );
+      return scoped;
+    }
 
-      return space
-        ? matchesCategory(space.category, spaceCategoryParam)
-        : matchesCategory("Information Technology", spaceCategoryParam);
+    // 2. If viewing a department/category (e.g. 4 IT cards with spaceCategory=Information Technology)
+    if (spaceCategoryParam) {
+      if (spacesLoading) {
+        return [];
+      }
+
+      if (spaces.length === 0) {
+        return requestTypes;
+      }
+
+      const filtered = requestTypes.filter((rt) => {
+        const space = spaces.find(
+          (s) => String(s.id) === String(rt.serviceDeskId),
+        );
+
+        return space
+          ? matchesCategory(space.category, spaceCategoryParam)
+          : matchesCategory("Information Technology", spaceCategoryParam);
+      });
+
+      return filtered;
+    }
+
+    return requestTypes;
+  }, [requestTypes, spaces, spacesLoading, spaceParamId, spaceCategoryParam]);
+
+  const globalFuse = useMemo(() => {
+    const pool = globalRequestTypes.length > 0 ? globalRequestTypes : requestTypes;
+    return new Fuse(pool, {
+      keys: ["name", "description", "group"],
+      threshold: 0.5,
+      ignoreLocation: true,
+      minMatchCharLength: 3,
     });
-
-    return filtered.length > 0 ? filtered : requestTypes;
-  }, [requestTypes, spaces, spacesLoading, spaceCategoryParam]);
+  }, [globalRequestTypes, requestTypes]);
 
   const fuse = useMemo(() => {
     return new Fuse(baseRequestTypes, {
@@ -140,6 +176,11 @@ export function useRequestCatalog({
   }, [fuse, searchQuery, baseRequestTypes]);
 
   const availableBoards = useMemo(() => {
+    // Never show cross-board filters when viewing a single specific space
+    if (spaceParamId && spaceParamId !== "all") {
+      return [];
+    }
+
     const boards = new Set<string>();
     searchResults.forEach((rt) => {
       const groupName = rt.group || "General Requests";
@@ -147,12 +188,12 @@ export function useRequestCatalog({
         selectedCategory === "all" ||
         groupName.toLowerCase() === selectedCategory.toLowerCase()
       ) {
-        const space = spaces.find((s) => s.id === rt.serviceDeskId);
+        const space = spaces.find((s) => String(s.id) === String(rt.serviceDeskId));
         boards.add(space ? space.projectName : "Other Boards");
       }
     });
     return Array.from(boards).sort();
-  }, [searchResults, selectedCategory, spaces]);
+  }, [searchResults, selectedCategory, spaces, spaceParamId]);
 
   const filteredTypes = useMemo(() => {
     return searchResults.filter((rt) => {
@@ -171,7 +212,7 @@ export function useRequestCatalog({
 
       let boardMatch = true;
       if (boardFilter !== "all") {
-        const space = spaces.find((s) => s.id === rt.serviceDeskId);
+        const space = spaces.find((s) => String(s.id) === String(rt.serviceDeskId));
         const bName = space ? space.projectName : "Other Boards";
         boardMatch = bName === boardFilter;
       }
@@ -183,8 +224,14 @@ export function useRequestCatalog({
   const searchDropdownResults = useMemo(() => {
     const query = searchQuery.trim();
     if (!query) return [];
-    return searchResults;
-  }, [searchQuery, searchResults]);
+
+    const stopWords =
+      /\b(i|me|my|myself|we|our|ours|ourselves|you|your|yours|he|him|his|she|her|hers|it|its|they|them|their|what|which|who|whom|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|s|t|can|will|just|don|should|now|cant|cannot)\b/gi;
+    const cleanQuery = query.replace(stopWords, "").replace(/\s+/g, " ").trim();
+    const finalQuery = cleanQuery.length > 2 ? cleanQuery : query;
+
+    return globalFuse.search(finalQuery).map((result) => result.item);
+  }, [globalFuse, searchQuery]);
 
   const categoriesWithCounts = useMemo(() => {
     const counts: Record<string, number> = { all: baseRequestTypes.length };
@@ -206,23 +253,18 @@ export function useRequestCatalog({
   const groupedRequests = useMemo(() => {
     return filteredTypes.reduce(
       (acc, rt) => {
-        let groupName = rt.group || "General Requests";
-
-        if (selectedCategory !== "all" && !searchQuery) {
-          const space = spaces.find((s) => s.id === rt.serviceDeskId);
-          groupName = space ? space.projectName : "Other Boards";
-        }
-
+        const groupName = rt.group || "General Requests";
         if (!acc[groupName]) acc[groupName] = [];
         acc[groupName].push(rt);
         return acc;
       },
       {} as Record<string, RequestTypeWithGroup[]>,
     );
-  }, [filteredTypes, selectedCategory, spaces, searchQuery]);
+  }, [filteredTypes]);
 
   return {
     requestTypes,
+    globalRequestTypes,
     requestTypesLoading,
     apiError,
     setApiError,

@@ -42,8 +42,9 @@ export async function GET(request: NextRequest) {
       .join(" OR ");
 
     // Call the Service Desk Knowledge Base API
-    // GET /rest/servicedeskapi/servicedesk/{serviceDeskId}/knowledgebase/article?query={query}
-    const apiUrl = `${baseUrl}/rest/servicedeskapi/servicedesk/${serviceDeskId}/knowledgebase/article?query=${encodeURIComponent(
+    // GET /rest/servicedeskapi/knowledgebase/article?query={query}
+    // This searches across all service desks the user has access to, giving consistent results everywhere.
+    const apiUrl = `${baseUrl}/rest/servicedeskapi/knowledgebase/article?query=${encodeURIComponent(
       fuzzyQuery
     )}`;
 
@@ -66,17 +67,27 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
     
+    const requestedServiceDeskId = searchParams.get("serviceDeskId");
+    
     // Inject the proper customer portal URL for each article so they can be opened safely
-    const articles = (data.values || []).map((article: any) => {
-      const articleId = article.source?.pageId || article.id;
-      // Route internally to our custom Article viewer page
-      const portalUrl = `/article/${articleId}?serviceDeskId=${serviceDeskId}`;
-      
-      return {
-        ...article,
-        portalUrl,
-      };
-    });
+    const articles = (data.values || []).map(
+      (article: Record<string, unknown> & { id?: string | number; source?: { pageId?: string }; portalUrl?: string }) => {
+        const articleId = article.source?.pageId || article.id;
+        // Route internally to our custom Article viewer page
+        // We pass the resolved serviceDeskId (which falls back to defaultServiceDeskId) 
+        // so the "Submit a Ticket" button on the article page has a portal to point to.
+        // However, we append &fromHome=true if they searched from the global home page so the back button knows where to go.
+        let portalUrl = `/article/${articleId}?serviceDeskId=${serviceDeskId}`;
+        if (!requestedServiceDeskId) {
+          portalUrl += "&fromHome=true";
+        }
+        
+        return {
+          ...article,
+          portalUrl,
+        };
+      },
+    );
 
     return NextResponse.json({
       results: articles,

@@ -5,17 +5,19 @@ export async function GET(request: Request) {
   const authCtx = await getJiraAuthContext();
 
   const baseUrl =
-    authCtx.baseUrl.startsWith("http") &&
-    !authCtx.baseUrl.includes("api.atlassian.com")
+    authCtx.baseUrl.startsWith("http") && !authCtx.baseUrl.includes("api.atlassian.com")
       ? authCtx.baseUrl.replace(/\/+$/, "")
-      : process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
-        "https://emsmc1.atlassian.net";
+      : process.env.JIRA_BASE_URL?.replace(/\/+$/, "");
   const searchParams = new URL(request.url).searchParams;
   const view = searchParams.get("view");
   const ticketKey = searchParams.get("key");
   const sdParam = searchParams.get("serviceDeskId");
   const serviceDeskId =
-    sdParam || authCtx.serviceDeskId || process.env.JIRA_SERVICE_DESK_ID;
+    sdParam ||
+    authCtx.serviceDeskId ||
+    process.env.JIRA_SERVICE_DESK_ID ||
+    process.env.JIRA_SERVICE_DESK ||
+    process.env.JSM_SERVICE_DESK_ID;
 
   if (!baseUrl || !serviceDeskId) {
     return new Response("Jira portal is not configured.", { status: 503 });

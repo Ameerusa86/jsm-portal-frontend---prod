@@ -12,20 +12,28 @@ import {
   Layers,
   ArrowRight,
   Clock,
-  Sparkles,
   Search,
 } from "lucide-react";
+
+export type DropdownKbArticle = {
+  title?: string;
+  excerpt?: string;
+  portalUrl?: string;
+  content?: {
+    iframeSrc?: string;
+  };
+  [key: string]: unknown;
+};
 
 interface QuickSearchDropdownProps {
   isOpen: boolean;
   query: string;
   results: RequestTypeWithGroup[];
-  kbResults?: any[];
+  kbResults?: DropdownKbArticle[];
   kbLoading?: boolean;
   selectedIndex: number;
   onSelect: (rt: RequestTypeWithGroup) => void;
   onClose: () => void;
-  onOpenFinder: () => void;
 }
 
 export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
@@ -37,7 +45,6 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
   selectedIndex,
   onSelect,
   onClose,
-  onOpenFinder,
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -163,7 +170,7 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
         </span>
       </div>
 
-      <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100">
+      <div className="max-h-[60vh] sm:max-h-[380px] overflow-y-auto divide-y divide-slate-100 scroll-smooth">
         {kbLoading && (
           <div className="p-4 text-center text-sm text-slate-500 flex items-center justify-center gap-2 border-b border-slate-100">
             <Clock className="w-4 h-4 animate-spin" />
@@ -212,7 +219,7 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
         )}
         {results.map((rt, index) => {
           const isSelected = index === selectedIndex;
-          const { icon: Icon, bg, sla } = getServiceMeta(rt);
+          const { icon: Icon, bg } = getServiceMeta(rt);
 
           return (
             <button

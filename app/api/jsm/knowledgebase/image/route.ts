@@ -12,15 +12,12 @@ export async function GET(request: NextRequest) {
     }
 
     const { JIRA_BASE_URL, JIRA_USER_EMAIL, JIRA_API_TOKEN } = process.env;
-    const cleanBaseUrl =
-      process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
-      "https://emsmc1.atlassian.net";
 
-    if (!JIRA_USER_EMAIL || !JIRA_API_TOKEN) {
-      return new NextResponse("System Account API token is missing.", {
-        status: 501,
-      });
+    if (!JIRA_BASE_URL || !JIRA_USER_EMAIL || !JIRA_API_TOKEN) {
+      return new NextResponse("System Account API token is missing.", { status: 501 });
     }
+
+    const cleanBaseUrl = JIRA_BASE_URL.replace(/\/+$/, "");
 
     // If the image URL is relative (starts with /), append it to the base URL
     if (imageUrl.startsWith("/")) {
@@ -43,19 +40,13 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      console.error(
-        `Failed to fetch image ${imageUrl}. Status:`,
-        response.status,
-      );
-      return new NextResponse("Failed to fetch image", {
-        status: response.status,
-      });
+      console.error(`Failed to fetch image ${imageUrl}. Status:`, response.status);
+      return new NextResponse("Failed to fetch image", { status: response.status });
     }
 
     // Pass the content type through (e.g. image/png, image/jpeg)
-    const contentType =
-      response.headers.get("Content-Type") || "application/octet-stream";
-
+    const contentType = response.headers.get("Content-Type") || "application/octet-stream";
+    
     // Get the raw binary stream
     const arrayBuffer = await response.arrayBuffer();
 

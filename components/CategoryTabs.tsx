@@ -9,16 +9,20 @@ import {
   Sparkles,
   KeyRound,
   AlertCircle,
-  Compass,
   LayoutGrid,
   List,
+  CreditCard,
+  FileText,
+  Zap,
+  HelpCircle,
+  Briefcase,
+  DollarSign,
 } from "lucide-react";
 
 interface CategoryTabsProps {
   categories: { name: string; count: number }[];
   activeCategory: string;
   onSelectCategory: (category: string) => void;
-  onOpenFinder?: () => void;
   viewMode?: "grid" | "list";
   onToggleViewMode?: (mode: "grid" | "list") => void;
 }
@@ -27,13 +31,17 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
   categories,
   activeCategory,
   onSelectCategory,
-  onOpenFinder,
   viewMode = "grid",
   onToggleViewMode,
 }) => {
   const getCategoryIcon = (name: string) => {
     const n = name.toLowerCase();
-    if (n.includes("incident") || n.includes("urgent") || n.includes("outage"))
+    if (
+      n.includes("incident") ||
+      n.includes("urgent") ||
+      n.includes("outage") ||
+      n.includes("problem")
+    )
       return AlertCircle;
     if (
       n.includes("hardware") ||
@@ -57,12 +65,37 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
     )
       return KeyRound;
     if (
+      n.includes("invoice") ||
+      n.includes("billing") ||
+      n.includes("payment") ||
+      n.includes("remittance")
+    )
+      return CreditCard;
+    if (
+      n.includes("refund") ||
+      n.includes("adjustment") ||
+      n.includes("ledger") ||
+      n.includes("finance") ||
+      n.includes("accounting")
+    )
+      return DollarSign;
+    if (
       n.includes("people") ||
       n.includes("onboard") ||
       n.includes("workplace") ||
-      n.includes("team")
+      n.includes("team") ||
+      n.includes("hr") ||
+      n.includes("hiring")
     )
       return Users;
+    if (n.includes("benefit") || n.includes("leave") || n.includes("payroll"))
+      return Briefcase;
+    if (n.includes("automation") || n.includes("report"))
+      return Zap;
+    if (n.includes("work order") || n.includes("order"))
+      return FileText;
+    if (n.includes("inquir") || n.includes("support") || n.includes("assist"))
+      return HelpCircle;
     if (n.includes("software") || n.includes("cloud") || n.includes("app"))
       return Layers;
     if (n === "all") return Sparkles;
@@ -72,7 +105,7 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
   return (
     <div className="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
       {/* Category Pills (horizontally scrollable on small screens) */}
-      <div className="flex flex-wrap items-center gap-2 pb-1 sm:pb-0 flex-1">
+      <div className="flex overflow-x-auto sm:flex-wrap items-center gap-2 pb-2 sm:pb-0 flex-1 no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0">
         {categories.map((cat) => {
           const isActive = activeCategory === cat.name;
           const Icon = getCategoryIcon(cat.name);
@@ -138,17 +171,6 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
               <List className="w-4 h-4" />
             </button>
           </div>
-        )}
-
-        {onOpenFinder && (
-          <button
-            type="button"
-            onClick={onOpenFinder}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100/80 text-blue-700 hover:text-blue-800 border border-blue-200/80 text-xs sm:text-sm font-semibold transition-all cursor-pointer shadow-xs whitespace-nowrap"
-          >
-            <Compass className="w-4 h-4 text-blue-600" />
-            <span>Help Me Choose</span>
-          </button>
         )}
       </div>
     </div>

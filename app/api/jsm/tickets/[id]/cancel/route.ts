@@ -36,7 +36,7 @@ export async function POST(
     const transitions = transitionsData.values || [];
 
     // Find a transition that sounds like a cancel/close
-    const cancelTransition = transitions.find((t: any) => {
+    const cancelTransition = transitions.find((t: { name?: string; id?: string }) => {
       const name = (t.name || "").toLowerCase();
       return name.includes("cancel") || name.includes("close") || name.includes("resolve");
     });

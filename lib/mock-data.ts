@@ -87,67 +87,245 @@ export const MOCK_GROUPS: MockGroup[] = [
   },
 ];
 
+export interface MockSpace {
+  id: string;
+  projectName: string;
+  projectKey: string;
+  category: string;
+}
+
+export const MOCK_SPACES: MockSpace[] = [
+  {
+    id: "4",
+    projectName: "Information Technology",
+    projectKey: "IT",
+    category: "Information Technology",
+  },
+  {
+    id: "2",
+    projectName: "Billing & Revenue",
+    projectKey: "BILL",
+    category: "Finance & Accounting",
+  },
+  {
+    id: "3",
+    projectName: "Human Resources",
+    projectKey: "HR",
+    category: "People & Culture",
+  },
+  {
+    id: "5",
+    projectName: "Client Operations",
+    projectKey: "OPS",
+    category: "Customer Support",
+  },
+];
+
 export interface MockRequestType {
   id: string;
   name: string;
   description: string;
   group: string;
+  serviceDeskId?: string;
+  portalUrl?: string;
 }
 
 export const MOCK_REQUEST_TYPES: MockRequestType[] = [
+  // --- INFORMATION TECHNOLOGY (Service Desk 4) ---
   {
     id: "101",
     name: "VPN & Remote Network Access",
     description: "Request VPN configuration, tunnel access, certificates, or troubleshoot home network connectivity issues.",
-    group: "Logins & Access",
+    group: "Work Orders",
+    serviceDeskId: "4",
   },
   {
     id: "102",
     name: "Reset Password or Unlock MFA",
     description: "Unlock Okta/SSO accounts, reset enterprise passwords, or re-sync Authenticator and hardware security keys.",
-    group: "Logins & Access",
+    group: "Problems",
+    serviceDeskId: "4",
   },
   {
     id: "103",
     name: "Request Software License or SaaS Tool",
     description: "Request developer tools, productivity licenses (e.g., GitHub, Slack, Figma, JetBrains, Microsoft 365).",
-    group: "Software & Cloud Services",
+    group: "Work Orders",
+    serviceDeskId: "4",
   },
   {
     id: "104",
     name: "Request New Laptop or Workstation",
     description: "Order high-performance developer laptops, standard office machines, monitors, or hardware upgrades.",
-    group: "Computers & Hardware",
+    group: "Work Orders",
+    serviceDeskId: "4",
   },
   {
     id: "105",
     name: "Report an IT Outage or System Problem",
     description: "Report service degradation, broken internal tools, production incidents, or office network outages.",
-    group: "Incidents & Urgent",
+    group: "Problems",
+    serviceDeskId: "4",
   },
   {
     id: "106",
     name: "Broken Equipment / Hardware Repair",
     description: "Submit repairs for cracked screens, swollen batteries, faulty chargers, broken keyboards, or damaged peripherals.",
-    group: "Computers & Hardware",
-  },
-  {
-    id: "107",
-    name: "New Employee / Contractor Onboarding",
-    description: "Provision hardware, accounts, email, permissions, and security badges for incoming team members.",
-    group: "Workplace & People",
+    group: "Problems",
+    serviceDeskId: "4",
   },
   {
     id: "108",
     name: "AWS / Cloud Infrastructure Permissions",
     description: "Request IAM roles, BigQuery dataset access, Kubernetes cluster permissions, or Cloud Console access.",
-    group: "Software & Cloud Services",
+    group: "Work Orders",
+    serviceDeskId: "4",
   },
   {
     id: "109",
     name: "Office Badge & Building Access",
     description: "Request physical smart badge replacements, visitor passes, or access permissions for global office locations.",
-    group: "Workplace & People",
+    group: "Work Orders",
+    serviceDeskId: "4",
+  },
+  {
+    id: "110",
+    name: "Automated Report or ETL Pipeline Request",
+    description: "Request new automated reports, scheduled data pipelines, or executive dashboards.",
+    group: "Automations and Reports",
+    serviceDeskId: "4",
+  },
+  {
+    id: "111",
+    name: "Submit IT Enhancement or Feature Idea",
+    description: "Share recommendations for technology workflow improvements and portal tools.",
+    group: "Suggestions",
+    serviceDeskId: "4",
+  },
+
+  // --- BILLING (Service Desk 2) ---
+  {
+    id: "201",
+    name: "AR reconciliation",
+    description: "Request accounts receivable balance reconciliation, audit matching, and discrepancy investigation.",
+    group: "Invoices & Payments",
+    serviceDeskId: "2",
+  },
+  {
+    id: "202",
+    name: "Invoice Copy or Itemized Receipt Request",
+    description: "Request historical invoice PDF copies, receipt proof, or billing statement exports.",
+    group: "Invoices & Payments",
+    serviceDeskId: "2",
+  },
+  {
+    id: "203",
+    name: "Payment Remittance & Wire Confirmation",
+    description: "Submit wire transfer documentation or confirm receipt of client ACH payments.",
+    group: "Invoices & Payments",
+    serviceDeskId: "2",
+  },
+  {
+    id: "204",
+    name: "Update Billing Address & Tax ID (W-9)",
+    description: "Update client invoicing details, billing contacts, and submit tax exemption forms.",
+    group: "Account Management",
+    serviceDeskId: "2",
+  },
+  {
+    id: "205",
+    name: "Customer Account Ledger Audit",
+    description: "Request a detailed customer account review, ledger reconciliation, and credit status check.",
+    group: "Account Management",
+    serviceDeskId: "2",
+  },
+  {
+    id: "206",
+    name: "Billing Dispute or Credit Memo Request",
+    description: "Dispute invoice line items, request credit memos, or contest late payment fees.",
+    group: "Refunds & Adjustments",
+    serviceDeskId: "2",
+  },
+  {
+    id: "207",
+    name: "Overpayment Refund Request",
+    description: "Request refund issuance for duplicate payments or positive customer credit balances.",
+    group: "Refunds & Adjustments",
+    serviceDeskId: "2",
+  },
+
+  // --- HUMAN RESOURCES (Service Desk 3) ---
+  {
+    id: "107",
+    name: "New Employee / Contractor Onboarding",
+    description: "Provision hardware, accounts, email, permissions, and security badges for incoming team members.",
+    group: "Onboarding & Hiring",
+    serviceDeskId: "3",
+  },
+  {
+    id: "302",
+    name: "Contractor Extension Request",
+    description: "Extend placement duration and contract terms for temporary personnel and vendors.",
+    group: "Onboarding & Hiring",
+    serviceDeskId: "3",
+  },
+  {
+    id: "303",
+    name: "Health Insurance & Benefits Inquiry",
+    description: "Questions regarding company health coverage, dental, vision, HSA, and 401(k) benefits.",
+    group: "Benefits & Leave",
+    serviceDeskId: "3",
+  },
+  {
+    id: "304",
+    name: "Parental or Medical Leave Request",
+    description: "Apply for FMLA leave, parental bonding, or medical absence accommodations.",
+    group: "Benefits & Leave",
+    serviceDeskId: "3",
+  },
+  {
+    id: "305",
+    name: "Employment Verification Letter",
+    description: "Request official employment and income verification letters for loans and visas.",
+    group: "General HR",
+    serviceDeskId: "3",
+  },
+  {
+    id: "306",
+    name: "Direct Deposit & Payroll Details Update",
+    description: "Update bank routing numbers, direct deposit split, or state tax withholding elections.",
+    group: "General HR",
+    serviceDeskId: "3",
+  },
+
+  // --- CLIENT OPERATIONS (Service Desk 5) ---
+  {
+    id: "501",
+    name: "Client Account Escalation",
+    description: "Escalate critical customer service issues or severe client dissatisfaction cases.",
+    group: "Client Inquiries",
+    serviceDeskId: "5",
+  },
+  {
+    id: "502",
+    name: "Service Level Agreement (SLA) Review",
+    description: "Request contractual SLA audit, uptime verification, and compliance reports.",
+    group: "Client Inquiries",
+    serviceDeskId: "5",
+  },
+  {
+    id: "503",
+    name: "Client Portal Access Issue",
+    description: "Troubleshoot external customer login, password reset, or permissions in the client portal.",
+    group: "Technical Assistance",
+    serviceDeskId: "5",
+  },
+  {
+    id: "504",
+    name: "Data Feed & API Integration Support",
+    description: "Resolve client webhook issues, automated SFTP drops, or API connectivity failures.",
+    group: "Technical Assistance",
+    serviceDeskId: "5",
   },
 ];
 

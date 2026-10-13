@@ -47,3 +47,258 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* =========================================================================
+   Knowledge Base Article Enterprise Document Styles
+   ========================================================================= */
+.kb-article-content {
+  color: #334155;
+  line-height: 1.8;
+  font-size: 1.0625rem;
+  word-break: break-word;
+}
+
+.kb-article-content h1,
+.kb-article-content h2,
+.kb-article-content h3,
+.kb-article-content h4,
+.kb-article-content h5,
+.kb-article-content h6 {
+  color: #0f172a;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  scroll-margin-top: 6.5rem;
+}
+
+.kb-article-content h1 {
+  font-size: 2rem;
+  line-height: 1.25;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.kb-article-content h2 {
+  font-size: 1.5rem;
+  line-height: 1.35;
+  margin-top: 2.25rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.kb-article-content h3 {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.kb-article-content h4 {
+  font-size: 1.125rem;
+  line-height: 1.45;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.kb-article-content p {
+  margin-bottom: 1.25rem;
+}
+
+.kb-article-content a {
+  color: #2563eb;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+.kb-article-content a:hover {
+  color: #1d4ed8;
+}
+
+.kb-article-content strong,
+.kb-article-content b {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.kb-article-content ul {
+  list-style-type: disc;
+  padding-left: 1.625rem;
+  margin-bottom: 1.25rem;
+}
+
+.kb-article-content ol {
+  list-style-type: decimal;
+  padding-left: 1.625rem;
+  margin-bottom: 1.25rem;
+}
+
+.kb-article-content li {
+  margin-bottom: 0.5rem;
+}
+
+.kb-article-content li > ul,
+.kb-article-content li > ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.kb-article-content hr {
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  margin: 2.5rem 0;
+}
+
+/* Confluence Tables */
+.kb-article-content table,
+.kb-article-content .confluenceTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.75rem 0;
+  font-size: 0.9375rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+.kb-article-content th,
+.kb-article-content .confluenceTh {
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-weight: 600;
+  text-align: left;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  border-right: 1px solid #f1f5f9;
+}
+.kb-article-content th:last-child,
+.kb-article-content .confluenceTh:last-child {
+  border-right: none;
+}
+
+.kb-article-content td,
+.kb-article-content .confluenceTd {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  color: #334155;
+  background-color: #ffffff;
+}
+.kb-article-content td:last-child,
+.kb-article-content .confluenceTd:last-child {
+  border-right: none;
+}
+.kb-article-content tr:last-child td,
+.kb-article-content tr:last-child .confluenceTd {
+  border-bottom: none;
+}
+.kb-article-content tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* Confluence Information Macros / Alert Panels */
+.kb-article-content .confluence-information-macro {
+  margin: 1.75rem 0;
+  padding: 1.125rem 1.375rem;
+  border-radius: 0.875rem;
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  position: relative;
+}
+
+.kb-article-content .confluence-information-macro-information {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.kb-article-content .confluence-information-macro-tip {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.kb-article-content .confluence-information-macro-warning,
+.kb-article-content .confluence-information-macro-note {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+/* Confluence Images */
+.kb-article-content img,
+.kb-article-content .confluence-embedded-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  margin: 1.75rem auto;
+  display: block;
+  cursor: zoom-in;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.kb-article-content img:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+/* Code Blocks & Inline Code */
+.kb-article-content pre,
+.kb-article-content .codeContent pre,
+.kb-article-content .syntaxhighlighter-pre {
+  background-color: #0f172a;
+  color: #f1f5f9;
+  font-family: var(--font-mono);
+  padding: 1.125rem 1.375rem;
+  border-radius: 0.875rem;
+  overflow-x: auto;
+  margin: 1.75rem 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  border: 1px solid #1e293b;
+}
+
+.kb-article-content code:not(pre code) {
+  font-family: var(--font-mono);
+  background-color: #f1f5f9;
+  color: #0f172a;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.375rem;
+  font-size: 0.875em;
+  border: 1px solid #e2e8f0;
+}
+
+/* Blockquotes */
+.kb-article-content blockquote {
+  border-left: 4px solid #3b82f6;
+  padding-left: 1.25rem;
+  margin: 1.75rem 0;
+  color: #475569;
+  font-style: italic;
+}
+
+/* Print Styles */
+@media print {
+  header,
+  footer,
+  .no-print,
+  nav,
+  button {
+    display: none !important;
+  }
+  body,
+  main {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .kb-article-content {
+    font-size: 11pt !important;
+    color: #000000 !important;
+  }
+}

@@ -1,5 +1,5 @@
 // lib/jira.ts
-import { auth } from "@/auth";
+import { auth, resolveTargetResource } from "@/auth";
 
 export interface JiraAuthContext {
   isConfigured: boolean;
@@ -33,14 +33,21 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
     JIRA_USER_EMAIL,
     JIRA_API_TOKEN,
     JIRA_SERVICE_DESK_ID,
+    JIRA_SERVICE_DESK,
     JSM_EMPLOYEE_EMAIL,
   } = process.env;
+
+  const resolvedServiceDeskId =
+    JIRA_SERVICE_DESK_ID ||
+    JIRA_SERVICE_DESK ||
+    process.env.JSM_SERVICE_DESK_ID ||
+    "1";
 
   // 1. Check for logged-in user with Atlassian OAuth session
   try {
     const session = await auth();
-    if (session?.accessToken) {
-      let cloudId = session.cloudId || process.env.ATLASSIAN_CLOUD_ID;
+    if (session?.accessToken && !session.error) {
+      let cloudId = session.cloudId;
 
       // If cloudId wasn't cached in session yet, resolve from accessible-resources
       if (!cloudId) {
@@ -57,25 +64,17 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
           if (res.ok) {
             const resources = await res.json();
             if (Array.isArray(resources) && resources.length > 0) {
-              const configuredUrl =
-                process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
-                "https://emsmc1.atlassian.net";
-              // Strictly exclude any sandbox environment to guarantee PURE production
-              const prodResources = resources.filter(
-                (r: { url: string; name?: string }) =>
-                  !r.url.toLowerCase().includes("sandbox") &&
-                  !(r.name || "").toLowerCase().includes("sandbox"),
-              );
-              const candidates =
-                prodResources.length > 0 ? prodResources : resources;
-
-              const match = candidates.find(
-                (r: { url: string }) =>
-                  r.url.replace(/\/+$/, "").toLowerCase() ===
-                  configuredUrl.toLowerCase(),
-              );
-              const targetResource = match || candidates[0];
-              cloudId = targetResource.id;
+              const configuredUrl = (
+                process.env.JIRA_BASE_URL && !process.env.JIRA_BASE_URL.includes("sandbox")
+                  ? process.env.JIRA_BASE_URL
+                  : "https://emsmc1.atlassian.net"
+              )
+                .trim()
+                .replace(/\/+$/, "");
+              const targetResource = resolveTargetResource(resources, configuredUrl);
+              if (targetResource) {
+                cloudId = targetResource.id;
+              }
             }
           }
         } catch (err) {
@@ -87,14 +86,16 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
       }
 
       if (cloudId) {
+        console.log(
+          `[Jira API Context] Active Site: ${session.siteUrl || "Atlassian Cloud"} (Cloud ID: ${cloudId}) | Service Desk: ${resolvedServiceDeskId}`,
+        );
         return {
           isConfigured: true,
           authType: "oauth",
           authHeader: `Bearer ${session.accessToken}`,
           baseUrl: `https://api.atlassian.com/ex/jira/${cloudId}`,
           cloudId,
-          serviceDeskId:
-            JIRA_SERVICE_DESK_ID || process.env.JIRA_SERVICE_DESK_ID,
+          serviceDeskId: resolvedServiceDeskId,
           userEmail: session.user?.email || undefined,
           userName: session.user?.name || undefined,
         };
@@ -109,20 +110,16 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
   }
 
   // 2. Fallback to Basic Auth if environment variables are provided
-  const targetBaseUrl =
-    process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
-    "https://emsmc1.atlassian.net";
-
-  if (JIRA_USER_EMAIL && JIRA_API_TOKEN) {
+  if (JIRA_BASE_URL && JIRA_USER_EMAIL && JIRA_API_TOKEN) {
+    const cleanUrl = JIRA_BASE_URL.replace(/\/+$/, "");
     return {
       isConfigured: true,
       authType: "basic",
       authHeader: `Basic ${Buffer.from(
         `${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}`,
       ).toString("base64")}`,
-      baseUrl: targetBaseUrl,
-      cloudId: process.env.ATLASSIAN_CLOUD_ID,
-      serviceDeskId: JIRA_SERVICE_DESK_ID,
+      baseUrl: cleanUrl,
+      serviceDeskId: resolvedServiceDeskId,
       userEmail: JSM_EMPLOYEE_EMAIL || JIRA_USER_EMAIL,
     };
   }
@@ -133,6 +130,6 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
     authType: "mock",
     authHeader: "",
     baseUrl: "",
-    serviceDeskId: JIRA_SERVICE_DESK_ID,
+    serviceDeskId: resolvedServiceDeskId,
   };
 }

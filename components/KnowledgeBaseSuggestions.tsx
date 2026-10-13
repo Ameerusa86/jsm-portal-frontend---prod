@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { BookOpen, ExternalLink, Loader2 } from "lucide-react";
+import { BookOpen, ChevronRight, Loader2 } from "lucide-react";
 
 interface Article {
   title: string;
@@ -92,7 +92,7 @@ export const KnowledgeBaseSuggestions: React.FC<KnowledgeBaseSuggestionsProps> =
                       dangerouslySetInnerHTML={{ __html: article.excerpt || "" }}
                     />
                   </div>
-                  <ExternalLink className="h-4 w-4 shrink-0 text-slate-400 group-hover:text-blue-600 mt-1" />
+                  <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 group-hover:text-blue-600 mt-1 transition-transform group-hover:translate-x-0.5" />
                 </div>
               </a>
             ))}

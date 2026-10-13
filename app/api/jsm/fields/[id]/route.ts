@@ -326,7 +326,7 @@ export async function GET(
       },
     );
 
-    let debugInfo: any = {};
+    const debugInfo: Record<string, unknown> = {};
 
     try {
       const cloudId = authCtx.cloudId || (await getCloudId(authCtx.baseUrl));
@@ -348,7 +348,7 @@ export async function GET(
         const sdJson = JSON.parse(sdBody);
         projectId = sdJson.projectId;
         debugInfo.projectId = projectId;
-      } catch (e) {
+      } catch {
         debugInfo.sdError = sdBody;
       }
 
@@ -366,10 +366,11 @@ export async function GET(
         );
 
         debugInfo.formsApiStatus = formsRes.status;
-        debugInfo.formsApiBody = await formsRes.text();
+        const formsBodyText = await formsRes.text();
+        debugInfo.formsApiBody = formsBodyText;
 
         if (formsRes.ok) {
-          const formsList = JSON.parse(debugInfo.formsApiBody);
+          const formsList = JSON.parse(formsBodyText);
           const attached = formsList.find((f: ProformaFormSummary) =>
             getFormRequestTypeMatches(f, String(requestTypeId)),
           );
