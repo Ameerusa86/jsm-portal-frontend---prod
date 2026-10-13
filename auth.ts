@@ -57,12 +57,12 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 
 /**
  * Resolves the target Atlassian Cloud site from accessible-resources,
- * strictly and exclusively targeting the Jira PRODUCTION environment (emsmc.atlassian.net).
+ * strictly and exclusively targeting the Jira PRODUCTION environment (emsmc1.atlassian.net).
  * Any sandbox site is strictly rejected and ignored.
  */
 export function resolveTargetResource(
   resources: Array<{ id: string; url: string; name: string }>,
-  configuredBaseUrl = "https://emsmc.atlassian.net",
+  configuredBaseUrl = "https://emsmc1.atlassian.net",
 ): { id: string; url: string; name: string } | undefined {
   if (!resources || resources.length === 0) return undefined;
 
@@ -131,7 +131,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         process.env.JIRA_BASE_URL &&
         !process.env.JIRA_BASE_URL.includes("sandbox")
           ? process.env.JIRA_BASE_URL
-          : "https://emsmc.atlassian.net"
+          : "https://emsmc1.atlassian.net"
       )
         .trim()
         .replace(/\/+$/, "");
@@ -216,17 +216,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           "========================================================\n",
         );
 
-        // Force sanitation: token.siteUrl MUST NOT be sandbox or emsmc1
-        if (!token.siteUrl || token.siteUrl.includes("sandbox") || token.siteUrl.includes("emsmc1")) {
-          token.siteUrl = "https://emsmc.atlassian.net";
+        // Force sanitation: token.siteUrl MUST NOT be sandbox
+        if (!token.siteUrl || token.siteUrl.includes("sandbox")) {
+          token.siteUrl = "https://emsmc1.atlassian.net";
         }
 
         return token;
       }
 
-      // Safety check on existing tokens: purge any legacy sandbox or typo siteUrl from old cookies
-      if (!token.siteUrl || token.siteUrl.includes("sandbox") || token.siteUrl.includes("emsmc1")) {
-        token.siteUrl = "https://emsmc.atlassian.net";
+      // Safety check on existing tokens: purge any legacy sandbox siteUrl from old cookies
+      if (!token.siteUrl || token.siteUrl.includes("sandbox")) {
+        token.siteUrl = "https://emsmc1.atlassian.net";
       }
 
       // 2. Return current token if it has not expired yet (with 60-second safety window)
@@ -241,9 +241,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.accessToken = token.accessToken;
       session.cloudId = token.cloudId;
       session.siteUrl =
-        token.siteUrl && !token.siteUrl.includes("sandbox") && !token.siteUrl.includes("emsmc1")
+        token.siteUrl && !token.siteUrl.includes("sandbox")
           ? token.siteUrl
-          : "https://emsmc.atlassian.net";
+          : "https://emsmc1.atlassian.net";
       session.error = token.error;
       session.accessibleResources = token.accessibleResources;
       return session;

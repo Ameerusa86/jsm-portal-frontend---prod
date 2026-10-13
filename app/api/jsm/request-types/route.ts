@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       return {
         ...rt,
         serviceDeskId: deskId,
-        portalUrl: `https://emsmc.atlassian.net/servicedesk/customer/portal/${deskId}/create/${rt.id}`,
+        portalUrl: `https://emsmc1.atlassian.net/servicedesk/customer/portal/${deskId}/create/${rt.id}`,
       };
     });
 
@@ -80,8 +80,8 @@ export async function GET(req: NextRequest) {
 
     const rawBase = process.env.JIRA_BASE_URL?.replace(/\/+$/, "");
     const baseUrl =
-      !rawBase || rawBase.includes("sandbox") || rawBase.includes("emsmc1")
-        ? "https://emsmc.atlassian.net"
+      !rawBase || rawBase.includes("sandbox")
+        ? "https://emsmc1.atlassian.net"
         : rawBase;
 
     // =========================================================================

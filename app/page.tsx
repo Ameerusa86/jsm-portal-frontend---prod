@@ -85,14 +85,14 @@ function HelpCenterContent() {
       setSearchQuery("");
       setIsSearchOpen(false);
 
-      const prodDomain = "https://emsmc.atlassian.net";
+      const prodDomain = "https://emsmc1.atlassian.net";
       const deskId =
         rt.serviceDeskId ||
         (spaceParamId && spaceParamId !== "all" ? spaceParamId : "") ||
         "1";
 
       let targetUrl = rt.portalUrl;
-      if (!targetUrl || targetUrl.includes("sandbox") || targetUrl.includes("emsmc1")) {
+      if (!targetUrl || targetUrl.includes("sandbox")) {
         targetUrl = `${prodDomain}/servicedesk/customer/portal/${deskId}/create/${rt.id}`;
       } else {
         // Enforce canonical production domain

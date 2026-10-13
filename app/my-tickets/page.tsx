@@ -8,10 +8,10 @@ export default async function MyTicketsPage() {
     redirect("/");
   }
 
-  const rawBaseUrl = session.siteUrl || process.env.JIRA_BASE_URL?.replace(/\/+$/, "") || "https://emsmc.atlassian.net";
+  const rawBaseUrl = session.siteUrl || process.env.JIRA_BASE_URL?.replace(/\/+$/, "") || "https://emsmc1.atlassian.net";
   const baseUrl =
-    !rawBaseUrl || rawBaseUrl.includes("sandbox") || rawBaseUrl.includes("emsmc1")
-      ? "https://emsmc.atlassian.net"
+    !rawBaseUrl || rawBaseUrl.includes("sandbox")
+      ? "https://emsmc1.atlassian.net"
       : rawBaseUrl;
   
   // URL to the customer portal "My Requests" page

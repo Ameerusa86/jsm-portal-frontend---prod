@@ -7,10 +7,10 @@ export async function GET(request: Request) {
   const rawBaseUrl =
     authCtx.baseUrl.startsWith("http") && !authCtx.baseUrl.includes("api.atlassian.com")
       ? authCtx.baseUrl.replace(/\/+$/, "")
-      : process.env.JIRA_BASE_URL?.replace(/\/+$/, "") || "https://emsmc.atlassian.net";
+      : process.env.JIRA_BASE_URL?.replace(/\/+$/, "") || "https://emsmc1.atlassian.net";
   const baseUrl =
-    !rawBaseUrl || rawBaseUrl.includes("sandbox") || rawBaseUrl.includes("emsmc1")
-      ? "https://emsmc.atlassian.net"
+    !rawBaseUrl || rawBaseUrl.includes("sandbox")
+      ? "https://emsmc1.atlassian.net"
       : rawBaseUrl;
   const searchParams = new URL(request.url).searchParams;
   const view = searchParams.get("view");
