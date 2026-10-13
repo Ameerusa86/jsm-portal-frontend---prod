@@ -13,10 +13,15 @@ export default async function SingleTicketPage({
   }
 
   const resolvedParams = await params;
-  const baseUrl =
+  const rawBaseUrl =
     session.siteUrl ||
     process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
-    "https://emsmc1.atlassian.net";
+    "https://emsmc.atlassian.net";
+
+  const baseUrl =
+    !rawBaseUrl || rawBaseUrl.includes("sandbox") || rawBaseUrl.includes("emsmc1")
+      ? "https://emsmc.atlassian.net"
+      : rawBaseUrl;
 
   const myTicketsUrl = `${baseUrl}/servicedesk/customer/user/requests?issueKey=${encodeURIComponent(resolvedParams.id)}`;
 

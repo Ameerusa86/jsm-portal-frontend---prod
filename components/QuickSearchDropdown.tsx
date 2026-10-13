@@ -188,6 +188,8 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
               <a
                 key={article.title}
                 href={article.portalUrl || article.content?.iframeSrc || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-full p-3.5 sm:p-4 flex items-start gap-3.5 text-left transition-colors hover:bg-indigo-50/30 cursor-pointer block border-b border-slate-100 last:border-0"
               >
                 <div className="w-10 h-10 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5">

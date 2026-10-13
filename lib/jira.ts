@@ -67,7 +67,7 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
               const configuredUrl = (
                 process.env.JIRA_BASE_URL && !process.env.JIRA_BASE_URL.includes("sandbox")
                   ? process.env.JIRA_BASE_URL
-                  : "https://emsmc1.atlassian.net"
+                  : "https://emsmc.atlassian.net"
               )
                 .trim()
                 .replace(/\/+$/, "");

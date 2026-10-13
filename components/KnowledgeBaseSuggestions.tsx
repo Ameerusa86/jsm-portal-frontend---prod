@@ -80,6 +80,8 @@ export const KnowledgeBaseSuggestions: React.FC<KnowledgeBaseSuggestionsProps> =
               <a
                 key={index}
                 href={article.portalUrl || article.content?.iframeSrc || article.url || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group block rounded-lg border border-slate-200 bg-white p-3 transition-colors hover:border-blue-300 hover:bg-blue-50"
               >
                 <div className="flex items-start justify-between gap-4">

@@ -4,10 +4,14 @@ import { getJiraAuthContext } from "@/lib/jira";
 export async function GET(request: Request) {
   const authCtx = await getJiraAuthContext();
 
-  const baseUrl =
+  const rawBaseUrl =
     authCtx.baseUrl.startsWith("http") && !authCtx.baseUrl.includes("api.atlassian.com")
       ? authCtx.baseUrl.replace(/\/+$/, "")
-      : process.env.JIRA_BASE_URL?.replace(/\/+$/, "");
+      : process.env.JIRA_BASE_URL?.replace(/\/+$/, "") || "https://emsmc.atlassian.net";
+  const baseUrl =
+    !rawBaseUrl || rawBaseUrl.includes("sandbox") || rawBaseUrl.includes("emsmc1")
+      ? "https://emsmc.atlassian.net"
+      : rawBaseUrl;
   const searchParams = new URL(request.url).searchParams;
   const view = searchParams.get("view");
   const ticketKey = searchParams.get("key");

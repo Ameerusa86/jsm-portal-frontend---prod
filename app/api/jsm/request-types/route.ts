@@ -44,11 +44,14 @@ export async function GET(req: NextRequest) {
 
   // If credentials are not configured, seamlessly return mock data filtered by space
   if (!authCtx.isConfigured || !serviceDeskId) {
-    let mockList: RequestTypeWithGroup[] = MOCK_REQUEST_TYPES.map((rt) => ({
-      ...rt,
-      serviceDeskId: rt.serviceDeskId || "1",
-      portalUrl: rt.portalUrl || `https://emsmc1.atlassian.net/servicedesk/customer/portal/${rt.serviceDeskId || "1"}/create/${rt.id}`,
-    }));
+    let mockList: RequestTypeWithGroup[] = MOCK_REQUEST_TYPES.map((rt) => {
+      const deskId = rt.serviceDeskId || "1";
+      return {
+        ...rt,
+        serviceDeskId: deskId,
+        portalUrl: `https://emsmc.atlassian.net/servicedesk/customer/portal/${deskId}/create/${rt.id}`,
+      };
+    });
 
     if (serviceDeskId && serviceDeskId !== "all") {
       mockList = mockList.filter(
@@ -75,11 +78,11 @@ export async function GET(req: NextRequest) {
       "X-ExperimentalApi": "opt-in",
     };
 
+    const rawBase = process.env.JIRA_BASE_URL?.replace(/\/+$/, "");
     const baseUrl =
-      process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
-      (authCtx.baseUrl.startsWith("http") && !authCtx.baseUrl.includes("api.atlassian.com")
-        ? authCtx.baseUrl.replace(/\/+$/, "")
-        : "https://emsmc1.atlassian.net");
+      !rawBase || rawBase.includes("sandbox") || rawBase.includes("emsmc1")
+        ? "https://emsmc.atlassian.net"
+        : rawBase;
 
     // =========================================================================
     // SCENARIO 1: SINGLE SPECIFIC SERVICE DESK (e.g. /?space=2 for Billing)
