@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { TicketItem } from "@/types/jsm";
 import { getStatusStyle } from "./TicketBadge";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface TicketsStatsProps {
   tickets: TicketItem[];
@@ -112,41 +114,47 @@ export const TicketsStats: React.FC<TicketsStatsProps> = ({
         const isActive = activeStatusFilter === c.id;
 
         return (
-          <button
+          <Card
             key={c.id}
-            type="button"
             onClick={() => onSelectStatusFilter(isActive ? "all" : c.id)}
-            className={`p-4 sm:p-5 rounded-2xl border text-left transition-all cursor-pointer relative group flex flex-col justify-between ${
+            className={cn(
+              "cursor-pointer transition-all relative group border text-left",
               isActive
                 ? c.activeBg
                 : "bg-white hover:bg-slate-50/80 border-slate-200/90 hover:border-slate-300 shadow-xs hover:shadow-md"
-            }`}
+            )}
           >
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <div
-                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border shrink-0 ${c.bg} ${c.color} group-hover:scale-105 transition-transform`}
-              >
-                <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+            <CardContent className="p-4 sm:p-5 flex flex-col justify-between h-full">
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div
+                  className={cn(
+                    "w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border shrink-0 transition-transform group-hover:scale-105",
+                    c.bg,
+                    c.color
+                  )}
+                >
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <span className="text-2xl sm:text-3xl font-extrabold font-mono text-slate-900 tracking-tight">
+                  {c.count}
+                </span>
               </div>
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-slate-900 tracking-tight">
-                {c.count}
-              </span>
-            </div>
 
-            <div>
-              <div className="flex items-center gap-1.5">
-                <p className="text-xs sm:text-sm font-bold text-slate-800 truncate">
-                  {c.label}
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs sm:text-sm font-bold text-slate-800 truncate">
+                    {c.label}
+                  </p>
+                  {c.alert && (
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                  )}
+                </div>
+                <p className="text-[11px] sm:text-xs text-slate-500 truncate mt-0.5">
+                  {c.subtext}
                 </p>
-                {c.alert && (
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                )}
               </div>
-              <p className="text-[11px] sm:text-xs text-slate-500 truncate mt-0.5">
-                {c.subtext}
-              </p>
-            </div>
-          </button>
+            </CardContent>
+          </Card>
         );
       })}
     </div>

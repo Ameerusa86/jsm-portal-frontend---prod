@@ -7,11 +7,17 @@ import {
   ShieldCheck,
   AlertCircle,
   Loader2,
-  Ticket,
-  BookOpen,
   ArrowRight,
   Lock,
 } from "lucide-react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 function LoginContent() {
   const router = useRouter();
@@ -65,7 +71,7 @@ function LoginContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-400">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <Loader2 className="size-8 animate-spin text-blue-500" />
           <p className="text-sm">Verifying session...</p>
         </div>
       </div>
@@ -76,9 +82,9 @@ function LoginContent() {
     <div className="min-h-screen flex flex-col justify-between bg-slate-950 text-slate-100 selection:bg-blue-500 selection:text-white">
       {/* Background Decorative Gradients */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -right-40 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 left-1/3 w-96 h-96 bg-sky-600/10 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -left-40 size-96 bg-blue-600/15 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 -right-40 size-96 bg-indigo-600/15 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 left-1/3 size-96 bg-sky-600/10 rounded-full blur-3xl" />
       </div>
 
       {/* Header */}
@@ -94,7 +100,7 @@ function LoginContent() {
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Lock className="w-3.5 h-3.5 text-blue-400" />
+            <Lock className="size-3.5 text-blue-400" />
             <span>Secure Enterprise Access</span>
           </div>
         </div>
@@ -104,61 +110,65 @@ function LoginContent() {
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 py-12">
         <div className="w-full max-w-md">
           {/* Card Container */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 backdrop-blur-xl relative overflow-hidden">
+          <Card className="bg-slate-900/90 border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 backdrop-blur-xl relative overflow-hidden py-0 gap-0">
             {/* Top Accent Line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-400" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 via-indigo-500 to-sky-400" />
 
             {/* Logo & Header */}
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 mb-4 shadow-inner">
-                <ShieldCheck className="w-7 h-7" />
+            <CardHeader className="text-center p-0 mb-6">
+              <div className="inline-flex items-center justify-center size-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 mb-4 shadow-inner mx-auto">
+                <ShieldCheck className="size-7" />
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              <CardTitle className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                 Welcome to Service Desk
-              </h1>
-              <p className="text-sm text-slate-400 mt-2 leading-relaxed">
+              </CardTitle>
+              <CardDescription className="text-sm text-slate-400 mt-2 leading-relaxed">
                 Please sign in with your Atlassian account to access IT services, submit requests, and manage tickets.
-              </p>
-            </div>
+              </CardDescription>
+            </CardHeader>
 
-            {/* Error Banner */}
-            {errorMessage && (
-              <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                <span className="leading-relaxed">{errorMessage}</span>
+            <CardContent className="p-0">
+              {/* Error Banner */}
+              {errorMessage && (
+                <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2.5">
+                  <AlertCircle className="size-4 text-rose-400 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{errorMessage}</span>
+                </div>
+              )}
+
+              {/* Sign In Button */}
+              <div className="space-y-4">
+                <Button
+                  type="button"
+                  variant="default"
+                  size="lg"
+                  onClick={handleSignIn}
+                  disabled={isLoading}
+                  className="w-full h-12 cursor-pointer text-sm font-semibold gap-3 shadow-lg shadow-blue-600/25 active:scale-[0.98] group bg-blue-600 hover:bg-blue-500"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin text-white" />
+                      <span>Connecting to Atlassian...</span>
+                    </>
+                  ) : (
+                    <>
+                      {/* Atlassian Official Symbol SVG */}
+                      <svg
+                        className="size-4 fill-current shrink-0"
+                        viewBox="0 0 32 32"
+                        aria-hidden="true"
+                      >
+                        <path d="M15.54 13.06c-.4 0-.82.17-1.1.48L5.7 23.36c-.45.5-.3 1.29.3 1.6l4.63 2.37c.36.19.8.14 1.1-.14l6.19-6.38a1.35 1.35 0 0 0 .39-.96v-5.42c0-.75-.6-1.37-1.37-1.37h-.4zm.92-8.38c-.76 0-1.38.62-1.38 1.38v5.42c0 .36.14.71.39.96l6.19 6.38c.3.28.74.33 1.1.14l4.63-2.37c.6-.31.75-1.1.3-1.6L19.05 5.16a1.52 1.52 0 0 0-1.1-.48h-1.49z" />
+                      </svg>
+                      <span>Sign In with Atlassian</span>
+                      <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                    </>
+                  )}
+                </Button>
               </div>
-            )}
-
-            {/* Sign In Button */}
-            <div className="space-y-4">
-              <button
-                type="button"
-                onClick={handleSignIn}
-                disabled={isLoading}
-                className="w-full inline-flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white font-semibold text-sm transition-all duration-150 shadow-lg shadow-blue-600/25 active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed group"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-white" />
-                    <span>Connecting to Atlassian...</span>
-                  </>
-                ) : (
-                  <>
-                    {/* Atlassian Official Symbol SVG */}
-                    <svg
-                      className="w-4 h-4 fill-current shrink-0"
-                      viewBox="0 0 32 32"
-                      aria-hidden="true"
-                    >
-                      <path d="M15.54 13.06c-.4 0-.82.17-1.1.48L5.7 23.36c-.45.5-.3 1.29.3 1.6l4.63 2.37c.36.19.8.14 1.1-.14l6.19-6.38a1.35 1.35 0 0 0 .39-.96v-5.42c0-.75-.6-1.37-1.37-1.37h-.4zm.92-8.38c-.76 0-1.38.62-1.38 1.38v5.42c0 .36.14.71.39.96l6.19 6.38c.3.28.74.33 1.1.14l4.63-2.37c.6-.31.75-1.1.3-1.6L19.05 5.16a1.52 1.52 0 0 0-1.1-.48h-1.49z" />
-                    </svg>
-                    <span>Sign In with Atlassian</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform shrink-0" />
-                  </>
-                )}
-              </button>
-            </div>           
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
 
@@ -175,7 +185,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <Loader2 className="size-8 animate-spin text-blue-500" />
         </div>
       }
     >

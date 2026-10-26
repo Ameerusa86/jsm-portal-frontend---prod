@@ -60,7 +60,7 @@ export const CascadingSelectField: React.FC<CascadingSelectFieldProps> = ({
                   event.target.value,
                 )
               }
-              className={`${baseInputClass} appearance-none pr-10 cursor-pointer disabled:bg-slate-50 disabled:text-slate-400`}
+              className={`${baseInputClass} appearance-none pr-10 cursor-pointer disabled:bg-muted disabled:text-muted-foreground`}
             >
               <option value="">
                 {isParent ? "Select category..." : "Select sub-option..."}
@@ -74,7 +74,7 @@ export const CascadingSelectField: React.FC<CascadingSelectFieldProps> = ({
                 );
               })}
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400">
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5 text-muted-foreground">
               <ChevronDown className="w-4 h-4" />
             </div>
           </div>

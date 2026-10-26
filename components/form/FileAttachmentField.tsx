@@ -3,6 +3,8 @@
 import React, { useState, useRef } from "react";
 import { UploadCloud, File as FileIcon, X } from "lucide-react";
 import { FormField } from "@/types/jsm";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface FileAttachmentFieldProps {
   field: FormField;
@@ -27,7 +29,7 @@ export const FileAttachmentField: React.FC<FileAttachmentFieldProps> = ({
 
   return (
     <div className="space-y-3">
-      <div
+      <Card
         role="button"
         tabIndex={0}
         onClick={handleClickDropzone}
@@ -49,16 +51,16 @@ export const FileAttachmentField: React.FC<FileAttachmentFieldProps> = ({
             onFilesAdded(e.dataTransfer.files);
           }
         }}
-        className={`border-2 border-dashed rounded-xl p-5 sm:p-6 text-center transition-colors cursor-pointer select-none ${
+        className={`border-2 border-dashed rounded-xl p-5 sm:p-6 text-center transition-colors cursor-pointer select-none shadow-none ${
           isDragActive
-            ? "border-blue-500 bg-blue-50/50"
-            : "border-slate-300 hover:border-slate-400 bg-slate-50/50 active:bg-slate-100"
+            ? "border-primary bg-primary/5"
+            : "border-input hover:border-muted-foreground/50 bg-muted/20 active:bg-muted/40"
         }`}
       >
-        <UploadCloud className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-        <p className="text-sm font-medium text-slate-700">
+        <UploadCloud className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+        <p className="text-sm font-medium text-foreground">
           Drag and drop files here, or{" "}
-          <span className="text-blue-600 hover:text-blue-700 font-semibold underline underline-offset-2">
+          <span className="text-primary hover:underline underline-offset-2 font-semibold">
             browse files
           </span>
         </p>
@@ -74,35 +76,37 @@ export const FileAttachmentField: React.FC<FileAttachmentFieldProps> = ({
             }
           }}
         />
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Supports images, logs, PDFs, documents up to 25MB each
         </p>
-      </div>
+      </Card>
 
       {files && files.length > 0 && (
         <div className="flex flex-wrap gap-2 pt-1">
           {files.map((file, idx) => (
             <div
               key={`${file.name}-${idx}`}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-700 font-medium min-h-[36px]"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted border border-border text-xs text-foreground font-medium min-h-[36px]"
             >
-              <FileIcon className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <FileIcon className="w-3.5 h-3.5 text-primary shrink-0" />
               <span className="truncate max-w-40 sm:max-w-48">{file.name}</span>
-              <span className="text-[10px] text-slate-400 shrink-0">
+              <span className="text-[10px] text-muted-foreground shrink-0">
                 ({(file.size / 1024).toFixed(0)} KB)
               </span>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={(e) => {
                   e.stopPropagation();
                   onFileRemoved(idx);
                 }}
-                className="text-slate-400 hover:text-rose-500 hover:bg-slate-200/60 transition-colors ml-1 p-1 -mr-1 rounded cursor-pointer min-h-[28px] min-w-[28px] flex items-center justify-center"
+                className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 ml-1 rounded-sm cursor-pointer"
                 title="Remove file"
                 aria-label={`Remove file ${file.name}`}
               >
                 <X className="w-3.5 h-3.5" />
-              </button>
+              </Button>
             </div>
           ))}
         </div>

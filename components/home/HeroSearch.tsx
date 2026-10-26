@@ -4,6 +4,7 @@ import React, { RefObject } from "react";
 import { Search, X } from "lucide-react";
 import { QuickSearchDropdown } from "@/components/QuickSearchDropdown";
 import { JsmSpace, KnowledgeBaseArticle, RequestTypeWithGroup } from "@/types/jsm";
+import { Button } from "@/components/ui/button";
 
 interface HeroSearchProps {
   spaceParamId: string | null;
@@ -144,17 +145,19 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
               className="block w-full bg-white pl-12 sm:pl-16 pr-12 py-4 sm:py-5 rounded-2xl border-0 text-slate-900 placeholder:text-slate-400 focus:ring-4 focus:ring-blue-500/30 text-base md:text-lg outline-none shadow-xl transition-all"
             />
             {searchQuery && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => {
                   setSearchQuery("");
                   setIsSearchOpen(false);
                 }}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer min-w-[44px] min-h-[44px]"
+                className="absolute inset-y-0 right-2 my-auto text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                 aria-label="Clear search query"
               >
-                <X className="w-5 h-5" />
-              </button>
+                <X className="size-5" />
+              </Button>
             )}
           </div>
 

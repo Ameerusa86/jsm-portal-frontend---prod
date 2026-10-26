@@ -19,6 +19,10 @@ import {
   Building2,
   Sparkles,
 } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface ServiceCardProps {
   requestType: RequestType & { group?: string };
@@ -55,7 +59,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       return {
         icon: text.includes("refund") || text.includes("credit") ? DollarSign : CreditCard,
-        bg: "bg-emerald-50 text-emerald-600 border-emerald-200/80 group-hover:bg-emerald-600 group-hover:text-white",
+        bg: "bg-emerald-50 text-emerald-600 border-emerald-200/80 group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950/40 dark:text-emerald-400",
         glow: "hover:shadow-emerald-500/10",
         accent: "from-emerald-500 to-teal-600",
       };
@@ -75,7 +79,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       return {
         icon: KeyRound,
-        bg: "bg-amber-50 text-amber-600 border-amber-200/80 group-hover:bg-amber-600 group-hover:text-white",
+        bg: "bg-amber-50 text-amber-600 border-amber-200/80 group-hover:bg-amber-600 group-hover:text-white dark:bg-amber-950/40 dark:text-amber-400",
         glow: "hover:shadow-amber-500/10",
         accent: "from-amber-500 to-orange-500",
       };
@@ -93,7 +97,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       return {
         icon: Wifi,
-        bg: "bg-blue-50 text-blue-600 border-blue-200/80 group-hover:bg-blue-600 group-hover:text-white",
+        bg: "bg-blue-50 text-blue-600 border-blue-200/80 group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-950/40 dark:text-blue-400",
         glow: "hover:shadow-blue-500/10",
         accent: "from-blue-500 to-indigo-600",
       };
@@ -113,7 +117,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       return {
         icon: Laptop,
-        bg: "bg-indigo-50 text-indigo-600 border-indigo-200/80 group-hover:bg-indigo-600 group-hover:text-white",
+        bg: "bg-indigo-50 text-indigo-600 border-indigo-200/80 group-hover:bg-indigo-600 group-hover:text-white dark:bg-indigo-950/40 dark:text-indigo-400",
         glow: "hover:shadow-indigo-500/10",
         accent: "from-indigo-500 to-blue-600",
       };
@@ -133,7 +137,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       return {
         icon: AlertCircle,
-        bg: "bg-rose-50 text-rose-600 border-rose-200/80 group-hover:bg-rose-600 group-hover:text-white",
+        bg: "bg-rose-50 text-rose-600 border-rose-200/80 group-hover:bg-rose-600 group-hover:text-white dark:bg-rose-950/40 dark:text-rose-400",
         glow: "hover:shadow-rose-500/10",
         accent: "from-rose-500 to-red-600",
       };
@@ -155,7 +159,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       return {
         icon: text.includes("role") || text.includes("transfer") ? Briefcase : Users,
-        bg: "bg-violet-50 text-violet-600 border-violet-200/80 group-hover:bg-violet-600 group-hover:text-white",
+        bg: "bg-violet-50 text-violet-600 border-violet-200/80 group-hover:bg-violet-600 group-hover:text-white dark:bg-violet-950/40 dark:text-violet-400",
         glow: "hover:shadow-violet-500/10",
         accent: "from-violet-500 to-purple-600",
       };
@@ -174,7 +178,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       return {
         icon: Zap,
-        bg: "bg-teal-50 text-teal-600 border-teal-200/80 group-hover:bg-teal-600 group-hover:text-white",
+        bg: "bg-teal-50 text-teal-600 border-teal-200/80 group-hover:bg-teal-600 group-hover:text-white dark:bg-teal-950/40 dark:text-teal-400",
         glow: "hover:shadow-teal-500/10",
         accent: "from-teal-500 to-emerald-600",
       };
@@ -190,7 +194,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       return {
         icon: Headphones,
-        bg: "bg-sky-50 text-sky-600 border-sky-200/80 group-hover:bg-sky-600 group-hover:text-white",
+        bg: "bg-sky-50 text-sky-600 border-sky-200/80 group-hover:bg-sky-600 group-hover:text-white dark:bg-sky-950/40 dark:text-sky-400",
         glow: "hover:shadow-sky-500/10",
         accent: "from-sky-500 to-blue-600",
       };
@@ -207,7 +211,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       return {
         icon: Building2,
-        bg: "bg-amber-50 text-amber-700 border-amber-200/80 group-hover:bg-amber-700 group-hover:text-white",
+        bg: "bg-amber-50 text-amber-700 border-amber-200/80 group-hover:bg-amber-700 group-hover:text-white dark:bg-amber-950/40 dark:text-amber-400",
         glow: "hover:shadow-amber-500/10",
         accent: "from-amber-600 to-orange-600",
       };
@@ -217,7 +221,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     if (text.includes("suggest") || text.includes("idea") || text.includes("improv")) {
       return {
         icon: Sparkles,
-        bg: "bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200/80 group-hover:bg-fuchsia-600 group-hover:text-white",
+        bg: "bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200/80 group-hover:bg-fuchsia-600 group-hover:text-white dark:bg-fuchsia-950/40 dark:text-fuchsia-400",
         glow: "hover:shadow-fuchsia-500/10",
         accent: "from-fuchsia-500 to-purple-600",
       };
@@ -233,7 +237,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     ) {
       return {
         icon: Layers,
-        bg: "bg-blue-50 text-blue-600 border-blue-200/80 group-hover:bg-blue-600 group-hover:text-white",
+        bg: "bg-blue-50 text-blue-600 border-blue-200/80 group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-950/40 dark:text-blue-400",
         glow: "hover:shadow-blue-500/10",
         accent: "from-blue-500 to-cyan-600",
       };
@@ -242,7 +246,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     // Default Fallback
     return {
       icon: FileText,
-      bg: "bg-slate-100 text-slate-700 border-slate-200 group-hover:bg-slate-800 group-hover:text-white",
+      bg: "bg-muted text-foreground border-border group-hover:bg-foreground group-hover:text-background",
       glow: "hover:shadow-slate-500/10",
       accent: "from-slate-700 to-slate-900",
     };
@@ -254,8 +258,6 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
       ? requestType.group
       : null;
 
-  // Non-IT space cards display the category name instead of duplicating the active space.
-  // IT space cards display the specific board name.
   const displayBadge = isIT ? (boardName || categoryLabel) : categoryLabel;
   const footerLabel = isIT ? (boardName || categoryLabel || "Start Request") : (categoryLabel || "Start Request");
 
@@ -264,42 +266,59 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   // -------------------------------------------------------------
   if (variant === "list") {
     return (
-      <button
-        type="button"
+      <Card
         onClick={onClick}
-        className={`group w-full p-4 sm:p-5 bg-white hover:bg-slate-50/70 rounded-2xl border border-slate-200 hover:border-blue-300 shadow-xs hover:shadow-lg transition-all duration-300 flex items-center justify-between gap-4 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 relative overflow-hidden ${glow}`}
+        tabIndex={0}
+        role="button"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        className={cn(
+          "group w-full p-4 sm:p-5 bg-card hover:bg-muted/40 border-border hover:border-blue-300 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-row items-center justify-between gap-4 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring relative overflow-hidden",
+          glow
+        )}
       >
         {/* Left accent bar */}
-        <div className={`absolute left-0 inset-y-0 w-1 bg-linear-to-b ${accent} opacity-0 group-hover:opacity-100 transition-opacity`} />
+        <div className={cn("absolute left-0 inset-y-0 w-1 bg-linear-to-b opacity-0 group-hover:opacity-100 transition-opacity", accent)} />
 
         <div className="flex items-center gap-4 min-w-0 flex-1">
           <div
-            className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 transition-all duration-300 shadow-xs ${bg}`}
+            className={cn(
+              "size-12 rounded-xl border flex items-center justify-center shrink-0 transition-all duration-300 shadow-xs",
+              bg
+            )}
           >
-            <IconComponent className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
+            <IconComponent className="size-6 transition-transform duration-300 group-hover:scale-110" />
           </div>
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-sm sm:text-base leading-snug tracking-tight">
+              <h3 className="font-bold text-foreground group-hover:text-primary transition-colors text-sm sm:text-base leading-snug tracking-tight">
                 {requestType.name}
               </h3>
               {displayBadge && (
-                <span className="px-2.5 py-0.5 text-xs font-semibold bg-slate-100 text-slate-700 rounded-md border border-slate-200/70">
+                <Badge variant="secondary" className="text-xs font-semibold">
                   {displayBadge}
-                </span>
+                </Badge>
               )}
             </div>
           </div>
         </div>
 
         <div className="shrink-0">
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 group-hover:bg-blue-600 text-white text-xs font-semibold shadow-xs group-hover:shadow-md transition-all duration-200">
+          <Button
+            variant="default"
+            size="sm"
+            className="cursor-pointer gap-1.5 shadow-xs group-hover:shadow-md transition-all duration-200 pointer-events-none"
+          >
             <span>Start</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-          </span>
+            <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </Button>
         </div>
-      </button>
+      </Card>
     );
   }
 
@@ -307,44 +326,60 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   // VARIANT 2: BIGGER, SPACIOUS GRID VIEW
   // -------------------------------------------------------------
   return (
-    <button
-      type="button"
+    <Card
       onClick={onClick}
-      className={`group relative flex flex-col justify-between text-left bg-white hover:bg-linear-to-b hover:from-white hover:to-slate-50/60 rounded-2xl sm:rounded-3xl border border-slate-200/90 hover:border-blue-400/80 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full cursor-pointer overflow-hidden min-h-[175px] sm:min-h-[190px] ${glow}`}
+      tabIndex={0}
+      role="button"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className={cn(
+        "group relative flex flex-col justify-between text-left bg-card hover:bg-muted/30 border-border hover:border-primary/60 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-full cursor-pointer overflow-hidden min-h-[175px] sm:min-h-[190px]",
+        glow
+      )}
     >
       {/* Top subtle gradient highlight bar */}
-      <div className={`absolute top-0 inset-x-0 h-1.5 bg-linear-to-r ${accent} opacity-40 group-hover:opacity-100 transition-opacity duration-300`} />
+      <div className={cn("absolute top-0 inset-x-0 h-1.5 bg-linear-to-r opacity-40 group-hover:opacity-100 transition-opacity duration-300", accent)} />
 
       {/* Top Row: Icon + Category Badge */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div
-          className={`w-14 h-14 rounded-2xl border flex items-center justify-center transition-all duration-300 shadow-xs shrink-0 ${bg}`}
+          className={cn(
+            "size-14 rounded-2xl border flex items-center justify-center transition-all duration-300 shadow-xs shrink-0",
+            bg
+          )}
         >
-          <IconComponent className="w-7 h-7 transition-transform duration-300 group-hover:scale-110" />
+          <IconComponent className="size-7 transition-transform duration-300 group-hover:scale-110" />
         </div>
 
         {displayBadge && (
-          <span className="px-3 py-1 text-xs font-semibold bg-slate-100 text-slate-700 rounded-full border border-slate-200/80 text-right shrink-0 max-w-[65%] truncate">
+          <Badge
+            variant="secondary"
+            className="text-xs font-semibold text-right shrink-0 max-w-[65%] truncate"
+          >
             {displayBadge}
-          </span>
+          </Badge>
         )}
       </div>
 
       {/* Bottom Area: Title & Footer */}
       <div className="mt-auto">
-        <h3 className="font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors text-base sm:text-lg leading-snug tracking-tight mb-3 break-words">
+        <h3 className="font-extrabold text-foreground group-hover:text-primary transition-colors text-base sm:text-lg leading-snug tracking-tight mb-3 break-words">
           {requestType.name}
         </h3>
 
-        <div className="flex items-center justify-between text-xs font-semibold text-slate-400 group-hover:text-blue-600 transition-colors pt-3 border-t border-slate-100 gap-2">
-          <span className="text-xs sm:text-sm font-medium text-slate-500 group-hover:text-blue-600 transition-colors break-words">
+        <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground group-hover:text-primary transition-colors pt-3 border-t border-border/60 gap-2">
+          <span className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors break-words">
             {footerLabel}
           </span>
-          <div className="w-7 h-7 rounded-full bg-slate-100 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all text-slate-400 shrink-0">
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          <div className="size-7 rounded-full bg-muted group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center transition-all text-muted-foreground shrink-0">
+            <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
           </div>
         </div>
       </div>
-    </button>
+    </Card>
   );
 };

@@ -11,6 +11,8 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { AlertCircle } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -252,19 +254,21 @@ function HelpCenterContent() {
       <main className="grow w-full px-4 sm:px-6 md:px-8 lg:px-10 xl:px-14 2xl:px-20 py-8 sm:py-12">
         {/* Error Alert */}
         {apiError && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl mb-8 flex items-start gap-3 shadow-xs max-w-4xl mx-auto">
-            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+          <Card className="bg-destructive/10 border-destructive/20 text-destructive p-4 rounded-xl mb-8 flex flex-row items-start gap-3 shadow-xs max-w-4xl mx-auto gap-0">
+            <AlertCircle className="size-5 text-destructive shrink-0 mt-0.5" />
             <div className="flex-1 text-sm">
-              <p className="font-semibold">Unable to connect to Service Desk</p>
-              <p className="text-xs text-rose-700 mt-0.5">{apiError}</p>
+              <p className="font-semibold text-destructive">Unable to connect to Service Desk</p>
+              <p className="text-xs text-destructive/80 mt-0.5">{apiError}</p>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setApiError(null)}
-              className="text-rose-500 hover:text-rose-800 text-xs font-semibold cursor-pointer"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10 h-auto p-1 text-xs font-semibold cursor-pointer"
             >
               Dismiss
-            </button>
-          </div>
+            </Button>
+          </Card>
         )}
 
         {/* STATE 1: TICKET SUBMISSION SUCCESS CONFIRMATION */}

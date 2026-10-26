@@ -35,6 +35,9 @@ import { TicketsKanban } from "@/components/tickets/TicketsKanban";
 import { TicketDetailDrawer } from "@/components/tickets/TicketDetailDrawer";
 import { getStatusStyle } from "@/components/tickets/TicketBadge";
 import { exportTicketsToCsv } from "@/components/tickets/TicketExport";
+import { Card } from "@/components/ui/card";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 function TicketsContent() {
   const router = useRouter();
@@ -458,53 +461,60 @@ function TicketsContent() {
               </p>
             </div>
           ) : error ? (
-            <div className="p-8 rounded-2xl bg-rose-50 border border-rose-200 text-center space-y-3 max-w-lg mx-auto">
-              <AlertCircle className="w-10 h-10 text-rose-600 mx-auto" />
-              <h3 className="text-base font-bold text-slate-900">
+            <Card className="p-8 bg-destructive/10 border-destructive/20 text-center space-y-3 max-w-lg mx-auto gap-0">
+              <AlertCircle className="size-10 text-destructive mx-auto" />
+              <h3 className="text-base font-bold text-foreground">
                 Could not load requests
               </h3>
-              <p className="text-xs text-rose-700">{error}</p>
-              <button
+              <p className="text-xs text-destructive/80">{error}</p>
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={handleRefresh}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold border border-slate-200 transition-colors cursor-pointer shadow-2xs"
+                className="cursor-pointer gap-1.5 mx-auto"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className="size-3.5" />
                 <span>Retry</span>
-              </button>
-            </div>
+              </Button>
+            </Card>
           ) : filteredTickets.length === 0 ? (
-            <div className="py-20 text-center space-y-4 bg-white rounded-3xl border border-slate-200/90 p-8 shadow-xs">
-              <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto text-slate-500">
-                <Inbox className="w-8 h-8" />
+            <Card className="py-20 text-center space-y-4 bg-card rounded-3xl border-border p-8 shadow-xs gap-0">
+              <div className="size-16 rounded-2xl bg-muted border border-border flex items-center justify-center mx-auto text-muted-foreground">
+                <Inbox className="size-8" />
               </div>
               <div>
-                <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                <h3 className="text-base sm:text-lg font-bold text-foreground">
                   No matching requests found
                 </h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
+                <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
                   We couldn&rsquo;t find any tickets matching your selected criteria.
                   Try adjusting your column filter or resetting all filters.
                 </p>
               </div>
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={handleResetFilters}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-colors cursor-pointer shadow-2xs"
+                  className="cursor-pointer gap-1.5"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="size-3.5" />
                   <span>Reset Filters</span>
-                </button>
+                </Button>
                 <Link
                   href="/"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-sm shadow-blue-600/20"
+                  className={cn(
+                    buttonVariants({ variant: "default", size: "sm" }),
+                    "cursor-pointer gap-1.5 shadow-sm"
+                  )}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="size-4" />
                   <span>Submit New Request</span>
                 </Link>
               </div>
-            </div>
+            </Card>
           ) : (
             <div>
               {filters.viewMode === "grid" && (

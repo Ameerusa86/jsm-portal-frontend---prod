@@ -8,16 +8,9 @@ import {
   Check,
   Send,
   AlertCircle,
-  Clock,
-  User,
-  ShieldAlert,
-  HelpCircle,
-  CheckCircle2,
   Share2,
-  Building,
 } from "lucide-react";
-import Image from "next/image";
-import { TicketItem, TicketDetail, TicketCommentItem } from "@/types/jsm";
+import { TicketDetail } from "@/types/jsm";
 import {
   StatusBadge,
   PriorityChip,
@@ -26,6 +19,13 @@ import {
   formatFullDate,
   getStatusStyle,
 } from "./TicketBadge";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface TicketDetailDrawerProps {
   ticketKey: string | null;
@@ -224,53 +224,58 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
     statusStyle?.categoryKey === "done" ||
     statusStyle?.categoryKey === "canceled";
 
-  if (!ticketKey) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
         onClick={onClose}
       />
 
       {/* Drawer Container */}
-      <div className="relative w-full max-w-2xl bg-white border-l border-slate-200 h-full flex flex-col z-10 shadow-2xl animate-in slide-in-from-right duration-250 pb-[env(safe-area-inset-bottom,0px)] text-slate-900">
+      <div className="relative w-full max-w-2xl bg-background border-l border-border h-full flex flex-col z-10 shadow-2xl animate-in slide-in-from-right duration-250 pb-[env(safe-area-inset-bottom,0px)] text-foreground">
         {/* Top Header Bar */}
-        <div className="p-4 sm:p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-3 shrink-0">
+        <div className="p-4 sm:p-5 border-b border-border bg-muted/40 flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             {/* Key Badge */}
-            <span className="font-mono text-sm sm:text-base font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200/80 shrink-0">
+            <Badge
+              variant="outline"
+              className="font-mono text-sm sm:text-base font-bold text-blue-700 bg-blue-50 border-blue-200/80 px-2.5 py-1 rounded-lg shrink-0"
+            >
               {ticketKey}
-            </span>
+            </Badge>
 
             {/* Copy Key Button */}
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="icon-xs"
               onClick={handleCopyKey}
-              className="p-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
+              className="cursor-pointer"
               title="Copy issue key"
             >
               {copiedKey ? (
-                <Check className="w-4 h-4 text-emerald-600" />
+                <Check className="size-3.5 text-emerald-600" />
               ) : (
-                <Copy className="w-4 h-4" />
+                <Copy className="size-3.5" />
               )}
-            </button>
+            </Button>
 
             {/* Share Link Button */}
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="icon-xs"
               onClick={handleCopyLink}
-              className="p-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
+              className="cursor-pointer"
               title="Copy direct shareable link"
             >
               {copiedLink ? (
-                <Check className="w-4 h-4 text-emerald-600" />
+                <Check className="size-3.5 text-emerald-600" />
               ) : (
-                <Share2 className="w-4 h-4" />
+                <Share2 className="size-3.5" />
               )}
-            </button>
+            </Button>
 
             {/* Status Badge */}
             {detail && (
@@ -284,27 +289,29 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
           <div className="flex items-center gap-2 shrink-0">
             {/* Open in Native Jira link */}
             {detail?.portalUrl && (
-              <a
-                href={detail.portalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 shadow-2xs transition-colors"
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open(detail.portalUrl, "_blank", "noopener,noreferrer")}
+                className="hidden sm:inline-flex cursor-pointer gap-1.5"
                 title="View in native Atlassian portal"
               >
                 <span>Jira Portal</span>
-                <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-              </a>
+                <ExternalLink className="size-3.5 text-muted-foreground" />
+              </Button>
             )}
 
             {/* Close Button */}
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               onClick={onClose}
-              className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+              className="cursor-pointer"
               aria-label="Close drawer"
             >
-              <X className="w-4 h-4" />
-            </button>
+              <X className="size-4" />
+            </Button>
           </div>
         </div>
 
@@ -312,31 +319,31 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
           {loading ? (
             <div className="space-y-4 py-8">
-              <div className="h-6 w-3/4 bg-slate-200 rounded animate-pulse" />
-              <div className="h-20 bg-slate-100 rounded-xl animate-pulse" />
+              <div className="h-6 w-3/4 bg-muted rounded animate-pulse" />
+              <div className="h-20 bg-muted/60 rounded-xl animate-pulse" />
               <div className="grid grid-cols-2 gap-3">
-                <div className="h-14 bg-slate-100 rounded-xl animate-pulse" />
-                <div className="h-14 bg-slate-100 rounded-xl animate-pulse" />
+                <div className="h-14 bg-muted/60 rounded-xl animate-pulse" />
+                <div className="h-14 bg-muted/60 rounded-xl animate-pulse" />
               </div>
-              <div className="h-40 bg-slate-100 rounded-xl animate-pulse" />
+              <div className="h-40 bg-muted/60 rounded-xl animate-pulse" />
             </div>
           ) : error ? (
-            <div className="p-6 rounded-2xl bg-rose-50 border border-rose-200 text-center space-y-2">
-              <AlertCircle className="w-8 h-8 text-rose-600 mx-auto" />
-              <p className="text-sm font-bold text-rose-900">
+            <div className="p-6 rounded-2xl bg-destructive/10 border border-destructive/20 text-center space-y-2">
+              <AlertCircle className="size-8 text-destructive mx-auto" />
+              <p className="text-sm font-bold text-destructive">
                 Failed to load ticket details
               </p>
-              <p className="text-xs text-rose-700">{error}</p>
+              <p className="text-xs text-destructive/80">{error}</p>
             </div>
           ) : detail ? (
             <>
               {/* Title & Request Type & Client */}
               <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug">
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-snug">
                   {detail.summary}
                 </h2>
-                <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-500">
-                  <span className="font-semibold text-slate-700">
+                <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted-foreground">
+                  <span className="font-semibold text-foreground">
                     {detail.type}
                   </span>
                   <span>•</span>
@@ -360,126 +367,130 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
               </div>
 
               {/* Progression Stepper */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 shadow-2xs">
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">
+              <Card className="p-4 bg-muted/30 border-border gap-0">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
                   Progress Tracker
                 </p>
                 <div className="grid grid-cols-4 gap-2 text-center text-xs">
                   <div className="flex flex-col items-center">
-                    <div className="w-7 h-7 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-700 flex items-center justify-center font-bold text-xs mb-1">
+                    <div className="size-7 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-700 flex items-center justify-center font-bold text-xs mb-1">
                       ✓
                     </div>
-                    <span className="text-[11px] text-slate-700 font-semibold">
+                    <span className="text-[11px] text-foreground font-semibold">
                       Submitted
                     </span>
                   </div>
 
                   <div className="flex flex-col items-center">
                     <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs mb-1 border ${
+                      className={cn(
+                        "size-7 rounded-full flex items-center justify-center font-bold text-xs mb-1 border",
                         detail.statusCategory !== "NEW"
                           ? "bg-emerald-100 border-emerald-300 text-emerald-700"
                           : "bg-blue-100 border-blue-400 text-blue-700 animate-pulse"
-                      }`}
+                      )}
                     >
                       {detail.statusCategory !== "NEW" ? "✓" : "2"}
                     </div>
-                    <span className="text-[11px] text-slate-700 font-semibold">
+                    <span className="text-[11px] text-foreground font-semibold">
                       Reviewed
                     </span>
                   </div>
 
                   <div className="flex flex-col items-center">
                     <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs mb-1 border ${
+                      className={cn(
+                        "size-7 rounded-full flex items-center justify-center font-bold text-xs mb-1 border",
                         isClosed
                           ? "bg-emerald-100 border-emerald-300 text-emerald-700"
                           : detail.statusCategory === "INDETERMINATE"
                           ? "bg-blue-100 border-blue-400 text-blue-700 animate-pulse"
-                          : "bg-slate-100 border-slate-200 text-slate-400"
-                      }`}
+                          : "bg-muted border-border text-muted-foreground"
+                      )}
                     >
                       {isClosed ? "✓" : "3"}
                     </div>
-                    <span className="text-[11px] text-slate-700 font-semibold">
+                    <span className="text-[11px] text-foreground font-semibold">
                       In Progress
                     </span>
                   </div>
 
                   <div className="flex flex-col items-center">
                     <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs mb-1 border ${
+                      className={cn(
+                        "size-7 rounded-full flex items-center justify-center font-bold text-xs mb-1 border",
                         isClosed
                           ? "bg-emerald-100 border-emerald-300 text-emerald-700"
-                          : "bg-slate-100 border-slate-200 text-slate-400"
-                      }`}
+                          : "bg-muted border-border text-muted-foreground"
+                      )}
                     >
                       {isClosed ? "✓" : "4"}
                     </div>
-                    <span className="text-[11px] text-slate-700 font-semibold">
+                    <span className="text-[11px] text-foreground font-semibold">
                       Resolved
                     </span>
                   </div>
                 </div>
-              </div>
+              </Card>
 
               {/* Metadata Details Grid */}
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <p className="text-slate-500 text-[11px] font-semibold mb-1">
+                <Card className="p-3.5 bg-muted/20 border-border gap-0">
+                  <p className="text-muted-foreground text-[11px] font-semibold mb-1">
                     Client / Organization
                   </p>
-                  <p className="font-bold text-slate-800">
+                  <p className="font-bold text-foreground">
                     {detail.clientName || detail.organization || "Direct / Internal"}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Account Profile</p>
-                </div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Account Profile</p>
+                </Card>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <p className="text-slate-500 text-[11px] font-semibold mb-1">
+                <Card className="p-3.5 bg-muted/20 border-border gap-0">
+                  <p className="text-muted-foreground text-[11px] font-semibold mb-1">
                     Assigned Specialist
                   </p>
-                  <p className="font-bold text-slate-800 truncate">
+                  <p className="font-bold text-foreground truncate">
                     {detail.assignee?.displayName || "Support Team"}
                   </p>
-                  <p className="text-[10px] text-slate-400 truncate mt-0.5">
+                  <p className="text-[10px] text-muted-foreground truncate mt-0.5">
                     {detail.assignee?.emailAddress || "Tier 2 Support"}
                   </p>
-                </div>
+                </Card>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <p className="text-slate-500 text-[11px] font-semibold mb-1">
+                <Card className="p-3.5 bg-muted/20 border-border gap-0">
+                  <p className="text-muted-foreground text-[11px] font-semibold mb-1">
                     Created
                   </p>
-                  <p className="font-bold text-slate-800">
+                  <p className="font-bold text-foreground">
                     {formatFullDate(detail.created)}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
                     {formatRelativeTime(detail.created)}
                   </p>
-                </div>
+                </Card>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <p className="text-slate-500 text-[11px] font-semibold mb-1">
+                <Card className="p-3.5 bg-muted/20 border-border gap-0">
+                  <p className="text-muted-foreground text-[11px] font-semibold mb-1">
                     Last Updated
                   </p>
-                  <p className="font-bold text-slate-800">
+                  <p className="font-bold text-foreground">
                     {formatFullDate(detail.updated || detail.created)}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
                     {formatRelativeTime(detail.updated || detail.created)}
                   </p>
-                </div>
+                </Card>
               </div>
 
               {/* Public Conversation & Comments Thread */}
-              <div className="space-y-3 pt-2 border-t border-slate-200">
+              <div className="space-y-3 pt-2">
+                <Separator />
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Conversation Thread (
                     {(detail.comments && detail.comments.length) || 0})
                   </h4>
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[11px] text-muted-foreground">
                     Visible to Support Team
                   </span>
                 </div>
@@ -491,93 +502,95 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                       const isAgent = comment.author?.isAgent;
 
                       return (
-                        <div
+                        <Card
                           key={comment.id}
-                          className={`p-4 rounded-2xl border ${
+                          className={cn(
+                            "p-4 border gap-0",
                             isAgent
-                              ? "bg-blue-50/50 border-blue-200"
-                              : "bg-slate-50 border-slate-200"
-                          }`}
+                              ? "bg-blue-50/40 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900"
+                              : "bg-muted/30 border-border"
+                          )}
                         >
                           <div className="flex items-center justify-between gap-2 mb-2">
                             <div className="flex items-center gap-2">
-                              {comment.author?.avatarUrl ? (
-                                <Image
-                                  src={comment.author.avatarUrl}
-                                  alt={comment.author.displayName}
-                                  width={24}
-                                  height={24}
-                                  className="w-6 h-6 rounded-full object-cover border border-slate-200"
-                                />
-                              ) : (
-                                <div className="w-6 h-6 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-[10px] font-bold text-blue-700">
-                                  {comment.author?.displayName
-                                    ?.charAt(0)
-                                    .toUpperCase() || "U"}
-                                </div>
-                              )}
-                              <span className="font-bold text-xs text-slate-900">
+                              <Avatar size="sm" className="size-6 border border-border">
+                                {comment.author?.avatarUrl && (
+                                  <AvatarImage
+                                    src={comment.author.avatarUrl}
+                                    alt={comment.author.displayName}
+                                  />
+                                )}
+                                <AvatarFallback className="bg-blue-100 text-blue-700 text-[10px] font-bold">
+                                  {comment.author?.displayName?.charAt(0).toUpperCase() || "U"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="font-bold text-xs text-foreground">
                                 {comment.author?.displayName}
                               </span>
                               {isAgent && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 border border-blue-200">
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px] font-bold px-1.5 py-0 rounded bg-blue-100 text-blue-700 border-blue-200"
+                                >
                                   Support Agent
-                                </span>
+                                </Badge>
                               )}
                             </div>
-                            <span className="text-[11px] text-slate-400 font-mono">
+                            <span className="text-[11px] text-muted-foreground font-mono">
                               {formatRelativeTime(comment.created)}
                             </span>
                           </div>
 
-                          <p className="text-xs sm:text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                          <p className="text-xs sm:text-sm text-foreground whitespace-pre-wrap leading-relaxed">
                             {comment.body}
                           </p>
-                        </div>
+                        </Card>
                       );
                     })
                   ) : (
-                    <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-center text-xs text-slate-500">
+                    <Card className="p-6 bg-muted/20 border-dashed border-border text-center text-xs text-muted-foreground gap-0">
                       No customer comments logged yet. Use the field below to
                       send a message or update to our support team.
-                    </div>
+                    </Card>
                   )}
                   <div ref={commentsEndRef} />
                 </div>
 
                 {/* Add Comment Form */}
                 <form onSubmit={handleSubmitComment} className="pt-2">
-                  <div className="relative">
-                    <textarea
+                  <div className="relative space-y-2">
+                    <Textarea
                       rows={3}
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Add an update, reply to support, or attach additional details..."
-                      className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 text-slate-900 placeholder-slate-400 text-xs sm:text-sm rounded-2xl p-3.5 transition-all resize-none shadow-2xs"
+                      className="bg-muted/30 border-border focus-visible:bg-background transition-all"
                       disabled={submittingComment}
                     />
 
                     {commentError && (
-                      <p className="text-xs text-rose-600 mt-1 font-medium">
+                      <p className="text-xs text-destructive font-medium">
                         {commentError}
                       </p>
                     )}
 
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-[11px] text-muted-foreground">
                         Press Send to notify the support engineer
                       </span>
 
-                      <button
+                      <Button
                         type="submit"
+                        variant="default"
+                        size="sm"
                         disabled={submittingComment || !newComment.trim()}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-sm shadow-blue-600/20 cursor-pointer"
+                        className="cursor-pointer gap-1.5"
                       >
-                        <Send className="w-3.5 h-3.5" />
+                        <Send className="size-3.5" />
                         <span>
                           {submittingComment ? "Sending..." : "Send Reply"}
                         </span>
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </form>
@@ -585,44 +598,50 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
 
               {/* Danger Zone: Cancel Request */}
               {!isClosed && (
-                <div className="p-4 rounded-2xl border border-rose-200 bg-rose-50/60 space-y-2 mt-6">
+                <div className="p-4 rounded-2xl border border-destructive/20 bg-destructive/10 space-y-2 mt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-rose-800">
+                      <p className="text-xs font-bold text-destructive">
                         Cancel this request?
                       </p>
-                      <p className="text-[11px] text-rose-600/80 mt-0.5">
+                      <p className="text-[11px] text-destructive/80 mt-0.5">
                         If this request is no longer needed, you can withdraw it
                         from the active queue.
                       </p>
                     </div>
 
                     {!showCancelConfirm ? (
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
                         onClick={() => setShowCancelConfirm(true)}
-                        className="px-3 py-1.5 rounded-xl border border-rose-300 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors cursor-pointer"
+                        className="cursor-pointer border-destructive/30 text-destructive hover:bg-destructive/10"
                       >
                         Cancel Request
-                      </button>
+                      </Button>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
+                          size="sm"
                           onClick={() => setShowCancelConfirm(false)}
-                          className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold"
                           disabled={cancelling}
+                          className="cursor-pointer"
                         >
                           No, Keep It
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
+                          variant="destructive"
+                          size="sm"
                           onClick={handleCancelTicket}
                           disabled={cancelling}
-                          className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                          className="cursor-pointer"
                         >
                           {cancelling ? "Cancelling..." : "Yes, Confirm"}
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>

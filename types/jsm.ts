@@ -49,6 +49,8 @@ export interface JsmField {
   choices?: Choice[];
   source?: "jira" | "proforma" | string;
   allowMultiple?: boolean;
+  default?: unknown;
+  value?: unknown;
 }
 
 export type FormField = JsmField;

@@ -21,6 +21,12 @@ import { GroupPickerField } from "./form/GroupPickerField";
 import { CascadingSelectField } from "./form/CascadingSelectField";
 import { FileAttachmentField } from "./form/FileAttachmentField";
 import { TagInputField } from "./form/TagInputField";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface DynamicFormProps {
   fields: FormField[];
@@ -29,13 +35,44 @@ interface DynamicFormProps {
   submitLabel?: string;
 }
 
+const computeInitialFormData = (fieldsList: FormField[]) => {
+  const defaults: Record<string, unknown> = {};
+  fieldsList.forEach((f) => {
+    const id = (f.id || f.fieldId) as string;
+    if (f.default !== undefined) {
+      defaults[id] = f.default;
+    } else if (f.value !== undefined) {
+      defaults[id] = f.value;
+    } else if (
+      f.type === "checkbox" ||
+      f.type === "multiselect" ||
+      f.type === "labels" ||
+      f.type === "multi-user-picker" ||
+      f.type === "multi-group-picker"
+    ) {
+      defaults[id] = [];
+    } else if (f.type === "cascading" || f.type === "cascading-select") {
+      defaults[id] = {};
+    }
+  });
+  return defaults;
+};
+
 export const DynamicForm: React.FC<DynamicFormProps> = ({
   fields,
   onSubmit,
   onCancel,
   submitLabel = "Submit Request",
 }) => {
-  const [formData, setFormData] = useState<Record<string, unknown>>({});
+  const [prevFields, setPrevFields] = useState<FormField[]>(fields);
+  const [formData, setFormData] = useState<Record<string, unknown>>(() =>
+    computeInitialFormData(fields)
+  );
+
+  if (fields !== prevFields) {
+    setPrevFields(fields);
+    setFormData(computeInitialFormData(fields));
+  }
   const [fileList, setFileList] = useState<Record<string, File[]>>({});
   const [submitting, setSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -119,7 +156,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [activePickerField, activePickerId, activePickerQuery]);
+  }, [activePickerId, activePickerQuery, activePickerField]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,61 +164,26 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
     // Validate required fields
     for (const field of fields) {
-      const id = (field.id || field.fieldId) as string;
-      if (!id || field.type === "info" || field.type === "message") continue;
-
       if (field.required) {
+        const id = (field.id || field.fieldId) as string;
         const val = formData[id];
-        const files = fileList[id];
-        const isFile = field.type === "file" || field.type === "attachment";
 
-        if (isFile) {
-          if (!files || files.length === 0) {
-            setValidationError(
-              `Please upload the required file for "${field.label || field.name}".`,
-            );
-            return;
-          }
-        } else if (
-          field.type === "user-picker" ||
-          field.type === "group-picker"
-        ) {
-          if (!val || (typeof val === "string" && !val.trim())) {
-            setValidationError(
-              `Please select a ${field.type === "user-picker" ? "user" : "group"} for "${field.label || field.name}".`,
-            );
-            return;
-          }
-        } else if (
-          field.type === "multi-user-picker" ||
-          field.type === "multi-group-picker" ||
-          field.type === "checkbox" ||
-          field.type === "labels"
-        ) {
-          if (!Array.isArray(val) || val.length === 0) {
-            setValidationError(
-              `Please select or add at least one option for "${field.label || field.name}".`,
-            );
-            return;
-          }
-        } else if (
-          field.type === "cascading" ||
-          field.type === "cascading-select"
-        ) {
-          const cascadingVal = val as
-            | { parent?: string; child?: string }
-            | undefined;
-          if (!cascadingVal?.parent) {
-            setValidationError(
-              `Please select an option for "${field.label || field.name}".`,
-            );
-            return;
-          }
-        } else if (val === undefined || val === null || val === "") {
-          setValidationError(
-            `Please fill out the required field: "${field.label || field.name}".`,
-          );
+        if (val === undefined || val === null || val === "") {
+          setValidationError(`Please fill out the required field: "${field.label || field.name}"`);
           return;
+        }
+
+        if (Array.isArray(val) && val.length === 0) {
+          setValidationError(`Please select at least one option for: "${field.label || field.name}"`);
+          return;
+        }
+
+        if (typeof val === "object" && !Array.isArray(val)) {
+          const obj = val as Record<string, unknown>;
+          if (!obj.parent && !obj.child && Object.keys(obj).length === 0) {
+            setValidationError(`Please make a selection for: "${field.label || field.name}"`);
+            return;
+          }
         }
       }
     }
@@ -190,22 +192,18 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     try {
       await onSubmit(formData);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "An error occurred while submitting.";
-      setValidationError(message);
+      setValidationError(err instanceof Error ? err.message : "Failed to submit request");
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleFilesAdded = (id: string, newFiles: FileList | File[]) => {
+    const added = Array.from(newFiles);
     const existing = fileList[id] || [];
-    const addedArray = Array.from(newFiles);
-    const combinedFiles = [...existing, ...addedArray];
-    setFileList({ ...fileList, [id]: combinedFiles });
-    setFormData({ ...formData, [id]: combinedFiles.map((f) => f.name) });
+    const combined = [...existing, ...added];
+    setFileList({ ...fileList, [id]: combined });
+    setFormData({ ...formData, [id]: combined.map((f) => f.name) });
   };
 
   const removeFile = (id: string, index: number) => {
@@ -215,7 +213,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
   };
 
   const baseInputClass =
-    "w-full rounded-xl border border-slate-300 bg-white py-3 sm:py-2.5 px-3.5 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all shadow-xs min-h-[44px]";
+    "w-full rounded-lg border border-input bg-background py-2 px-3 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 outline-none transition-all shadow-xs min-h-[40px]";
 
   // Find the summary field to use as the search query for KB articles
   const summaryField = fields.find(
@@ -234,13 +232,13 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       )}
 
       {validationError && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-start gap-3 text-sm animate-shake">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+        <Card className="p-4 bg-destructive/10 border-destructive/20 text-destructive flex flex-row items-start gap-3 text-sm animate-shake gap-0">
+          <AlertCircle className="size-5 shrink-0 mt-0.5 text-destructive" />
           <div className="flex-1">
-            <p className="font-semibold">Submission Incomplete</p>
-            <p className="text-xs mt-0.5 text-rose-600">{validationError}</p>
+            <p className="font-semibold text-destructive">Submission Incomplete</p>
+            <p className="text-xs mt-0.5 text-destructive/80">{validationError}</p>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Sequential Form Inputs matching exact JSM order */}
@@ -287,40 +285,40 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               {/* Field Header & Label */}
               {!isInfo && (
                 <div className="flex items-center justify-between">
-                  <label
+                  <Label
                     htmlFor={id}
-                    className="block text-sm font-semibold text-slate-800"
+                    className="text-sm font-semibold text-foreground flex items-center"
                   >
-                    {label}
+                    <span>{label}</span>
                     {field.required ? (
                       <span
-                        className="text-rose-500 ml-1 font-bold"
+                        className="text-destructive ml-1 font-bold"
                         title="Required field"
                       >
                         *
                       </span>
                     ) : (
-                      <span className="text-xs text-slate-400 font-normal ml-1.5">
+                      <span className="text-xs text-muted-foreground font-normal ml-1.5">
                         (Optional)
                       </span>
                     )}
-                  </label>
+                  </Label>
                 </div>
               )}
 
               {/* Render Field By Type */}
               {isInfo ? (
-                <div className="rounded-xl bg-blue-50/90 border border-blue-200/90 p-4 text-blue-900 my-2 flex items-start gap-3">
-                  <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                <Card className="rounded-xl bg-blue-50/90 border-blue-200/90 dark:bg-blue-950/40 dark:border-blue-900 p-4 text-blue-900 dark:text-blue-200 my-2 flex flex-row items-start gap-3 gap-0">
+                  <Info className="size-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                   <div className="text-xs space-y-1">
-                    <p className="font-semibold text-sm text-blue-950">
+                    <p className="font-semibold text-sm text-blue-950 dark:text-blue-100">
                       {label}
                     </p>
-                    <p className="text-blue-800 leading-relaxed">
+                    <p className="text-blue-800 dark:text-blue-300 leading-relaxed">
                       {field.description}
                     </p>
                   </div>
-                </div>
+                </Card>
               ) : isRadio && hasChoices ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
                   {field.choices!.map((c) => {
@@ -329,13 +327,14 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                     const isSelected = formData[id] === choiceVal;
 
                     return (
-                      <label
+                      <Label
                         key={choiceVal}
-                        className={`flex items-start gap-3 p-3.5 rounded-xl border text-sm cursor-pointer transition-all min-h-[44px] ${
+                        className={cn(
+                          "flex items-start gap-3 p-3.5 rounded-xl border text-sm cursor-pointer transition-all min-h-[44px]",
                           isSelected
-                            ? "bg-blue-50/80 border-blue-500 text-blue-950 font-medium ring-2 ring-blue-500/10 shadow-xs"
-                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
-                        }`}
+                            ? "bg-blue-50/80 border-blue-500 text-blue-950 dark:bg-blue-950/40 dark:text-blue-100 font-medium ring-2 ring-blue-500/10 shadow-xs"
+                            : "bg-card border-border text-foreground hover:bg-muted/40 hover:border-slate-300"
+                        )}
                       >
                         <input
                           type="radio"
@@ -345,12 +344,12 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                           onChange={(e) =>
                             setFormData({ ...formData, [id]: e.target.value })
                           }
-                          className="h-4 w-4 mt-0.5 text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer shrink-0"
+                          className="size-4 mt-0.5 text-primary border-input focus:ring-ring cursor-pointer shrink-0"
                         />
                         <span className="text-sm leading-snug">
                           {choiceLabel}
                         </span>
-                      </label>
+                      </Label>
                     );
                   })}
                 </div>
@@ -365,13 +364,14 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                     const isChecked = currentValues.includes(choiceVal);
 
                     return (
-                      <label
+                      <Label
                         key={choiceVal}
-                        className={`flex items-start gap-3 p-3.5 rounded-xl border text-sm cursor-pointer transition-all min-h-[44px] ${
+                        className={cn(
+                          "flex items-start gap-3 p-3.5 rounded-xl border text-sm cursor-pointer transition-all min-h-[44px]",
                           isChecked
-                            ? "bg-blue-50/80 border-blue-500 text-blue-950 font-medium ring-2 ring-blue-500/10 shadow-xs"
-                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
-                        }`}
+                            ? "bg-blue-50/80 border-blue-500 text-blue-950 dark:bg-blue-950/40 dark:text-blue-100 font-medium ring-2 ring-blue-500/10 shadow-xs"
+                            : "bg-card border-border text-foreground hover:bg-muted/40 hover:border-slate-300"
+                        )}
                       >
                         <input
                           type="checkbox"
@@ -384,12 +384,12 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                               : currentValues.filter((v) => v !== val);
                             setFormData({ ...formData, [id]: newValues });
                           }}
-                          className="h-4 w-4 mt-0.5 rounded text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer shrink-0"
+                          className="size-4 mt-0.5 rounded text-primary border-input focus:ring-ring cursor-pointer shrink-0"
                         />
                         <span className="text-sm leading-snug">
                           {choiceLabel}
                         </span>
-                      </label>
+                      </Label>
                     );
                   })}
                 </div>
@@ -471,27 +471,27 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                     onChange={(e) =>
                       setFormData({ ...formData, [id]: e.target.value })
                     }
-                    className={`${baseInputClass} appearance-none pr-10 cursor-pointer`}
+                    className={cn(baseInputClass, "appearance-none pr-10 cursor-pointer")}
                   >
-                    <option value="" className="text-slate-400">
+                    <option value="" className="text-muted-foreground">
                       Select an option...
                     </option>
                     {field.choices!.map((c) => (
                       <option
                         key={c.id || c.value}
                         value={c.id || c.value}
-                        className="text-slate-900"
+                        className="text-foreground"
                       >
                         {c.label || c.name || c.value}
                       </option>
                     ))}
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400">
-                    <ChevronDown className="w-4 h-4" />
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
+                    <ChevronDown className="size-4" />
                   </div>
                 </div>
               ) : isLongText ? (
-                <textarea
+                <Textarea
                   id={id}
                   rows={4}
                   placeholder={
@@ -506,7 +506,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, [id]: e.target.value })
                   }
-                  className={`${baseInputClass} resize-y min-h-25 leading-relaxed`}
+                  className="resize-y min-h-25 leading-relaxed bg-background"
                 />
               ) : isFile ? (
                 <FileAttachmentField
@@ -518,11 +518,11 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               ) : isDate || isDateTime || isTime ? (
                 <div className="relative">
                   {isTime ? (
-                    <Clock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Clock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   ) : (
-                    <Calendar className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Calendar className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   )}
-                  <input
+                  <Input
                     type={
                       isDate
                         ? "date"
@@ -539,13 +539,13 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                     onChange={(e) =>
                       setFormData({ ...formData, [id]: e.target.value })
                     }
-                    className={`${baseInputClass} pl-10`}
+                    className="pl-9 h-10"
                   />
                 </div>
               ) : isEmail ? (
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <input
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
                     type="email"
                     id={id}
                     placeholder="e.g. first.last@company.com"
@@ -557,13 +557,13 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                     onChange={(e) =>
                       setFormData({ ...formData, [id]: e.target.value })
                     }
-                    className={`${baseInputClass} pl-10`}
+                    className="pl-9 h-10"
                   />
                 </div>
               ) : isUrl ? (
                 <div className="relative">
-                  <Globe className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <input
+                  <Globe className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
                     type="url"
                     id={id}
                     placeholder="https://..."
@@ -575,13 +575,13 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                     onChange={(e) =>
                       setFormData({ ...formData, [id]: e.target.value })
                     }
-                    className={`${baseInputClass} pl-10`}
+                    className="pl-9 h-10"
                   />
                 </div>
               ) : isAsset ? (
                 <div className="relative">
-                  <Box className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <input
+                  <Box className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
                     type="text"
                     id={id}
                     placeholder="Enter asset key or tag (e.g. AST-10021)..."
@@ -593,15 +593,15 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                     onChange={(e) =>
                       setFormData({ ...formData, [id]: e.target.value })
                     }
-                    className={`${baseInputClass} pl-10`}
+                    className="pl-9 h-10"
                   />
                 </div>
               ) : (
                 <div className="relative">
                   {isNumber && (
-                    <Hash className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Hash className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   )}
-                  <input
+                  <Input
                     type={isNumber ? "number" : "text"}
                     id={id}
                     placeholder={
@@ -616,7 +616,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                     onChange={(e) =>
                       setFormData({ ...formData, [id]: e.target.value })
                     }
-                    className={`${baseInputClass} ${isNumber ? "pl-10" : ""}`}
+                    className={cn("h-10", isNumber && "pl-9")}
                   />
                 </div>
               )}
@@ -628,7 +628,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                 !isCascading &&
                 !isSingleUserPicker &&
                 !isMultiUserPicker && (
-                  <p className="text-xs text-slate-500 pt-0.5 leading-normal">
+                  <p className="text-xs text-muted-foreground pt-0.5 leading-normal">
                     {field.description}
                   </p>
                 )}
@@ -638,35 +638,39 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       </div>
 
       {/* Action Bar */}
-      <div className="pt-6 border-t border-slate-200 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+      <div className="pt-6 border-t border-border/70 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
         {onCancel && (
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="lg"
             onClick={onCancel}
             disabled={submitting}
-            className="w-full sm:w-auto px-6 py-3 sm:py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 hover:text-slate-900 transition-all cursor-pointer shadow-xs disabled:opacity-50 min-h-[44px] flex items-center justify-center"
+            className="w-full sm:w-auto cursor-pointer"
           >
             Cancel
-          </button>
+          </Button>
         )}
 
-        <button
+        <Button
           type="submit"
+          variant="default"
+          size="lg"
           disabled={submitting}
-          className="w-full sm:w-auto px-7 py-3 sm:py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 active:scale-[0.98] shadow-md shadow-blue-600/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
+          className="w-full sm:w-auto cursor-pointer gap-2 shadow-md"
         >
           {submitting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
               <span>Submitting Request...</span>
             </>
           ) : (
             <>
-              <Send className="w-4 h-4" />
+              <Send className="size-4" />
               <span>{submitLabel}</span>
             </>
           )}
-        </button>
+        </Button>
       </div>
     </form>
   );

@@ -3,7 +3,6 @@
 import React from "react";
 import {
   AlertTriangle,
-  ArrowUp,
   Minus,
   ArrowDown,
   Flame,
@@ -13,6 +12,8 @@ import {
   XCircle,
   Building,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export function formatRelativeTime(dateStr: string | null | undefined): string {
   if (!dateStr) return "Unknown";
@@ -77,7 +78,7 @@ export function getStatusStyle(
   ) {
     return {
       label: statusName || "Resolved",
-      bg: "bg-emerald-50 text-emerald-700 border-emerald-200/90",
+      bg: "bg-emerald-50 text-emerald-700 border-emerald-200/90 hover:bg-emerald-100/80",
       dot: "bg-emerald-500",
       icon: CheckCircle2,
       categoryKey: "done",
@@ -93,7 +94,7 @@ export function getStatusStyle(
   ) {
     return {
       label: statusName || "Waiting for You",
-      bg: "bg-amber-50 text-amber-700 border-amber-200/90",
+      bg: "bg-amber-50 text-amber-700 border-amber-200/90 hover:bg-amber-100/80",
       dot: "bg-amber-500 animate-pulse",
       icon: Clock,
       categoryKey: "waiting-customer",
@@ -110,7 +111,7 @@ export function getStatusStyle(
   ) {
     return {
       label: statusName || "Waiting for Support",
-      bg: "bg-purple-50 text-purple-700 border-purple-200/90",
+      bg: "bg-purple-50 text-purple-700 border-purple-200/90 hover:bg-purple-100/80",
       dot: "bg-purple-500",
       icon: HelpCircle,
       categoryKey: "new",
@@ -121,7 +122,7 @@ export function getStatusStyle(
   if (s.includes("cancel")) {
     return {
       label: statusName || "Canceled",
-      bg: "bg-rose-50 text-rose-700 border-rose-200/90",
+      bg: "bg-rose-50 text-rose-700 border-rose-200/90 hover:bg-rose-100/80",
       dot: "bg-rose-500",
       icon: XCircle,
       categoryKey: "canceled",
@@ -131,7 +132,7 @@ export function getStatusStyle(
   // 5. Default: In Progress / Indeterminate
   return {
     label: statusName || "In Progress",
-    bg: "bg-blue-50 text-blue-700 border-blue-200/90",
+    bg: "bg-blue-50 text-blue-700 border-blue-200/90 hover:bg-blue-100/80",
     dot: "bg-blue-500 animate-pulse",
     icon: Clock,
     categoryKey: "indeterminate",
@@ -145,7 +146,7 @@ export function getPriorityStyle(priorityName: string = "Medium") {
     return {
       label: priorityName,
       color: "text-rose-700",
-      bg: "bg-rose-50 border-rose-200",
+      bg: "bg-rose-50 border-rose-200 hover:bg-rose-100/80",
       icon: Flame,
     };
   }
@@ -153,7 +154,7 @@ export function getPriorityStyle(priorityName: string = "Medium") {
     return {
       label: priorityName,
       color: "text-orange-700",
-      bg: "bg-orange-50 border-orange-200",
+      bg: "bg-orange-50 border-orange-200 hover:bg-orange-100/80",
       icon: AlertTriangle,
     };
   }
@@ -161,7 +162,7 @@ export function getPriorityStyle(priorityName: string = "Medium") {
     return {
       label: priorityName,
       color: "text-slate-600",
-      bg: "bg-slate-100 border-slate-200",
+      bg: "bg-slate-100 border-slate-200 hover:bg-slate-200/80",
       icon: ArrowDown,
     };
   }
@@ -170,7 +171,7 @@ export function getPriorityStyle(priorityName: string = "Medium") {
   return {
     label: priorityName || "Medium",
     color: "text-blue-700",
-    bg: "bg-blue-50 border-blue-200",
+    bg: "bg-blue-50 border-blue-200 hover:bg-blue-100/80",
     icon: Minus,
   };
 }
@@ -182,12 +183,13 @@ export const StatusBadge: React.FC<{
 }> = ({ status, statusCategory, className = "" }) => {
   const style = getStatusStyle(status, statusCategory);
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${className}`}
+    <Badge
+      variant="outline"
+      className={cn("gap-1.5 px-2.5 py-0.5 font-semibold text-xs", style.bg, className)}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
       <span className="truncate">{style.label}</span>
-    </span>
+    </Badge>
   );
 };
 
@@ -200,13 +202,14 @@ export const PriorityChip: React.FC<{
   const Icon = style.icon;
 
   return (
-    <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold border ${style.bg} ${style.color} ${className}`}
+    <Badge
+      variant="outline"
+      className={cn("gap-1 px-2 py-0.5 font-semibold text-xs rounded-lg", style.bg, style.color, className)}
       title={`Priority: ${style.label}`}
     >
       <Icon className="w-3 h-3 shrink-0" />
       {showLabel && <span>{style.label}</span>}
-    </span>
+    </Badge>
   );
 };
 
@@ -216,12 +219,13 @@ export const ClientBadge: React.FC<{
 }> = ({ clientName, className = "" }) => {
   if (!clientName) return null;
   return (
-    <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-xs font-medium max-w-[200px] truncate ${className}`}
+    <Badge
+      variant="secondary"
+      className={cn("gap-1 px-2 py-0.5 text-xs font-medium max-w-[200px] truncate border border-slate-200", className)}
       title={`Client / Organization: ${clientName}`}
     >
       <Building className="w-3 h-3 text-slate-500 shrink-0" />
       <span className="truncate">{clientName}</span>
-    </span>
+    </Badge>
   );
 };

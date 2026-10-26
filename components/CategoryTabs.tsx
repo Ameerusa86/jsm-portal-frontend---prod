@@ -18,6 +18,9 @@ import {
   Briefcase,
   DollarSign,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface CategoryTabsProps {
   categories: { name: string; count: number }[];
@@ -111,65 +114,71 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
           const Icon = getCategoryIcon(cat.name);
 
           return (
-            <button
+            <Button
               key={cat.name}
+              variant={isActive ? "default" : "outline"}
+              size="sm"
               onClick={() => onSelectCategory(cat.name)}
-              className={`group inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all duration-200 cursor-pointer border whitespace-nowrap shrink-0 ${
+              className={cn(
+                "cursor-pointer gap-2 shrink-0 rounded-xl h-9 font-medium shadow-xs",
                 isActive
-                  ? "bg-blue-600 text-white border-blue-600 shadow-sm font-semibold"
-                  : "bg-white text-slate-600 hover:text-slate-900 border-slate-200/90 hover:border-slate-300 hover:bg-slate-50/80 shadow-xs font-medium"
-              }`}
+                  ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                  : "bg-card text-muted-foreground hover:text-foreground border-border hover:bg-muted/50"
+              )}
             >
               <Icon
-                className={`w-4 h-4 transition-colors ${
-                  isActive
-                    ? "text-white"
-                    : "text-slate-400 group-hover:text-slate-600"
-                }`}
+                className={cn(
+                  "size-4 transition-colors",
+                  isActive ? "text-white" : "text-muted-foreground"
+                )}
               />
               <span>{cat.name === "all" ? "All Services" : cat.name}</span>
-              <span
-                className={`px-1.5 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
+              <Badge
+                variant={isActive ? "secondary" : "secondary"}
+                className={cn(
+                  "px-1.5 py-0 text-[11px] font-semibold h-4 min-w-4 rounded-full",
                   isActive
-                    ? "bg-blue-700/60 text-white"
-                    : "bg-slate-100 text-slate-500 group-hover:bg-slate-200/70"
-                }`}
+                    ? "bg-blue-700/80 text-white"
+                    : "bg-muted text-muted-foreground"
+                )}
               >
                 {cat.count}
-              </span>
-            </button>
+              </Badge>
+            </Button>
           );
         })}
       </div>
 
-      {/* Right Controls: View Switcher (Grid/List) & 2-Step Finder */}
+      {/* Right Controls: View Switcher (Grid/List) */}
       <div className="flex items-center gap-2.5 shrink-0 self-end lg:self-auto">
         {onToggleViewMode && (
-          <div className="inline-flex items-center p-1 bg-white border border-slate-200/90 rounded-xl shadow-xs">
-            <button
+          <div className="inline-flex items-center p-1 bg-card border border-border rounded-xl shadow-xs">
+            <Button
               type="button"
+              variant={viewMode === "grid" ? "secondary" : "ghost"}
+              size="icon-xs"
               onClick={() => onToggleViewMode("grid")}
               title="Grid View"
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                viewMode === "grid"
-                  ? "bg-slate-100 text-blue-600 shadow-xs"
-                  : "text-slate-400 hover:text-slate-700"
-              }`}
+              className={cn(
+                "cursor-pointer",
+                viewMode === "grid" && "bg-muted text-primary shadow-xs"
+              )}
             >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
+              <LayoutGrid className="size-3.5" />
+            </Button>
+            <Button
               type="button"
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="icon-xs"
               onClick={() => onToggleViewMode("list")}
               title="List View"
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                viewMode === "list"
-                  ? "bg-slate-100 text-blue-600 shadow-xs"
-                  : "text-slate-400 hover:text-slate-700"
-              }`}
+              className={cn(
+                "cursor-pointer",
+                viewMode === "list" && "bg-muted text-primary shadow-xs"
+              )}
             >
-              <List className="w-4 h-4" />
-            </button>
+              <List className="size-3.5" />
+            </Button>
           </div>
         )}
       </div>

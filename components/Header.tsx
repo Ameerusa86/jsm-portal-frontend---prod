@@ -26,11 +26,15 @@ import {
   LayoutList,
   Check,
 } from "lucide-react";
-import Image from "next/image";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { JsmSpace } from "@/types/jsm";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   onHomeClick?: () => void;
@@ -271,39 +275,49 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Active Space Breadcrumb */}
             {currentSpaceName && (
               <div className="hidden md:flex items-center gap-2 text-xs text-slate-400 pl-2 border-l border-slate-800">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/90 text-blue-300 border border-slate-700/80 font-medium shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                <Badge
+                  variant="outline"
+                  className="gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/90 text-blue-300 border-slate-700/80 font-medium shadow-2xs"
+                >
+                  <span className="size-1.5 rounded-full bg-blue-400" />
                   <span className="max-w-[160px] lg:max-w-[200px] truncate">
                     {currentSpaceName}
                   </span>
-                </span>
+                </Badge>
               </div>
             )}
 
             {/* Spaces / Portals Dropdown Trigger */}
             {spaces.length > 0 && (
               <div className="relative ml-1 sm:ml-2" ref={spacesDropdownRef}>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setSpacesOpen((prev) => !prev)}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-xl border text-xs sm:text-sm font-semibold transition-all cursor-pointer min-h-[44px] ${
+                  className={cn(
+                    "flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer min-h-[40px] text-slate-300 hover:text-white hover:bg-slate-800",
                     spacesOpen
                       ? "bg-slate-800 border-blue-500/60 text-white shadow-sm ring-2 ring-blue-500/20"
-                      : "bg-slate-800/60 sm:bg-transparent border-slate-800 sm:border-transparent hover:border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-white"
-                  }`}
+                      : "bg-slate-800/60 sm:bg-transparent border-slate-800 sm:border-transparent"
+                  )}
                   aria-label="Browse Portals and Spaces"
                 >
-                  <Layers className="w-4 h-4 text-blue-400 shrink-0" />
+                  <Layers className="size-4 text-blue-400 shrink-0" />
                   <span className="inline">Portals</span>
-                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-400 border border-slate-700 hidden sm:inline">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-mono font-bold px-1.5 py-0 h-4 min-w-4 rounded-full bg-slate-800 text-slate-400 border-slate-700 hidden sm:inline-flex"
+                  >
                     {spaces.length}
-                  </span>
+                  </Badge>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${
+                    className={cn(
+                      "size-3.5 shrink-0 transition-transform duration-200",
                       spacesOpen ? "rotate-180 text-blue-400" : "text-slate-400"
-                    }`}
+                    )}
                   />
-                </button>
+                </Button>
 
                 {/* Desktop Dropdown Menu */}
                 {spacesOpen && (
@@ -311,24 +325,26 @@ export const Header: React.FC<HeaderProps> = ({
                     {/* Search and Filter */}
                     <div className="p-3 bg-slate-800/80 border-b border-slate-700/80 space-y-2">
                       <div className="relative">
-                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                        <input
+                        <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                        <Input
                           ref={searchInputRef}
                           type="text"
                           placeholder="Search boards or departments..."
                           value={spacesFilter}
-                          className="w-full bg-slate-950 text-slate-100 placeholder-slate-400 text-xs sm:text-sm rounded-xl pl-9 pr-8 py-2 border border-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                          className="bg-slate-950 text-slate-100 placeholder-slate-400 text-xs sm:text-sm rounded-xl pl-9 pr-8 py-2 border-slate-700 focus-visible:border-blue-500 h-9"
                           onChange={(e) => setSpacesFilter(e.target.value)}
                           onClick={(e) => e.stopPropagation()}
                         />
                         {spacesFilter && (
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon-xs"
                             onClick={() => setSpacesFilter("")}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                           >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+                            <X className="size-3.5" />
+                          </Button>
                         )}
                       </div>
 
@@ -342,22 +358,24 @@ export const Header: React.FC<HeaderProps> = ({
 
                     {/* Reset to All Portals Item */}
                     <div className="p-1.5 border-b border-slate-800 bg-slate-900/60">
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={handleHomeClick}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-200 hover:bg-slate-800/90 hover:text-white transition-all cursor-pointer group"
+                        className="w-full justify-between px-3 py-2 h-auto text-xs sm:text-sm font-semibold text-slate-200 hover:bg-slate-800/90 hover:text-white"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
-                            <LayoutGrid className="w-3.5 h-3.5" />
+                          <div className="size-7 rounded-lg bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
+                            <LayoutGrid className="size-3.5" />
                           </div>
                           <span>All Portals & Solutions</span>
                         </div>
                         <span className="text-[11px] text-blue-400 font-medium group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
                           Overview
-                          <ArrowRight className="w-3 h-3" />
+                          <ArrowRight className="size-3" />
                         </span>
-                      </button>
+                      </Button>
                     </div>
 
                     {/* Spaces List */}
@@ -381,17 +399,22 @@ export const Header: React.FC<HeaderProps> = ({
                               setSpacesOpen(false);
                               setSpacesFilter("");
                             }}
-                            className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all group ${
+                            className={cn(
+                              "flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all group",
                               isCurrent
                                 ? "bg-blue-600/15 border border-blue-500/30 text-white"
                                 : "text-slate-200 hover:bg-slate-800/90 hover:text-white"
-                            }`}
+                            )}
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <div
-                                className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${theme.bg} ${theme.color} group-hover:scale-105 transition-transform`}
+                                className={cn(
+                                  "size-8 rounded-lg flex items-center justify-center border shrink-0 transition-transform group-hover:scale-105",
+                                  theme.bg,
+                                  theme.color
+                                )}
                               >
-                                <Icon className="w-4 h-4" />
+                                <Icon className="size-4" />
                               </div>
 
                               <div className="min-w-0 flex-1">
@@ -400,9 +423,12 @@ export const Header: React.FC<HeaderProps> = ({
                                     {space.projectName}
                                   </p>
                                   {Boolean(space.projectKey) && (
-                                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-[10px] font-mono font-bold px-1.5 py-0 rounded bg-slate-800 text-slate-400 border-slate-700"
+                                    >
                                       {String(space.projectKey)}
-                                    </span>
+                                    </Badge>
                                   )}
                                 </div>
                                 <p className="text-[11px] text-slate-400 truncate">
@@ -413,9 +439,9 @@ export const Header: React.FC<HeaderProps> = ({
 
                             <div className="shrink-0 flex items-center text-slate-500 group-hover:text-blue-400 transition-colors">
                               {isCurrent ? (
-                                <Check className="w-4 h-4 text-blue-400" />
+                                <Check className="size-4 text-blue-400" />
                               ) : (
-                                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                                <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
                               )}
                             </div>
                           </Link>
@@ -446,14 +472,20 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Custom Tickets Page Link */}
             <Link
               href="/tickets"
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 rounded-xl border border-blue-500/30 hover:border-blue-400 bg-blue-600/10 hover:bg-blue-600/20 text-blue-300 hover:text-white text-xs sm:text-sm font-semibold transition-all cursor-pointer shrink-0 min-h-[42px] group shadow-xs"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "gap-1.5 sm:gap-2 px-3 sm:px-3.5 h-10 rounded-xl border-blue-500/30 hover:border-blue-400 bg-blue-600/10 hover:bg-blue-600/20 text-blue-300 hover:text-white text-xs sm:text-sm font-semibold transition-all shrink-0 group shadow-xs"
+              )}
               title="Custom tickets page with advanced filtering & sorting"
             >
-              <LayoutList className="w-4 h-4 text-blue-400 group-hover:scale-105 transition-transform shrink-0" />
+              <LayoutList className="size-4 text-blue-400 group-hover:scale-105 transition-transform shrink-0" />
               <span className="hidden sm:inline">Custom Tickets</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              <Badge
+                variant="outline"
+                className="text-[10px] font-bold px-1.5 py-0 h-4 rounded-full bg-blue-500/20 text-blue-300 border-blue-500/30"
+              >
                 New
-              </span>
+              </Badge>
             </Link>
 
             {/* My Tickets Button */}
@@ -462,67 +494,73 @@ export const Header: React.FC<HeaderProps> = ({
                 href="/my-tickets"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 rounded-xl border border-slate-700/90 hover:border-blue-500/50 bg-slate-800/60 hover:bg-slate-800 text-slate-200 hover:text-white text-xs sm:text-sm font-semibold transition-all cursor-pointer shrink-0 min-h-[42px] group shadow-xs"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "gap-1.5 sm:gap-2 px-3 sm:px-3.5 h-10 rounded-xl border-slate-700/90 hover:border-blue-500/50 bg-slate-800/60 hover:bg-slate-800 text-slate-200 hover:text-white text-xs sm:text-sm font-semibold transition-all shrink-0 group shadow-xs"
+                )}
                 title="View all your Jira tickets and requests"
               >
-                <Ticket className="w-4 h-4 text-blue-400 group-hover:rotate-12 transition-transform shrink-0" />
+                <Ticket className="size-4 text-blue-400 group-hover:rotate-12 transition-transform shrink-0" />
                 <span className="hidden sm:inline">My Tickets</span>
-                <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-slate-300 transition-colors hidden sm:inline shrink-0" />
+                <ExternalLink className="size-3 text-slate-500 group-hover:text-slate-300 transition-colors hidden sm:inline shrink-0" />
               </Link>
             ) : (
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => signIn("atlassian")}
-                className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 text-xs sm:text-sm font-medium transition-all cursor-pointer min-h-[42px]"
+                className="hidden sm:inline-flex items-center gap-2 h-10 rounded-xl border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 text-xs sm:text-sm font-medium transition-all"
                 title="Log in to view your tickets"
               >
-                <Ticket className="w-4 h-4 text-slate-500" />
+                <Ticket className="size-4 text-slate-500" />
                 <span>My Tickets</span>
-              </button>
+              </Button>
             )}
 
             {/* User Session / Profile */}
             {status === "loading" ? (
-              <div className="w-9 h-9 rounded-xl bg-slate-800 animate-pulse border border-slate-700" />
+              <div className="size-9 rounded-xl bg-slate-800 animate-pulse border border-slate-700" />
             ) : session ? (
               <div className="relative" ref={dropdownRef}>
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setDropdownOpen((prev) => !prev)}
-                  className={`inline-flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-medium transition-all cursor-pointer min-h-[42px] ${
+                  className={cn(
+                    "gap-2 px-2.5 sm:px-3 h-10 rounded-xl border text-xs sm:text-sm font-medium transition-all cursor-pointer",
                     dropdownOpen
                       ? "bg-slate-800 border-blue-500/50 text-white shadow-sm ring-2 ring-blue-500/20"
                       : "bg-slate-800 hover:bg-slate-750 border-slate-700/80 text-slate-200"
-                  }`}
+                  )}
                   aria-label="User Profile Menu"
                 >
-                  <div className="relative shrink-0">
-                    {session.user?.image ? (
-                      <Image
+                  <Avatar size="sm" className="size-6 sm:size-7 rounded-lg">
+                    {session.user?.image && (
+                      <AvatarImage
                         src={session.user.image}
                         alt={session.user.name || "User"}
-                        width={28}
-                        height={28}
-                        className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg object-cover"
+                        className="rounded-lg object-cover"
                       />
-                    ) : (
-                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-linear-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-2xs">
-                        {(session.user?.name || session.user?.email || "U")
-                          .charAt(0)
-                          .toUpperCase()}
-                      </div>
                     )}
-                  </div>
+                    <AvatarFallback className="rounded-lg bg-linear-to-tr from-blue-600 to-indigo-600 text-white text-xs font-bold">
+                      {(session.user?.name || session.user?.email || "U")
+                        .charAt(0)
+                        .toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
 
                   <span className="hidden md:inline max-w-28 lg:max-w-40 truncate font-semibold">
                     {session.user?.name || session.user?.email}
                   </span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
+                    className={cn(
+                      "size-3.5 text-slate-400 shrink-0 transition-transform duration-200",
                       dropdownOpen ? "rotate-180 text-blue-400" : ""
-                    }`}
+                    )}
                   />
-                </button>
+                </Button>
 
                 {/* Profile Dropdown Menu */}
                 {dropdownOpen && (
@@ -543,12 +581,15 @@ export const Header: React.FC<HeaderProps> = ({
                         className="flex items-center justify-between px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 rounded-xl transition-colors min-h-[40px] group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <LayoutList className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                          <LayoutList className="size-4 text-blue-400 group-hover:scale-110 transition-transform" />
                           <span>Custom Tickets Page</span>
                         </div>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border-blue-500/30"
+                        >
                           New
-                        </span>
+                        </Badge>
                       </Link>
 
                       <Link
@@ -559,38 +600,42 @@ export const Header: React.FC<HeaderProps> = ({
                         className="flex items-center justify-between px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 rounded-xl transition-colors min-h-[40px] group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <Ticket className="w-4 h-4 text-blue-400 group-hover:rotate-12 transition-transform" />
+                          <Ticket className="size-4 text-blue-400 group-hover:rotate-12 transition-transform" />
                           <span>View My Tickets</span>
                         </div>
-                        <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-slate-300" />
+                        <ExternalLink className="size-3 text-slate-500 group-hover:text-slate-300" />
                       </Link>
                     </div>
 
                     <div className="p-1 border-t border-slate-800 pt-1 mt-1">
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => {
                           setDropdownOpen(false);
                           signOut({ callbackUrl: "/login", redirectTo: "/login" });
                         }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-rose-300 hover:bg-rose-500/10 hover:text-rose-200 rounded-xl transition-colors cursor-pointer text-left min-h-[40px]"
+                        className="w-full justify-start gap-2.5 px-3 py-2 text-xs text-rose-300 hover:bg-rose-500/10 hover:text-rose-200 rounded-xl cursor-pointer h-auto"
                       >
-                        <LogOut className="w-4 h-4 text-rose-400" />
+                        <LogOut className="size-4 text-rose-400" />
                         <span>Sign Out</span>
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
               </div>
             ) : (
-              <button
+              <Button
                 type="button"
+                variant="default"
+                size="sm"
                 onClick={() => signIn("atlassian")}
-                className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold transition-all shadow-md shadow-blue-600/25 active:scale-95 cursor-pointer min-h-[42px]"
+                className="gap-2 px-3.5 sm:px-4 h-10 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold shadow-md shadow-blue-600/25 active:scale-95 cursor-pointer"
               >
-                <LogIn className="w-4 h-4" />
+                <LogIn className="size-4" />
                 <span>Log In</span>
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -612,8 +657,8 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Drawer Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
-                  <Layers className="w-4 h-4" />
+                <div className="size-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
+                  <Layers className="size-4" />
                 </div>
                 <div>
                   <h3 className="font-bold text-sm text-white">
@@ -624,43 +669,47 @@ export const Header: React.FC<HeaderProps> = ({
                   </p>
                 </div>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-xs"
                 onClick={() => setSpacesOpen(false)}
-                className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-white"
                 aria-label="Close menu"
               >
-                <X className="w-4 h-4" />
-              </button>
+                <X className="size-4" />
+              </Button>
             </div>
 
             {/* Search Input */}
             <div className="p-3 border-b border-slate-800/80 bg-slate-900/50">
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <input
+                <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <Input
                   type="text"
                   placeholder="Filter portals..."
                   value={spacesFilter}
                   onChange={(e) => setSpacesFilter(e.target.value)}
-                  className="w-full bg-slate-900 text-slate-100 placeholder-slate-400 text-sm rounded-xl pl-9 pr-4 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
+                  className="bg-slate-900 text-slate-100 placeholder-slate-400 text-sm rounded-xl pl-9 pr-4 py-2 border-slate-800 focus-visible:border-blue-500 h-9"
                 />
               </div>
             </div>
 
             {/* Quick Action Buttons */}
             <div className="px-3 pt-3 space-y-1.5">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={handleHomeClick}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-blue-600/10 border border-blue-500/30 text-blue-300 font-semibold text-xs transition-colors cursor-pointer"
+                className="w-full justify-between p-3 h-auto rounded-xl bg-blue-600/10 border border-blue-500/30 text-blue-300 font-semibold text-xs"
               >
                 <span className="flex items-center gap-2">
-                  <LayoutGrid className="w-4 h-4 text-blue-400" />
+                  <LayoutGrid className="size-4 text-blue-400" />
                   <span>All Portals & Solutions</span>
                 </span>
-                <ArrowRight className="w-3.5 h-3.5 text-blue-400" />
-              </button>
+                <ArrowRight className="size-3.5 text-blue-400" />
+              </Button>
 
               <Link
                 href="/tickets"
@@ -668,12 +717,15 @@ export const Header: React.FC<HeaderProps> = ({
                 className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-blue-500/30 text-blue-300 font-semibold text-xs transition-colors"
               >
                 <span className="flex items-center gap-2">
-                  <LayoutList className="w-4 h-4 text-blue-400" />
+                  <LayoutList className="size-4 text-blue-400" />
                   <span>Custom Tickets Page</span>
                 </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border-blue-500/30"
+                >
                   New
-                </span>
+                </Badge>
               </Link>
 
               <Link
@@ -684,10 +736,10 @@ export const Header: React.FC<HeaderProps> = ({
                 className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold text-xs transition-colors"
               >
                 <span className="flex items-center gap-2">
-                  <Ticket className="w-4 h-4 text-slate-400" />
+                  <Ticket className="size-4 text-slate-400" />
                   <span>My Tickets (Native)</span>
                 </span>
-                <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                <ExternalLink className="size-3.5 text-slate-400" />
               </Link>
             </div>
 
@@ -711,9 +763,13 @@ export const Header: React.FC<HeaderProps> = ({
                     className="flex items-center gap-3 p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800/80 text-slate-200 hover:text-white transition-all min-h-[48px]"
                   >
                     <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${theme.bg} ${theme.color}`}
+                      className={cn(
+                        "size-8 rounded-lg flex items-center justify-center border shrink-0",
+                        theme.bg,
+                        theme.color
+                      )}
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className="size-4" />
                     </div>
                     <div className="flex-1 truncate">
                       <p className="font-semibold text-xs text-slate-100 truncate">

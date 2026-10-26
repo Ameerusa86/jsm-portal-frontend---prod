@@ -6,7 +6,6 @@ import {
   Clock,
   AlertCircle,
   CheckCircle2,
-  Building,
 } from "lucide-react";
 import { TicketItem } from "@/types/jsm";
 import {
@@ -15,6 +14,9 @@ import {
   ClientBadge,
   formatRelativeTime,
 } from "./TicketBadge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface TicketsKanbanProps {
   tickets: TicketItem[];
@@ -36,7 +38,7 @@ export const TicketsKanban: React.FC<TicketsKanbanProps> = ({
         icon: typeof Clock;
         color: string;
         bg: string;
-        badgeBg: string;
+        badgeVariant: "default" | "secondary" | "outline";
         items: TicketItem[];
       }
     > = {
@@ -44,36 +46,36 @@ export const TicketsKanban: React.FC<TicketsKanbanProps> = ({
         id: "new",
         title: "Submitted / Open",
         icon: HelpCircle,
-        color: "text-purple-600",
-        bg: "border-purple-200/80 bg-purple-50/30",
-        badgeBg: "bg-purple-100 text-purple-700",
+        color: "text-purple-600 dark:text-purple-400",
+        bg: "border-purple-200/80 bg-purple-50/30 dark:border-purple-900/40 dark:bg-purple-950/20",
+        badgeVariant: "secondary",
         items: [],
       },
       indeterminate: {
         id: "indeterminate",
         title: "In Progress / Review",
         icon: Clock,
-        color: "text-sky-600",
-        bg: "border-sky-200/80 bg-sky-50/30",
-        badgeBg: "bg-sky-100 text-sky-700",
+        color: "text-sky-600 dark:text-sky-400",
+        bg: "border-sky-200/80 bg-sky-50/30 dark:border-sky-900/40 dark:bg-sky-950/20",
+        badgeVariant: "secondary",
         items: [],
       },
       "waiting-customer": {
         id: "waiting-customer",
         title: "Action Needed",
         icon: AlertCircle,
-        color: "text-amber-600",
-        bg: "border-amber-200/80 bg-amber-50/30",
-        badgeBg: "bg-amber-100 text-amber-700",
+        color: "text-amber-600 dark:text-amber-400",
+        bg: "border-amber-200/80 bg-amber-50/30 dark:border-amber-900/40 dark:bg-amber-950/20",
+        badgeVariant: "secondary",
         items: [],
       },
       done: {
         id: "done",
         title: "Resolved / Closed",
         icon: CheckCircle2,
-        color: "text-emerald-600",
-        bg: "border-emerald-200/80 bg-emerald-50/30",
-        badgeBg: "bg-emerald-100 text-emerald-700",
+        color: "text-emerald-600 dark:text-emerald-400",
+        bg: "border-emerald-200/80 bg-emerald-50/30 dark:border-emerald-900/40 dark:bg-emerald-950/20",
+        badgeVariant: "secondary",
         items: [],
       },
     };
@@ -103,21 +105,25 @@ export const TicketsKanban: React.FC<TicketsKanbanProps> = ({
         return (
           <div
             key={col.id}
-            className={`rounded-2xl border p-3 flex flex-col h-[700px] ${col.bg}`}
+            className={cn(
+              "rounded-2xl border p-3 flex flex-col h-[700px]",
+              col.bg
+            )}
           >
             {/* Column Header */}
-            <div className="flex items-center justify-between p-2 mb-2 border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between p-2 mb-2 border-b border-border/70 pb-3">
               <div className="flex items-center gap-2">
-                <Icon className={`w-4 h-4 ${col.color}`} />
-                <h4 className="text-xs font-bold text-slate-800">
+                <Icon className={cn("size-4", col.color)} />
+                <h4 className="text-xs font-bold text-foreground">
                   {col.title}
                 </h4>
               </div>
-              <span
-                className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${col.badgeBg}`}
+              <Badge
+                variant={col.badgeVariant}
+                className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full"
               >
                 {col.items.length}
-              </span>
+              </Badge>
             </div>
 
             {/* Column Cards List */}
@@ -126,58 +132,70 @@ export const TicketsKanban: React.FC<TicketsKanbanProps> = ({
                 const isSelected = selectedTicketKey === ticket.key;
 
                 return (
-                  <div
+                  <Card
                     key={ticket.id || ticket.key}
                     onClick={() => onSelectTicket(ticket)}
-                    className={`p-3.5 rounded-xl border transition-all cursor-pointer group flex flex-col justify-between ${
+                    className={cn(
+                      "cursor-pointer group flex flex-col justify-between py-0 gap-0 transition-all",
                       isSelected
-                        ? "bg-blue-50 border-blue-500 shadow-sm ring-2 ring-blue-500/20"
-                        : "bg-white hover:bg-slate-50 border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-xs"
-                    }`}
+                        ? "bg-blue-50/50 border-blue-500 shadow-sm ring-2 ring-blue-500/20 dark:bg-blue-950/30"
+                        : "bg-card hover:bg-muted/40 border-border hover:border-slate-300 shadow-2xs hover:shadow-xs"
+                    )}
                   >
-                    <div>
-                      {/* Top info */}
-                      <div className="flex items-center justify-between gap-1 mb-2">
-                        <span className="font-mono text-[11px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/80">
-                          {ticket.key}
-                        </span>
-                        <PriorityChip
-                          priority={ticket.priority?.name || "Medium"}
-                          showLabel={false}
-                        />
-                      </div>
-
-                      {/* Summary */}
-                      <p className="text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-relaxed mb-1.5">
-                        {ticket.summary}
-                      </p>
-
-                      {/* Client Name */}
-                      {(ticket.clientName || ticket.organization) && (
-                        <div className="mb-2">
-                          <ClientBadge
-                            clientName={ticket.clientName || ticket.organization}
+                    <CardContent className="p-3.5 flex-1 flex flex-col justify-between">
+                      <div>
+                        {/* Top info */}
+                        <div className="flex items-center justify-between gap-1 mb-2">
+                          <Badge
+                            variant="outline"
+                            className="font-mono text-[11px] font-bold text-blue-700 bg-blue-50 border-blue-200/80 px-1.5 py-0.5 rounded"
+                          >
+                            {ticket.key}
+                          </Badge>
+                          <PriorityChip
+                            priority={ticket.priority?.name || "Medium"}
+                            showLabel={false}
                           />
                         </div>
-                      )}
-                    </div>
 
-                    {/* Footer */}
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 mt-2">
-                      <span className="truncate max-w-[120px] font-medium text-slate-600">
-                        {ticket.projectName || ticket.projectKey || ticket.type}
-                      </span>
-                      <span className="font-mono text-slate-400">
-                        {formatRelativeTime(ticket.updated || ticket.created)}
-                      </span>
-                    </div>
-                  </div>
+                        {/* Summary */}
+                        <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-relaxed mb-1.5">
+                          {ticket.summary}
+                        </p>
+
+                        {/* Client Name */}
+                        {(ticket.clientName || ticket.organization) && (
+                          <div className="mb-2">
+                            <ClientBadge
+                              clientName={
+                                ticket.clientName || ticket.organization
+                              }
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[10px] text-muted-foreground mt-2">
+                        <span className="truncate max-w-[120px] font-medium text-foreground">
+                          {ticket.projectName ||
+                            ticket.projectKey ||
+                            ticket.type}
+                        </span>
+                        <span className="font-mono text-muted-foreground">
+                          {formatRelativeTime(ticket.updated || ticket.created)}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
                 );
               })}
 
               {col.items.length === 0 && (
-                <div className="h-32 flex items-center justify-center border border-dashed border-slate-200 rounded-xl text-center p-4">
-                  <p className="text-xs text-slate-400 font-medium">No requests in this stage</p>
+                <div className="h-32 flex items-center justify-center border border-dashed border-border rounded-xl text-center p-4">
+                  <p className="text-xs text-muted-foreground font-medium">
+                    No requests in this stage
+                  </p>
                 </div>
               )}
             </div>
