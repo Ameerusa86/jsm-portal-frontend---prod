@@ -142,14 +142,51 @@ function HelpCenterContent() {
       setIsSearchOpen(false);
 
       const prodDomain = "https://emsmc1.atlassian.net";
-      const deskId =
+      let deskId =
         rt.serviceDeskId ||
         (spaceParamId && spaceParamId !== "all" ? spaceParamId : "") ||
         "4";
 
+      const isIT =
+        deskId === "1" ||
+        deskId === "4" ||
+        rt.spaceKey === "ITSD" ||
+        rt.spaceKey === "IT" ||
+        (rt.spaceName && rt.spaceName.toLowerCase().includes("information technology")) ||
+        (rt.spaceName && rt.spaceName.toLowerCase().includes("it service"));
+
+      if (isIT) {
+        deskId = "4";
+      }
+
       let targetUrl = rt.portalUrl;
+
+      // In Jira Cloud, ITSD is hosted on customer portal 4. Fix any portal 1 or customer/1 links for IT
+      if (targetUrl) {
+        if (
+          isIT ||
+          targetUrl.includes("/customer/1/") ||
+          targetUrl.includes("/portal/1/") ||
+          targetUrl.includes("/customer/portal/1/")
+        ) {
+          targetUrl = targetUrl
+            .replace(/\/customer\/1\//g, "/servicedesk/customer/portal/4/")
+            .replace(/\/customer\/portal\/1\//g, "/servicedesk/customer/portal/4/")
+            .replace(/\/servicedesk\/customer\/portal\/1\//g, "/servicedesk/customer/portal/4/")
+            .replace(/\/portal\/1\//g, "/servicedesk/customer/portal/4/");
+        }
+      }
+
       if (!targetUrl) {
         targetUrl = `${prodDomain}/servicedesk/customer/portal/${deskId}/create/${rt.id}`;
+      }
+
+      // Normalize any /customer/4/create/ to canonical /servicedesk/customer/portal/4/create/
+      if (targetUrl.includes("/customer/4/create/")) {
+        targetUrl = targetUrl.replace(
+          "/customer/4/create/",
+          "/servicedesk/customer/portal/4/create/"
+        );
       }
 
       // Enforce pure production Jira domain and strictly purge any sandbox hostname

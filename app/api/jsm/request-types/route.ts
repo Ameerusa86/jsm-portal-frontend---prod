@@ -39,6 +39,40 @@ const matchesCategory = (actual?: string, expected?: string) => {
  * In JSM, a request type is marked as "Hidden from portal" by removing it from all portal groups,
  * causing `groupIds` to be empty ([]), null, or undefined.
  */
+
+/**
+ * Resolves the customer-facing Jira Portal ID for a given service desk / project.
+ * In Jira Cloud (emsmc1.atlassian.net), the ITSD service desk (API ID: 1, key: ITSD)
+ * is hosted at customer portal ID 4 (/servicedesk/customer/portal/4).
+ * All other service desks use their native serviceDeskId directly.
+ */
+export function resolveCustomerPortalId(
+  serviceDeskId?: string | number | null,
+  projectKey?: string | null,
+  projectName?: string | null,
+): string {
+  const sdId = String(serviceDeskId || "");
+  const key = String(projectKey || "").toUpperCase();
+  const name = String(projectName || "").toLowerCase();
+
+  if (
+    sdId === "1" ||
+    sdId === "4" ||
+    key === "ITSD" ||
+    key === "IT" ||
+    key === "TECH" ||
+    key === "ITS" ||
+    name.includes("information technology") ||
+    name.includes("it service") ||
+    name.includes("it support") ||
+    name.includes("it helpdesk")
+  ) {
+    return "4";
+  }
+
+  return sdId || "4";
+}
+
 const isPortalVisibleRequestType = (
   rt: JiraRequestTypeItem,
   activeGroupMap?: Record<string, string>,
@@ -81,7 +115,7 @@ export async function GET(req: NextRequest) {
       const space = MOCK_SPACES.find(
         (s) => String(s.id) === String(rt.serviceDeskId || "4"),
       );
-      const deskId = rt.serviceDeskId || "4";
+      const deskId = resolveCustomerPortalId(rt.serviceDeskId, space?.projectKey, space?.projectName);
       const fallbackUrl = `https://emsmc1.atlassian.net/servicedesk/customer/portal/${deskId}/create/${rt.id}`;
 
       return {
@@ -268,7 +302,7 @@ export async function GET(req: NextRequest) {
           }
         }
 
-        const targetPortalId = rt.portalId !== undefined ? String(rt.portalId) : String(serviceDeskId);
+        const targetPortalId = resolveCustomerPortalId(serviceDeskId, singleSdProjectKey, singleSdProjectName);
         const portalUrl = `${baseUrl}/servicedesk/customer/portal/${targetPortalId}/create/${rt.id}`;
 
         return {
@@ -450,7 +484,7 @@ export async function GET(req: NextRequest) {
           }
         }
 
-        const targetPortalId = rt.portalId !== undefined ? String(rt.portalId) : currentSdId;
+        const targetPortalId = resolveCustomerPortalId(currentSdId, sd.projectKey, sd.projectName);
         const portalUrl = `${baseUrl}/servicedesk/customer/portal/${targetPortalId}/create/${rt.id}`;
 
         return {

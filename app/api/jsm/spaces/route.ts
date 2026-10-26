@@ -70,14 +70,23 @@ export async function GET() {
       }
     }
 
-    // Attach category to each service desk
-    const enrichedValues = (data.values || []).map((sd: JiraServiceDesk) => ({
-      ...sd,
-      category:
-        sd.projectId !== undefined
-          ? projectMap[String(sd.projectId)] || "Uncategorized"
-          : "Uncategorized",
-    }));
+    // Attach category and resolved portalId to each service desk
+    const enrichedValues = (data.values || []).map((sd: JiraServiceDesk) => {
+      const isIT =
+        String(sd.id) === '1' ||
+        String(sd.id) === '4' ||
+        String(sd.projectKey || '').toUpperCase() === 'ITSD' ||
+        String(sd.projectKey || '').toUpperCase() === 'IT';
+
+      return {
+        ...sd,
+        portalId: isIT ? '4' : String(sd.id),
+        category:
+          sd.projectId !== undefined
+            ? projectMap[String(sd.projectId)] || 'Uncategorized'
+            : 'Uncategorized',
+      };
+    });
 
     return NextResponse.json({ ...data, values: enrichedValues });
   } catch (err: unknown) {
