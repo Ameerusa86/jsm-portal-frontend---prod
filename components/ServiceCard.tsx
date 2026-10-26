@@ -246,7 +246,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     // Default Fallback
     return {
       icon: FileText,
-      bg: "bg-muted text-foreground border-border group-hover:bg-foreground group-hover:text-background",
+      bg: "bg-slate-100 text-slate-700 border-slate-200 group-hover:bg-slate-900 group-hover:text-white",
       glow: "hover:shadow-slate-500/10",
       accent: "from-slate-700 to-slate-900",
     };

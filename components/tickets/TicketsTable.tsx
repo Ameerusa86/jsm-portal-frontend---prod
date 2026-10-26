@@ -147,7 +147,7 @@ export const TicketsTable: React.FC<TicketsTableProps> = ({
       {/* Allows horizontal scrolling directly from top of table    */}
       {/* ========================================================= */}
       {needsHorizontalScroll && (
-        <div className="bg-muted/40 border border-border rounded-xl px-3 py-2 flex items-center justify-between gap-3 shadow-2xs">
+        <div className="bg-slate-50 border border-slate-200/90 rounded-xl px-3 py-2 flex items-center justify-between gap-3 shadow-2xs">
           <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-semibold shrink-0">
             <MoveHorizontal className="w-3.5 h-3.5 text-primary" />
             <span className="hidden sm:inline">Horizontal Scroll:</span>
@@ -196,16 +196,16 @@ export const TicketsTable: React.FC<TicketsTableProps> = ({
       {/* ========================================================= */}
       {/* MAIN DATA TABLE CONTAINER                                 */}
       {/* ========================================================= */}
-      <div className="w-full bg-card border border-border rounded-2xl overflow-hidden shadow-xs relative">
+      <div className="w-full bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs relative">
         <Table
           containerRef={tableContainerRef}
           containerClassName="scroll-smooth"
           className="w-full text-left text-xs border-collapse"
         >
           <TableHeader>
-            <TableRow className="border-b border-border bg-muted/60 text-muted-foreground font-bold uppercase tracking-wider text-[11px] select-none hover:bg-muted/60">
+            <TableRow className="border-b border-slate-200 bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider text-[11px] select-none hover:bg-slate-50/80">
               {/* Sticky Left Column: Key */}
-              <TableHead className="py-3.5 px-4 sticky left-0 z-20 bg-muted shadow-[2px_0_6px_-2px_rgba(0,0,0,0.08)]">
+              <TableHead className="py-3.5 px-4 sticky left-0 z-20 bg-slate-50 shadow-[2px_0_6px_-2px_rgba(0,0,0,0.08)]">
                 Key
               </TableHead>
               <TableHead className="py-3.5 px-4 min-w-[260px]">Summary & Type</TableHead>
@@ -232,7 +232,7 @@ export const TicketsTable: React.FC<TicketsTableProps> = ({
                   )}
                 >
                   {/* Sticky Left Column: Key */}
-                  <TableCell className="py-3.5 px-4 whitespace-nowrap sticky left-0 z-10 bg-card group-hover:bg-muted/40 shadow-[2px_0_6px_-2px_rgba(0,0,0,0.08)]">
+                  <TableCell className="py-3.5 px-4 whitespace-nowrap sticky left-0 z-10 bg-white group-hover:bg-slate-50/70 shadow-[2px_0_6px_-2px_rgba(0,0,0,0.08)]">
                     <div className="flex items-center gap-1.5">
                       <Badge
                         variant="outline"
@@ -306,7 +306,7 @@ export const TicketsTable: React.FC<TicketsTableProps> = ({
                   <TableCell className="py-3.5 px-4 whitespace-nowrap">
                     {ticket.assignee?.displayName ? (
                       <div className="flex items-center gap-1.5 text-xs text-foreground">
-                        <Avatar size="sm" className="size-5 border border-border">
+                        <Avatar size="sm" className="size-5 border border-slate-200">
                           {ticket.assignee.avatarUrl && (
                             <AvatarImage
                               src={ticket.assignee.avatarUrl}
@@ -379,7 +379,7 @@ export const TicketsTable: React.FC<TicketsTableProps> = ({
         {/* scroll all the way down to the end of the table to scroll */}
         {/* ========================================================= */}
         {needsHorizontalScroll && (
-          <div className="sticky bottom-0 z-20 bg-card/95 backdrop-blur-xs border-t border-border py-2 px-4 flex items-center justify-between gap-3 shadow-md">
+          <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-xs border-t border-slate-200 py-2 px-4 flex items-center justify-between gap-3 shadow-md">
             <span className="text-[11px] font-semibold text-muted-foreground shrink-0">
               Scroll Table:
             </span>

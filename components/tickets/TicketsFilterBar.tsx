@@ -163,7 +163,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
     filters.columnFilters.length > 0;
 
   return (
-    <div className="space-y-3 bg-card p-4 sm:p-5 rounded-2xl border border-border shadow-xs">
+    <div className="space-y-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
       {/* Top Row: Search Input + View Switcher + Sort Selector */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Search input with live clear */}
@@ -175,7 +175,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
             value={filters.searchQuery}
             onChange={(e) => onChangeFilter("searchQuery", e.target.value)}
             placeholder="Search tickets by key (e.g. IT-1042), title, client name, or keywords..."
-            className="pl-9 pr-9 h-9 bg-muted/40 border-border focus-visible:bg-background transition-all"
+            className="pl-9 pr-9 h-9 bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400 focus-visible:bg-white focus-visible:border-blue-500 transition-all rounded-xl"
           />
           {filters.searchQuery && (
             <Button
@@ -204,7 +204,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
               onChange={(e) =>
                 onChangeFilter("sortBy", e.target.value as SortOption)
               }
-              className="h-9 bg-card border border-border text-foreground text-xs font-semibold rounded-lg pl-8 pr-7 py-1.5 appearance-none focus:outline-none focus:border-ring cursor-pointer hover:border-slate-300 transition-colors shadow-2xs"
+              className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl pl-8 pr-7 py-1.5 appearance-none focus:outline-none focus:border-blue-500 cursor-pointer hover:border-slate-300 transition-colors shadow-2xs"
               aria-label="Sort tickets by"
             >
               <option value="created-desc">Latest Submitted</option>
@@ -218,7 +218,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
           </div>
 
           {/* View Mode Toggle */}
-          <div className="flex items-center p-1 rounded-lg bg-muted border border-border shrink-0">
+          <div className="flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 shrink-0">
             <Button
               type="button"
               variant={filters.viewMode === "grid" ? "secondary" : "ghost"}
@@ -226,7 +226,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
               onClick={() => onChangeFilter("viewMode", "grid")}
               className={cn(
                 "cursor-pointer",
-                filters.viewMode === "grid" && "bg-background text-primary shadow-xs"
+                filters.viewMode === "grid" && "bg-white text-blue-600 shadow-xs"
               )}
               title="Card Grid View"
               aria-label="Card Grid View"
@@ -240,7 +240,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
               onClick={() => onChangeFilter("viewMode", "table")}
               className={cn(
                 "cursor-pointer",
-                filters.viewMode === "table" && "bg-background text-primary shadow-xs"
+                filters.viewMode === "table" && "bg-white text-blue-600 shadow-xs"
               )}
               title="Dense Table View"
               aria-label="Dense Table View"
@@ -254,7 +254,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
               onClick={() => onChangeFilter("viewMode", "kanban")}
               className={cn(
                 "cursor-pointer",
-                filters.viewMode === "kanban" && "bg-background text-primary shadow-xs"
+                filters.viewMode === "kanban" && "bg-white text-blue-600 shadow-xs"
               )}
               title="Kanban Board View"
               aria-label="Kanban Board View"
@@ -266,7 +266,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
       </div>
 
       {/* Middle Row: Quick Dropdowns & "Filter by Column" Feature */}
-      <div className="flex flex-wrap items-center gap-2 text-xs pt-1 border-t border-border/60">
+      <div className="flex flex-wrap items-center gap-2 text-xs pt-1 border-t border-slate-100">
         {/* Dynamic Column Filter Button (User Choice) */}
         <div className="relative">
           <Button
@@ -274,7 +274,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
             variant={showColumnModal || filters.columnFilters.length > 0 ? "secondary" : "outline"}
             size="sm"
             onClick={() => setShowColumnModal((prev) => !prev)}
-            className="cursor-pointer gap-1.5 font-bold shadow-2xs"
+            className="cursor-pointer gap-1.5 font-bold shadow-2xs bg-white border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl"
           >
             <Filter className="size-3.5 text-primary" />
             <span>Filter by Column...</span>
@@ -289,7 +289,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
           {/* Column Filter Interactive Modal / Flyout */}
           {showColumnModal && (
             <Card className="absolute left-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200 shadow-xl p-4 z-50 text-left animate-in fade-in zoom-in-95 duration-150 rounded-2xl">
-              <div className="flex items-center justify-between pb-2 border-b border-border/60 mb-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-3">
                 <span className="text-xs font-bold text-foreground">
                   Filter by Column of Your Choice
                 </span>
@@ -315,7 +315,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
                     setSelectedColumn(e.target.value as FilterColumn);
                     setColumnFilterInput("");
                   }}
-                  className="w-full bg-muted/40 border border-border text-foreground text-xs font-semibold rounded-lg p-2 focus:outline-none focus:border-ring"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold rounded-xl p-2 focus:outline-none focus:border-blue-500"
                 >
                   {COLUMN_OPTIONS.map((col) => (
                     <option key={col.id} value={col.id}>
@@ -336,7 +336,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
                     value={columnFilterInput}
                     onChange={(e) => setColumnFilterInput(e.target.value)}
                     placeholder={`e.g. ${distinctValuesForColumn[0]?.name || "search value..."}`}
-                    className="flex-1 bg-muted/40 border-border text-foreground text-xs h-8"
+                    className="flex-1 bg-slate-50 border-slate-200 text-slate-800 text-xs h-8 rounded-lg"
                   />
                   <Button
                     type="button"
@@ -388,10 +388,10 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
             value={filters.space}
             onChange={(e) => onChangeFilter("space", e.target.value)}
             className={cn(
-              "rounded-lg px-3 py-1.5 text-xs font-semibold border appearance-none cursor-pointer transition-colors shadow-2xs h-8",
+              "rounded-xl px-3 py-1.5 text-xs font-semibold border appearance-none cursor-pointer transition-colors shadow-2xs h-8",
               filters.space !== "all"
                 ? "bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200"
-                : "bg-card border-border hover:border-slate-300 text-foreground"
+                : "bg-white border-slate-200 hover:border-slate-300 text-slate-700"
             )}
           >
             <option value="all">All Departments / Portals</option>
@@ -410,10 +410,10 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
               value={filters.requestType}
               onChange={(e) => onChangeFilter("requestType", e.target.value)}
               className={cn(
-                "rounded-lg px-3 py-1.5 text-xs font-semibold border appearance-none cursor-pointer transition-colors shadow-2xs h-8",
+                "rounded-xl px-3 py-1.5 text-xs font-semibold border appearance-none cursor-pointer transition-colors shadow-2xs h-8",
                 filters.requestType !== "all"
                   ? "bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200"
-                  : "bg-card border-border hover:border-slate-300 text-foreground"
+                  : "bg-white border-slate-200 hover:border-slate-300 text-slate-700"
               )}
             >
               <option value="all">All Request Types</option>
@@ -432,10 +432,10 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
             value={filters.priority}
             onChange={(e) => onChangeFilter("priority", e.target.value)}
             className={cn(
-              "rounded-lg px-3 py-1.5 text-xs font-semibold border appearance-none cursor-pointer transition-colors shadow-2xs h-8",
+              "rounded-xl px-3 py-1.5 text-xs font-semibold border appearance-none cursor-pointer transition-colors shadow-2xs h-8",
               filters.priority !== "all"
                 ? "bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200"
-                : "bg-card border-border hover:border-slate-300 text-foreground"
+                : "bg-white border-slate-200 hover:border-slate-300 text-slate-700"
             )}
           >
             <option value="all">All Priorities</option>
@@ -452,10 +452,10 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
             value={filters.dateRange}
             onChange={(e) => onChangeFilter("dateRange", e.target.value)}
             className={cn(
-              "rounded-lg px-3 py-1.5 text-xs font-semibold border appearance-none cursor-pointer transition-colors shadow-2xs h-8",
+              "rounded-xl px-3 py-1.5 text-xs font-semibold border appearance-none cursor-pointer transition-colors shadow-2xs h-8",
               filters.dateRange !== "all"
                 ? "bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200"
-                : "bg-card border-border hover:border-slate-300 text-foreground"
+                : "bg-white border-slate-200 hover:border-slate-300 text-slate-700"
             )}
           >
             <option value="all">All Time</option>
@@ -473,7 +473,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
             variant="outline"
             size="sm"
             onClick={onResetFilters}
-            className="cursor-pointer gap-1 ml-auto text-xs font-semibold"
+            className="cursor-pointer gap-1 ml-auto text-xs font-semibold bg-white border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl"
             title="Reset all search & filter options"
           >
             <RotateCcw className="size-3.5 text-muted-foreground" />
@@ -484,7 +484,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
 
       {/* Active Filter Badges Row */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-border/60">
+        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100">
           <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
             Active Filters:
           </span>
@@ -493,7 +493,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
           {filters.searchQuery && (
             <Badge
               variant="secondary"
-              className="gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium"
+              className="gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 border border-blue-200 text-blue-700"
             >
               <span>Search: &ldquo;{filters.searchQuery}&rdquo;</span>
               <button
@@ -529,7 +529,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
           {filters.statusCategory !== "all" && (
             <Badge
               variant="secondary"
-              className="gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium capitalize"
+              className="gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 border border-blue-200 text-blue-700 capitalize"
             >
               <span>Status: {filters.statusCategory.replace("-", " ")}</span>
               <button
@@ -546,7 +546,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
           {filters.space !== "all" && (
             <Badge
               variant="secondary"
-              className="gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium"
+              className="gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 border border-blue-200 text-blue-700"
             >
               <span>Dept: {filters.space}</span>
               <button
@@ -563,7 +563,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
           {filters.requestType !== "all" && (
             <Badge
               variant="secondary"
-              className="gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium"
+              className="gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 border border-blue-200 text-blue-700"
             >
               <span>Type: {filters.requestType}</span>
               <button
@@ -580,7 +580,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
           {filters.priority !== "all" && (
             <Badge
               variant="secondary"
-              className="gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium capitalize"
+              className="gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 border border-blue-200 text-blue-700 capitalize"
             >
               <span>Priority: {filters.priority}</span>
               <button
@@ -597,7 +597,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
           {filters.dateRange !== "all" && (
             <Badge
               variant="secondary"
-              className="gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium"
+              className="gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 border border-blue-200 text-blue-700"
             >
               <span>Date: {filters.dateRange}</span>
               <button

@@ -111,7 +111,7 @@ export const TicketsKanban: React.FC<TicketsKanbanProps> = ({
             )}
           >
             {/* Column Header */}
-            <div className="flex items-center justify-between p-2 mb-2 border-b border-border/70 pb-3">
+            <div className="flex items-center justify-between p-2 mb-2 border-b border-slate-200/80 pb-3">
               <div className="flex items-center gap-2">
                 <Icon className={cn("size-4", col.color)} />
                 <h4 className="text-xs font-bold text-foreground">
@@ -190,7 +190,7 @@ export const TicketsKanban: React.FC<TicketsKanbanProps> = ({
               })}
 
               {col.items.length === 0 && (
-                <div className="h-32 flex items-center justify-center border border-dashed border-border rounded-xl text-center p-4">
+                <div className="h-32 flex items-center justify-center border border-dashed border-slate-200 rounded-xl text-center p-4">
                   <p className="text-xs text-muted-foreground font-medium">
                     No requests in this stage
                   </p>

@@ -86,7 +86,7 @@ export const FileAttachmentField: React.FC<FileAttachmentFieldProps> = ({
           {files.map((file, idx) => (
             <div
               key={`${file.name}-${idx}`}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted border border-border text-xs text-foreground font-medium min-h-[36px]"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 font-medium min-h-[36px]"
             >
               <FileIcon className="w-3.5 h-3.5 text-primary shrink-0" />
               <span className="truncate max-w-40 sm:max-w-48">{file.name}</span>

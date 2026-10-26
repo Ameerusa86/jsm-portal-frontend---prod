@@ -32,15 +32,8 @@ export const TicketsHeader: React.FC<TicketsHeaderProps> = ({
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
             <span>Requests & Ticket Center</span>
-            <Badge variant="secondary" className="bg-blue-50 border-blue-200 text-blue-700 font-mono text-[11px] font-bold">
-              Custom
-            </Badge>
           </h1>
         </div>
-        <p className="text-slate-500 text-xs sm:text-sm max-w-2xl">
-          Track, filter, and communicate across EMSMC support requests with live status
-          updates, dynamic column filters, and Jira Cloud integration.
-        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 shrink-0">

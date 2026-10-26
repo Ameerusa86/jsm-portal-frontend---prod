@@ -480,7 +480,7 @@ function TicketsContent() {
             </Card>
           ) : filteredTickets.length === 0 ? (
             <Card className="py-20 text-center space-y-4 bg-white rounded-3xl border border-slate-200/80 p-8 shadow-xs">
-              <div className="size-16 rounded-2xl bg-muted border border-border flex items-center justify-center mx-auto text-muted-foreground">
+              <div className="size-16 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto text-slate-400">
                 <Inbox className="size-8" />
               </div>
               <div>

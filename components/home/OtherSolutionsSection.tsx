@@ -235,7 +235,7 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
         </div>
 
         {/* View Mode Segmented Control */}
-        <div className="flex bg-muted/60 p-1 rounded-2xl w-full sm:w-auto shrink-0 shadow-2xs border border-border">
+        <div className="flex bg-slate-100 p-1 rounded-2xl w-full sm:w-auto shrink-0 shadow-2xs border border-slate-200">
           <Button
             type="button"
             variant={spacesViewMode === "categories" ? "secondary" : "ghost"}
@@ -244,8 +244,8 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
             className={cn(
               "flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2",
               spacesViewMode === "categories"
-                ? "bg-background text-primary shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
             )}
           >
             <LayoutGrid className="size-4" />
@@ -259,8 +259,8 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
             className={cn(
               "flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2",
               spacesViewMode === "all"
-                ? "bg-background text-primary shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
             )}
           >
             <Layers className="size-4" />

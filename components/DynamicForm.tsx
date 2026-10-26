@@ -213,7 +213,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
   };
 
   const baseInputClass =
-    "w-full rounded-lg border border-input bg-background py-2 px-3 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 outline-none transition-all shadow-xs min-h-[40px]";
+    "w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all shadow-2xs min-h-[42px]";
 
   // Find the summary field to use as the search query for KB articles
   const summaryField = fields.find(
@@ -333,7 +333,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                           "flex items-start gap-3 p-3.5 rounded-xl border text-sm cursor-pointer transition-all min-h-[44px]",
                           isSelected
                             ? "bg-blue-50/80 border-blue-500 text-blue-950 dark:bg-blue-950/40 dark:text-blue-100 font-medium ring-2 ring-blue-500/10 shadow-xs"
-                            : "bg-card border-border text-foreground hover:bg-muted/40 hover:border-slate-300"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
                         )}
                       >
                         <input
@@ -370,7 +370,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                           "flex items-start gap-3 p-3.5 rounded-xl border text-sm cursor-pointer transition-all min-h-[44px]",
                           isChecked
                             ? "bg-blue-50/80 border-blue-500 text-blue-950 dark:bg-blue-950/40 dark:text-blue-100 font-medium ring-2 ring-blue-500/10 shadow-xs"
-                            : "bg-card border-border text-foreground hover:bg-muted/40 hover:border-slate-300"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
                         )}
                       >
                         <input
@@ -638,7 +638,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       </div>
 
       {/* Action Bar */}
-      <div className="pt-6 border-t border-border/70 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+      <div className="pt-6 border-t border-slate-200/80 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
         {onCancel && (
           <Button
             type="button"

@@ -42,7 +42,7 @@ export const TagInputField: React.FC<TagInputFieldProps> = ({
             <Badge
               key={tag}
               variant="secondary"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-foreground bg-secondary/80 border border-border"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-blue-900 bg-blue-50 border border-blue-200"
             >
               <Tag className="w-3 h-3 text-muted-foreground" />
               <span>{tag}</span>

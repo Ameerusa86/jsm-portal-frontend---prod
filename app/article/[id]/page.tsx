@@ -703,7 +703,7 @@ function ArticleViewerContent() {
       {articleData && !isPageLoading && !displayedError && (
         <>
           {/* Article Header Canvas */}
-          <header className="w-full bg-white border-b border-border py-10 lg:py-12">
+          <header className="w-full bg-white border-b border-slate-200 py-10 lg:py-12">
             <div className="w-full px-6 lg:px-12 xl:px-16 2xl:px-24">
               <div className="space-y-5 max-w-5xl">
                 <Badge
@@ -865,7 +865,7 @@ function ArticleViewerContent() {
                       type="button"
                       variant="outline"
                       onClick={handleCopyLink}
-                      className="w-full flex items-center justify-between px-3.5 py-2.5 h-auto text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100/80 rounded-xl transition-colors cursor-pointer border border-border"
+                      className="w-full flex items-center justify-between px-3.5 py-2.5 h-auto text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100/80 rounded-xl transition-colors cursor-pointer border border-slate-200"
                     >
                       <span className="flex items-center gap-2">
                         <Share2 className="w-3.5 h-3.5 text-slate-400" />

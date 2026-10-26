@@ -55,14 +55,14 @@ export const SuccessCard: React.FC<SuccessCardProps> = ({
           </p>
 
           {/* Reference Badge Box */}
-          <div className="mt-6 p-4 rounded-xl bg-muted/40 border border-border inline-flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="mt-6 p-4 rounded-xl bg-slate-50 border border-slate-200 inline-flex flex-col sm:flex-row items-center justify-center gap-3">
             <span className="text-xs text-muted-foreground font-medium">
               Ticket Reference:
             </span>
             <div className="flex items-center gap-2">
               <Badge
                 variant="outline"
-                className="font-mono text-base font-bold text-blue-700 bg-background border-border px-3 py-1 rounded-md shadow-sm tracking-wider"
+                className="font-mono text-base font-bold text-blue-700 bg-white border-blue-200 px-3 py-1 rounded-md shadow-sm tracking-wider"
               >
                 {issueKey}
               </Badge>
@@ -92,7 +92,7 @@ export const SuccessCard: React.FC<SuccessCardProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-8 pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href={`/tickets?id=${encodeURIComponent(issueKey)}`}
               className={cn(

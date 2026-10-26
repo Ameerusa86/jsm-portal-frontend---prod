@@ -326,7 +326,7 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
       ref={dropdownRef}
       className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden z-30 animate-in fade-in zoom-in-95 duration-150 text-left"
     >
-      <div className="p-3 bg-muted/40 border-b border-border/60 flex items-center justify-between text-xs text-muted-foreground">
+      <div className="p-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-xs text-muted-foreground">
         <span className="font-semibold text-foreground flex items-center gap-1.5">
           <Search className="size-3.5 text-primary" />
           <span>
@@ -342,14 +342,14 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
 
       <div className="max-h-[60vh] sm:max-h-[380px] overflow-y-auto divide-y divide-border/60 scroll-smooth">
         {kbLoading && (
-          <div className="p-4 text-center text-sm text-muted-foreground flex items-center justify-center gap-2 border-b border-border/60">
+          <div className="p-4 text-center text-sm text-muted-foreground flex items-center justify-center gap-2 border-b border-slate-100">
             <Clock className="size-4 animate-spin" />
             <span>Searching Knowledge Base...</span>
           </div>
         )}
 
         {kbResults && kbResults.length > 0 && (
-          <div className="border-b border-border/60">
+          <div className="border-b border-slate-100">
             <div className="px-4 py-2 bg-indigo-50/50 dark:bg-indigo-950/20 text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-2">
               <FileText className="size-3.5" />
               Help Articles
@@ -358,7 +358,7 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
               <a
                 key={String(article.id || article.portalUrl || article.title)}
                 href={article.portalUrl || article.content?.iframeSrc || "#"}
-                className="w-full p-3.5 sm:p-4 flex items-start gap-3.5 text-left transition-colors hover:bg-muted/30 cursor-pointer block border-b border-border/60 last:border-0"
+                className="w-full p-3.5 sm:p-4 flex items-start gap-3.5 text-left transition-colors hover:bg-muted/30 cursor-pointer block border-b border-slate-100 last:border-0"
               >
                 <div className="size-10 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
                   <FileText className="size-5" />
@@ -383,7 +383,7 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
         )}
 
         {results.length > 0 && (
-          <div className="px-4 py-2 bg-muted/40 border-b border-border/60 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+          <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Service Requests
           </div>
         )}
@@ -399,7 +399,7 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
               type="button"
               onClick={() => onSelect(rt)}
               className={cn(
-                "w-full p-3.5 sm:p-4 flex items-start gap-3.5 text-left transition-colors cursor-pointer border-b border-border/60 last:border-0",
+                "w-full p-3.5 sm:p-4 flex items-start gap-3.5 text-left transition-colors cursor-pointer border-b border-slate-100 last:border-0",
                 isSelected ? "bg-muted/60" : "hover:bg-muted/30"
               )}
             >

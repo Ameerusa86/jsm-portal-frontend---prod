@@ -68,7 +68,7 @@ export const GroupPickerField: React.FC<GroupPickerFieldProps> = ({
             <Badge
               key={groupName}
               variant="secondary"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-foreground bg-secondary/80 border border-border"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-blue-900 bg-blue-50 border border-blue-200"
             >
               <UsersRound className="w-3.5 h-3.5 text-muted-foreground" />
               <span>{groupName}</span>

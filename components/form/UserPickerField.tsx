@@ -76,7 +76,7 @@ export const UserPickerField: React.FC<UserPickerFieldProps> = ({
                 <Badge
                   key={userId}
                   variant="secondary"
-                  className="inline-flex items-center gap-2 pl-1.5 pr-2 py-1 text-xs font-semibold text-foreground bg-secondary/80 border border-border"
+                  className="inline-flex items-center gap-2 pl-1.5 pr-2 py-1 text-xs font-semibold text-blue-900 bg-blue-50 border border-blue-200"
                 >
                   <Avatar className="w-4 h-4 text-[10px]">
                     <AvatarFallback className="bg-primary text-primary-foreground font-bold">

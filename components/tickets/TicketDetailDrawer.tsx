@@ -233,9 +233,9 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
       />
 
       {/* Drawer Container */}
-      <div className="relative w-full max-w-2xl bg-background border-l border-border h-full flex flex-col z-10 shadow-2xl animate-in slide-in-from-right duration-250 pb-[env(safe-area-inset-bottom,0px)] text-foreground">
+      <div className="relative w-full max-w-2xl bg-white border-l border-slate-200 h-full flex flex-col z-10 shadow-2xl animate-in slide-in-from-right duration-250 pb-[env(safe-area-inset-bottom,0px)] text-foreground">
         {/* Top Header Bar */}
-        <div className="p-4 sm:p-5 border-b border-border bg-muted/40 flex items-center justify-between gap-3 shrink-0">
+        <div className="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             {/* Key Badge */}
             <Badge
@@ -564,7 +564,7 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Add an update, reply to support, or attach additional details..."
-                      className="bg-muted/30 border-border focus-visible:bg-background transition-all"
+                      className="bg-slate-50 border-slate-200 focus-visible:bg-white transition-all"
                       disabled={submittingComment}
                     />
 
