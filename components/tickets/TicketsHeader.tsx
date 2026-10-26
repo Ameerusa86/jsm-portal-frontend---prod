@@ -2,12 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import {
-  Plus,
-  Download,
-  ExternalLink,
-  Ticket,
-} from "lucide-react";
+import { Plus, Download, ExternalLink, Ticket } from "lucide-react";
 
 interface TicketsHeaderProps {
   onExportCsv: () => void;
@@ -34,10 +29,6 @@ export const TicketsHeader: React.FC<TicketsHeaderProps> = ({
             </span>
           </h1>
         </div>
-        <p className="text-slate-500 text-xs sm:text-sm max-w-2xl">
-          Track, filter, and communicate across EMSMC support requests with live status
-          updates, dynamic column filters, and Jira Cloud integration.
-        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 shrink-0">

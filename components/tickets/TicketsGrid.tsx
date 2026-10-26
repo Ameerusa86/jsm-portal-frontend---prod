@@ -125,12 +125,12 @@ export const TicketsGrid: React.FC<TicketsGridProps> = ({
                       <Image
                         src={ticket.assignee.avatarUrl}
                         alt={ticket.assignee.displayName}
-                        width={20}
-                        height={20}
-                        className="w-5 h-5 rounded-full object-cover border border-slate-200"
+                        width={40}
+                        height={40}
+                        className="w-6 h-6 rounded-full object-cover border border-slate-200"
                       />
                     ) : (
-                      <div className="w-5 h-5 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-[10px] font-bold text-blue-700">
+                      <div className="w-6 h-6 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-[10px] font-bold text-blue-700">
                         {ticket.assignee.displayName.charAt(0).toUpperCase()}
                       </div>
                     )}

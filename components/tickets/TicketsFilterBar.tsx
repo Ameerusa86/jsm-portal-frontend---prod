@@ -59,7 +59,10 @@ export interface FilterState {
 
 interface TicketsFilterBarProps {
   filters: FilterState;
-  onChangeFilter: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
+  onChangeFilter: <K extends keyof FilterState>(
+    key: K,
+    value: FilterState[K],
+  ) => void;
   onResetFilters: () => void;
   availableSpaces: string[];
   availableRequestTypes: string[];
@@ -101,10 +104,14 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
 
     allTickets.forEach((t) => {
       let val = "";
-      if (selectedColumn === "client") val = t.clientName || t.organization || "";
-      else if (selectedColumn === "assignee") val = t.assignee?.displayName || "";
-      else if (selectedColumn === "reporter") val = t.reporter?.displayName || "";
-      else if (selectedColumn === "space") val = t.projectName || t.projectKey || "";
+      if (selectedColumn === "client")
+        val = t.clientName || t.organization || "";
+      else if (selectedColumn === "assignee")
+        val = t.assignee?.displayName || "";
+      else if (selectedColumn === "reporter")
+        val = t.reporter?.displayName || "";
+      else if (selectedColumn === "space")
+        val = t.projectName || t.projectKey || "";
       else if (selectedColumn === "type") val = t.type || "";
       else if (selectedColumn === "priority") val = t.priority?.name || "";
       else if (selectedColumn === "status") val = t.status || "";
@@ -191,11 +198,13 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
             <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none" />
             <select
               value={filters.sortBy}
-              onChange={(e) => onChangeFilter("sortBy", e.target.value as SortOption)}
+              onChange={(e) =>
+                onChangeFilter("sortBy", e.target.value as SortOption)
+              }
               className="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl pl-8 pr-7 py-2.5 appearance-none focus:outline-none focus:border-blue-500 cursor-pointer hover:border-slate-300 transition-colors shadow-2xs"
               aria-label="Sort tickets by"
             >
-              <option value="created-desc">Latest Submitted (Default)</option>
+              <option value="created-desc">Latest Submitted</option>
               <option value="updated-desc">Recently Updated</option>
               <option value="created-asc">Oldest Submitted</option>
               <option value="updated-asc">Oldest Updated</option>
@@ -564,7 +573,8 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
           )}
 
           <span className="text-[11px] text-slate-500 font-medium ml-auto">
-            Showing {totalResultsCount} matching {totalResultsCount === 1 ? "request" : "requests"}
+            Showing {totalResultsCount} matching{" "}
+            {totalResultsCount === 1 ? "request" : "requests"}
           </span>
         </div>
       )}
