@@ -304,7 +304,7 @@ function ArticleViewerContent() {
     }
   };
 
-  const USE_NATIVE_PORTAL = true;
+  const USE_NATIVE_PORTAL = false;
 
   // Derive missing ID synchronously during render to prevent cascading re-renders
   const displayedError = !articleId ? "Article ID is missing." : fetchError;

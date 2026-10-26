@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import { ArrowLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, Loader2, ExternalLink } from "lucide-react";
 import { DynamicForm } from "@/components/DynamicForm";
 import { SidebarHelp } from "@/components/SidebarHelp";
 import { FormField, RequestTypeWithGroup } from "@/types/jsm";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface FormViewContainerProps {
   selectedType: RequestTypeWithGroup;
@@ -49,13 +50,34 @@ export const FormViewContainer: React.FC<FormViewContainerProps> = ({
         {/* Left Column: The Form Card */}
         <Card className="lg:col-span-8 xl:col-span-8 2xl:col-span-9 bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 md:p-8 lg:p-10 shadow-sm">
           <div className="border-b border-slate-100 pb-6 mb-6">
-            <div className="flex flex-wrap items-center gap-2 mb-2.5">
-              <Badge variant="secondary" className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
-                {selectedType.group || "Service Request"}
-              </Badge>
-              <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200/60">
-                Standard Workflow
-              </Badge>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-2.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                  {selectedType.group || "Service Request"}
+                </Badge>
+                <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200/60">
+                  Standard Workflow
+                </Badge>
+              </div>
+
+              {selectedType.portalUrl && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    window.open(
+                      selectedType.portalUrl,
+                      "_blank",
+                      "noopener,noreferrer"
+                    )
+                  }
+                  className="gap-1.5 text-xs text-slate-600 hover:text-blue-600 hover:border-blue-200 rounded-xl transition-colors cursor-pointer"
+                >
+                  <ExternalLink className="size-3.5" />
+                  <span>Open in Jira</span>
+                </Button>
+              )}
             </div>
 
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
