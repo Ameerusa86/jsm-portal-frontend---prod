@@ -1,20 +1,36 @@
 import * as React from "react"
+import { mergeProps } from "@base-ui/react/merge-props"
+import { useRender } from "@base-ui/react/use-render"
 import { cn } from "cn"
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    data-slot="card"
-    className={cn(
-      "rounded-2xl border border-slate-200/90 bg-white text-slate-900 shadow-xs transition-all",
-      className
-    )}
-    {...props}
-  />
-))
+interface CardProps extends useRender.ComponentProps<"div"> {
+  asChild?: boolean
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, render, asChild, children, ...props }, forwardedRef) => {
+    const childElement = asChild && React.isValidElement(children) ? children : null
+    return useRender({
+      defaultTagName: "div",
+      ref: forwardedRef,
+      props: mergeProps<"div">(
+        {
+          className: cn(
+            "rounded-2xl border border-slate-200/90 bg-white text-slate-900 shadow-xs transition-all",
+            className
+          ),
+        },
+        childElement
+          ? { ...props, ...(childElement.props as Record<string, unknown>) }
+          : { ...props, children }
+      ),
+      render: childElement || render,
+      state: {
+        slot: "card",
+      },
+    })
+  }
+)
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<

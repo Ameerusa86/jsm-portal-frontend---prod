@@ -13,56 +13,53 @@ import { Input } from "@/components/ui/input";
 interface CatalogBrowserProps {
   spaceParamId?: string | null;
   spaceCategoryParam?: string | null;
-  onBackToSpaces?: () => void;
+  spaces: JsmSpace[];
+  spacesLoading?: boolean;
   requestTypesLoading: boolean;
-  totalRequestTypesCount: number;
-  categoriesWithCounts: Array<{
-    name: string;
-    count: number;
-  }>;
-  selectedCategory: string;
-  setSelectedCategory: (category: string) => void;
+  totalRequestTypesCount?: number;
+  filteredTypes: RequestTypeWithGroup[];
+  availableBoards: string[];
+  categoriesWithCounts: { name: string; count: number }[];
+  groupedRequests: Record<string, RequestTypeWithGroup[]>;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
   localSearchQuery: string;
   setLocalSearchQuery: (query: string) => void;
   boardFilter: string;
   setBoardFilter: (board: string) => void;
-  availableBoards: string[];
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  filteredTypes: RequestTypeWithGroup[];
-  groupedRequests: Record<string, RequestTypeWithGroup[]>;
-  kbResults: KnowledgeBaseArticle[];
-  kbLoading: boolean;
+  selectedCategory: string;
+  setSelectedCategory: (cat: string) => void;
   viewMode: "grid" | "list";
   setViewMode: (mode: "grid" | "list") => void;
-  spaces: JsmSpace[];
-  handleSelectType: (requestType: RequestTypeWithGroup) => void;
+  handleSelectType: (type: RequestTypeWithGroup) => void;
+  kbResults: KnowledgeBaseArticle[];
+  kbLoading: boolean;
+  onBackToSpaces?: () => void;
 }
 
 export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
   spaceParamId,
   spaceCategoryParam,
-  onBackToSpaces,
+  spaces,
   requestTypesLoading,
-  totalRequestTypesCount,
+  filteredTypes,
+  availableBoards,
   categoriesWithCounts,
-  selectedCategory,
-  setSelectedCategory,
+  groupedRequests,
+  searchQuery,
+  setSearchQuery,
   localSearchQuery,
   setLocalSearchQuery,
   boardFilter,
   setBoardFilter,
-  availableBoards,
-  searchQuery,
-  setSearchQuery,
-  filteredTypes,
-  groupedRequests,
-  kbResults,
-  kbLoading,
+  selectedCategory,
+  setSelectedCategory,
   viewMode,
   setViewMode,
-  spaces,
   handleSelectType,
+  kbResults,
+  kbLoading,
+  onBackToSpaces,
 }) => {
   const currentSpace = React.useMemo(() => {
     if (!spaceParamId || spaceParamId === "all") return null;
@@ -93,12 +90,18 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                   {currentSpace ? currentSpace.projectName : "Technology Solutions"}
                 </span>
                 {currentSpace?.category && (
-                  <Badge variant="secondary" className="ml-2 text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                  <Badge
+                    variant="outline"
+                    className="ml-2 text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2.5 py-0.5 h-auto"
+                  >
                     {currentSpace.category}
                   </Badge>
                 )}
                 {isITSection && (
-                  <Badge variant="secondary" className="ml-2 text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  <Badge
+                    variant="outline"
+                    className="ml-2 text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full px-2.5 py-0.5 h-auto"
+                  >
                     IT Teams
                   </Badge>
                 )}
@@ -132,10 +135,10 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={onBackToSpaces}
-                className="self-start sm:self-center cursor-pointer text-slate-700 hover:text-slate-900"
+                className="self-start sm:self-center cursor-pointer text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border-slate-200/80 rounded-xl px-4 py-2 h-auto text-xs sm:text-sm font-semibold shadow-2xs"
               >
                 <ArrowLeft className="size-4" />
-                <span>All Departments</span>
+                <span>Browse other boards</span>
               </Button>
             )}
           </div>
@@ -236,32 +239,34 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {kbResults.map((article) => (
-                  <a
+                  <Card
                     key={article.title}
-                    href={
-                      article.portalUrl ||
-                      article.content?.iframeSrc ||
-                      "#"
+                    render={
+                      <a
+                        href={
+                          article.portalUrl ||
+                          article.content?.iframeSrc ||
+                          "#"
+                        }
+                      />
                     }
-                    className="group flex flex-col"
+                    className="group bg-white hover:bg-slate-50/80 rounded-2xl border border-slate-200/80 hover:border-indigo-400 p-5 transition-all shadow-xs hover:shadow-md cursor-pointer h-full flex flex-col justify-between"
                   >
-                    <Card className="bg-white hover:bg-slate-50/80 rounded-2xl border border-slate-200/80 hover:border-indigo-400 p-5 transition-all shadow-xs hover:shadow-md cursor-pointer h-full flex flex-col justify-between">
-                      <div>
-                        <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2">
-                          {article.title}
-                        </h4>
-                        {article.excerpt && (
-                          <p className="text-sm text-slate-500 mt-2 line-clamp-3 leading-relaxed">
-                            {article.excerpt.replace(/<[^>]+>/g, "")}
-                          </p>
-                        )}
-                      </div>
-                      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center text-blue-600 font-semibold text-xs gap-1 group-hover:translate-x-1 transition-transform w-max">
-                        <span>Read Article</span>
-                        <ArrowRight className="size-4" />
-                      </div>
-                    </Card>
-                  </a>
+                    <div>
+                      <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                        {article.title}
+                      </h4>
+                      {article.excerpt && (
+                        <p className="text-sm text-slate-500 mt-2 line-clamp-3 leading-relaxed">
+                          {article.excerpt.replace(/<[^>]+>/g, "")}
+                        </p>
+                      )}
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-slate-100 flex items-center text-blue-600 font-semibold text-xs gap-1 group-hover:translate-x-1 transition-transform w-max">
+                      <span>Read Article</span>
+                      <ArrowRight className="size-4" />
+                    </div>
+                  </Card>
                 ))}
               </div>
             </div>
@@ -311,7 +316,10 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                         {searchQuery ? "Recommended Request Types" : groupName}
                       </h2>
                       {!searchQuery && (
-                        <Badge variant="secondary" className="text-xs font-semibold">
+                        <Badge
+                          variant="secondary"
+                          className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 h-auto"
+                        >
                           {groupTypes.length}
                         </Badge>
                       )}

@@ -238,14 +238,14 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
         <div className="flex bg-slate-100 p-1 rounded-2xl w-full sm:w-auto shrink-0 shadow-2xs border border-slate-200">
           <Button
             type="button"
-            variant={spacesViewMode === "categories" ? "secondary" : "ghost"}
+            variant="ghost"
             size="sm"
             onClick={() => setSpacesViewMode("categories")}
             className={cn(
               "flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2",
               spacesViewMode === "categories"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white text-blue-600 shadow-sm hover:bg-white hover:text-blue-600"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
             )}
           >
             <LayoutGrid className="size-4" />
@@ -253,14 +253,14 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
           </Button>
           <Button
             type="button"
-            variant={spacesViewMode === "all" ? "secondary" : "ghost"}
+            variant="ghost"
             size="sm"
             onClick={() => setSpacesViewMode("all")}
             className={cn(
               "flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2",
               spacesViewMode === "all"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white text-blue-600 shadow-sm hover:bg-white hover:text-blue-600"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
             )}
           >
             <Layers className="size-4" />
@@ -318,15 +318,7 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
               return (
                 <Card
                   key={space.id}
-                  tabIndex={0}
-                  role="button"
-                  onClick={() => router.push(`/?space=${space.id}`)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      router.push(`/?space=${space.id}`);
-                    }
-                  }}
+                  render={<button type="button" onClick={() => router.push(`/?space=${space.id}`)} />}
                   className={cn(
                     "group relative flex flex-col justify-between text-left bg-white hover:bg-linear-to-b hover:from-white hover:to-slate-50/70 rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer min-h-[145px] sm:min-h-[155px] w-full",
                     theme.borderHover,
@@ -341,15 +333,19 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                     )}
                   />
 
-                  {/* Top Row: Icon */}
+                  {/* Top Row: Icon + Explore Arrow Button */}
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div
                       className={cn(
-                        "size-12 rounded-2xl flex items-center justify-center border shadow-2xs group-hover:scale-105 transition-all duration-300 shrink-0",
+                        "w-12 h-12 rounded-2xl flex items-center justify-center border shadow-2xs group-hover:scale-105 transition-all duration-300 shrink-0",
                         theme.iconBg
                       )}
                     >
-                      <IconComponent className="size-6" />
+                      <IconComponent className="w-6 h-6" />
+                    </div>
+
+                    <div className="w-7 h-7 rounded-full bg-slate-100 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all text-slate-400 shrink-0">
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </div>
 
@@ -364,8 +360,8 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                       <span className="text-xs font-semibold text-slate-500 group-hover:text-blue-600 transition-colors break-words">
                         {space.projectName}
                       </span>
-                      <div className="size-7 rounded-full bg-slate-100 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all text-slate-400 shrink-0">
-                        <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      <div className="w-7 h-7 rounded-full bg-slate-100 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all text-slate-400 shrink-0">
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
                   </div>
@@ -392,7 +388,10 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                   <AccordionTrigger className="w-full flex items-center justify-between p-5 sm:p-6 bg-slate-50/40 hover:bg-slate-50/80 transition-colors cursor-pointer text-left hover:no-underline rounded-none [&>[data-slot=accordion-trigger-icon]]:hidden">
                     <div className="flex items-center gap-4">
                       <div
-                        className={`w-11 h-11 rounded-2xl flex items-center justify-center border shrink-0 ${deptTheme.headerIconBg}`}
+                        className={cn(
+                          "w-11 h-11 rounded-2xl flex items-center justify-center border shrink-0",
+                          deptTheme.headerIconBg
+                        )}
                       >
                         <DeptIcon className="w-5.5 h-5.5" />
                       </div>
@@ -400,10 +399,13 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                         <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
                           {catName}
                         </h3>
-                        <span className="px-2.5 py-0.5 text-xs font-semibold bg-white text-slate-600 rounded-full border border-slate-200 shadow-2xs">
+                        <Badge
+                          variant="outline"
+                          className="px-2.5 py-0.5 text-xs font-semibold bg-white text-slate-600 rounded-full border border-slate-200 shadow-2xs h-auto"
+                        >
                           {catSpaces.length}{" "}
                           {catSpaces.length === 1 ? "desk" : "desks"}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
 
@@ -425,15 +427,7 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                           return (
                             <Card
                               key={space.id}
-                              tabIndex={0}
-                              role="button"
-                              onClick={() => router.push(`/?space=${space.id}`)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  e.preventDefault();
-                                  router.push(`/?space=${space.id}`);
-                                }
-                              }}
+                              render={<button type="button" onClick={() => router.push(`/?space=${space.id}`)} />}
                               className={cn(
                                 "group relative flex flex-col justify-between items-start bg-slate-50/60 hover:bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-left cursor-pointer min-h-[145px] w-full",
                                 spaceTheme.borderHover,
@@ -443,11 +437,11 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                               <div className="w-full flex items-start justify-between gap-2 mb-3">
                                 <div
                                   className={cn(
-                                    "size-11 rounded-xl flex items-center justify-center border shadow-2xs group-hover:scale-105 transition-all shrink-0",
+                                    "w-11 h-11 rounded-xl flex items-center justify-center border shadow-2xs group-hover:scale-105 transition-all shrink-0",
                                     spaceTheme.iconBg
                                   )}
                                 >
-                                  <SpaceIcon className="size-5.5" />
+                                  <SpaceIcon className="w-5.5 h-5.5" />
                                 </div>
                               </div>
 
@@ -460,7 +454,7 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                                   <span className="text-xs font-medium text-slate-500 group-hover:text-blue-600 transition-colors">
                                     {catName}
                                   </span>
-                                  <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
+                                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                                 </div>
                               </div>
                             </Card>
