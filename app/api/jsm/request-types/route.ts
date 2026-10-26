@@ -79,20 +79,16 @@ export async function GET(req: NextRequest) {
       .filter((rt) => includeHidden || (!rt.hiddenFromPortal && (rt.groupIds ? rt.groupIds.length > 0 : true)))
       .map((rt) => {
       const space = MOCK_SPACES.find(
-        (s) => String(s.id) === String(rt.serviceDeskId || "1"),
+        (s) => String(s.id) === String(rt.serviceDeskId || "4"),
       );
-      const deskId = rt.serviceDeskId || "1";
-      const primaryGroupId = rt.groupIds && rt.groupIds.length > 0 ? rt.groupIds[0] : null;
-      // In mock mode without live Jira IDs, link directly to the Service Desk portal landing page
-      const fallbackUrl = primaryGroupId
-        ? `https://emsmc1.atlassian.net/servicedesk/customer/portal/${deskId}/group/${primaryGroupId}/create/${rt.id}`
-        : `https://emsmc1.atlassian.net/servicedesk/customer/portal/${deskId}/create/${rt.id}`;
+      const deskId = rt.serviceDeskId || "4";
+      const fallbackUrl = `https://emsmc1.atlassian.net/servicedesk/customer/portal/${deskId}/create/${rt.id}`;
 
       return {
         ...rt,
         serviceDeskId: deskId,
         spaceName: space?.projectName || "Information Technology",
-        spaceKey: space?.projectKey || "ITSD",
+        spaceKey: space?.projectKey || "IT",
         portalUrl: rt.portalUrl || fallbackUrl,
       };
     });
@@ -102,7 +98,7 @@ export async function GET(req: NextRequest) {
         (rt) => String(rt.serviceDeskId) === String(serviceDeskId),
       );
     } else if (spaceCategory) {
-      const itSpaceIds = new Set(["1"]);
+      const itSpaceIds = new Set(["1", "4"]);
       mockList = mockList.filter((rt) => rt.serviceDeskId && itSpaceIds.has(rt.serviceDeskId));
     }
 
@@ -273,20 +269,7 @@ export async function GET(req: NextRequest) {
         }
 
         const targetPortalId = rt.portalId !== undefined ? String(rt.portalId) : String(serviceDeskId);
-        let primaryGroupId: string | null = null;
-        if (rt.groupIds && rt.groupIds.length > 0) {
-          primaryGroupId = String(rt.groupIds[0]);
-          for (const gid of rt.groupIds) {
-            if (nativeGroupMap[String(gid)]) {
-              primaryGroupId = String(gid);
-              break;
-            }
-          }
-        }
-
-        const portalUrl = primaryGroupId
-          ? `${baseUrl}/servicedesk/customer/portal/${targetPortalId}/group/${primaryGroupId}/create/${rt.id}`
-          : `${baseUrl}/servicedesk/customer/portal/${targetPortalId}/create/${rt.id}`;
+        const portalUrl = `${baseUrl}/servicedesk/customer/portal/${targetPortalId}/create/${rt.id}`;
 
         return {
           id: String(rt.id),
@@ -296,7 +279,7 @@ export async function GET(req: NextRequest) {
           portalUrl,
           serviceDeskId: String(serviceDeskId),
           spaceName: singleSdProjectName || (isIT ? "Information Technology" : undefined),
-          spaceKey: singleSdProjectKey || (isIT ? "ITSD" : undefined),
+          spaceKey: singleSdProjectKey || (isIT ? "IT" : undefined),
         };
       });
 
@@ -468,20 +451,7 @@ export async function GET(req: NextRequest) {
         }
 
         const targetPortalId = rt.portalId !== undefined ? String(rt.portalId) : currentSdId;
-        let primaryGroupId: string | null = null;
-        if (rt.groupIds && rt.groupIds.length > 0) {
-          primaryGroupId = String(rt.groupIds[0]);
-          for (const gid of rt.groupIds) {
-            if (nativeGroupMap[String(gid)]) {
-              primaryGroupId = String(gid);
-              break;
-            }
-          }
-        }
-
-        const portalUrl = primaryGroupId
-          ? `${baseUrl}/servicedesk/customer/portal/${targetPortalId}/group/${primaryGroupId}/create/${rt.id}`
-          : `${baseUrl}/servicedesk/customer/portal/${targetPortalId}/create/${rt.id}`;
+        const portalUrl = `${baseUrl}/servicedesk/customer/portal/${targetPortalId}/create/${rt.id}`;
 
         return {
           id: String(rt.id),

@@ -96,9 +96,9 @@ export interface MockSpace {
 
 export const MOCK_SPACES: MockSpace[] = [
   {
-    id: "1",
+    id: "4",
     projectName: "Information Technology",
-    projectKey: "ITSD",
+    projectKey: "IT",
     category: "Information Technology",
   },
   {
@@ -133,13 +133,13 @@ export interface MockRequestType {
 }
 
 export const MOCK_REQUEST_TYPES: MockRequestType[] = [
-  // --- INFORMATION TECHNOLOGY (Service Desk 1 - ITSD Production) ---
+  // --- INFORMATION TECHNOLOGY (Service Desk 4) ---
   {
     id: "199",
     name: "Internal Datacenter Decommission (Agent Only)",
     description: "Confidential infrastructure teardown run strictly by system admins. Hidden from customer portal.",
     group: "Problems",
-    serviceDeskId: "1",
+    serviceDeskId: "4",
     groupIds: [],
     hiddenFromPortal: true,
   },
@@ -148,77 +148,77 @@ export const MOCK_REQUEST_TYPES: MockRequestType[] = [
     name: "Get Help",
     description: "General IT service desk inquiry, hardware/software troubleshooting, or immediate technical support.",
     group: "Problems",
-    serviceDeskId: "1",
+    serviceDeskId: "4",
   },
   {
     id: "101",
     name: "VPN & Remote Network Access",
     description: "Request VPN configuration, tunnel access, certificates, or troubleshoot home network connectivity issues.",
     group: "Work Orders",
-    serviceDeskId: "1",
+    serviceDeskId: "4",
   },
   {
     id: "102",
     name: "Reset Password or Unlock MFA",
     description: "Unlock Okta/SSO accounts, reset enterprise passwords, or re-sync Authenticator and hardware security keys.",
     group: "Problems",
-    serviceDeskId: "1",
+    serviceDeskId: "4",
   },
   {
     id: "103",
     name: "Request Software License or SaaS Tool",
     description: "Request developer tools, productivity licenses (e.g., GitHub, Slack, Figma, JetBrains, Microsoft 365).",
     group: "Work Orders",
-    serviceDeskId: "1",
+    serviceDeskId: "4",
   },
   {
     id: "104",
     name: "Request New Laptop or Workstation",
     description: "Order high-performance developer laptops, standard office machines, monitors, or hardware upgrades.",
     group: "Work Orders",
-    serviceDeskId: "1",
+    serviceDeskId: "4",
   },
   {
     id: "105",
     name: "Report an IT Outage or System Problem",
     description: "Report service degradation, broken internal tools, production incidents, or office network outages.",
     group: "Problems",
-    serviceDeskId: "1",
+    serviceDeskId: "4",
   },
   {
     id: "106",
     name: "Broken Equipment / Hardware Repair",
     description: "Submit repairs for cracked screens, swollen batteries, faulty chargers, broken keyboards, or damaged peripherals.",
     group: "Problems",
-    serviceDeskId: "1",
+    serviceDeskId: "4",
   },
   {
     id: "108",
     name: "AWS / Cloud Infrastructure Permissions",
     description: "Request IAM roles, BigQuery dataset access, Kubernetes cluster permissions, or Cloud Console access.",
     group: "Work Orders",
-    serviceDeskId: "1",
+    serviceDeskId: "4",
   },
   {
     id: "109",
     name: "Office Badge & Building Access",
     description: "Request physical smart badge replacements, visitor passes, or access permissions for global office locations.",
     group: "Work Orders",
-    serviceDeskId: "1",
+    serviceDeskId: "4",
   },
   {
     id: "110",
     name: "Automated Report or ETL Pipeline Request",
     description: "Request new automated reports, scheduled data pipelines, or executive dashboards.",
     group: "Automations and Reports",
-    serviceDeskId: "1",
+    serviceDeskId: "4",
   },
   {
     id: "111",
     name: "Submit IT Enhancement or Feature Idea",
     description: "Share recommendations for technology workflow improvements and portal tools.",
     group: "Suggestions",
-    serviceDeskId: "1",
+    serviceDeskId: "4",
   },
 
   // --- BILLING (Service Desk 2) ---

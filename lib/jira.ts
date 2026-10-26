@@ -43,7 +43,7 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
     JIRA_SERVICE_DESK_ID ||
     JIRA_SERVICE_DESK ||
     process.env.JSM_SERVICE_DESK_ID ||
-    "1";
+    "4";
 
   const configuredUrl = (
     JIRA_BASE_URL && !JIRA_BASE_URL.includes("sandbox")

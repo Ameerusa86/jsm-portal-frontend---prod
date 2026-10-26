@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     process.env.JIRA_SERVICE_DESK_ID ||
     process.env.JIRA_SERVICE_DESK ||
     process.env.JSM_SERVICE_DESK_ID ||
-    "1";
+    "4";
 
   if (!baseUrl || !serviceDeskId) {
     return new Response("Jira portal is not configured.", { status: 503 });

@@ -266,6 +266,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   if (variant === "list") {
     return (
       <Card
+        onClick={onClick}
         render={<button type="button" onClick={onClick} />}
         className={cn(
           "group w-full p-4 sm:p-5 bg-white hover:bg-slate-50/70 rounded-2xl border border-slate-200 hover:border-blue-300 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-row items-center justify-between gap-4 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 relative overflow-hidden",
@@ -317,6 +318,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   // -------------------------------------------------------------
   return (
     <Card
+      onClick={onClick}
       render={<button type="button" onClick={onClick} />}
       className={cn(
         "group relative flex flex-col justify-between text-left bg-white hover:bg-linear-to-b hover:from-white hover:to-slate-50/60 rounded-2xl sm:rounded-3xl border border-slate-200/90 hover:border-blue-400/80 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full cursor-pointer overflow-hidden min-h-[175px] sm:min-h-[190px]",

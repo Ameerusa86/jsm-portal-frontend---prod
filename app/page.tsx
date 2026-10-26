@@ -143,19 +143,13 @@ function HelpCenterContent() {
 
       const prodDomain = "https://emsmc1.atlassian.net";
       const deskId =
-        (rt.serviceDeskId && rt.serviceDeskId !== "4"
-          ? rt.serviceDeskId
-          : (spaceParamId && spaceParamId !== "all" && spaceParamId !== "4"
-              ? spaceParamId
-              : "")) || "1";
+        rt.serviceDeskId ||
+        (spaceParamId && spaceParamId !== "all" ? spaceParamId : "") ||
+        "4";
 
       let targetUrl = rt.portalUrl;
       if (!targetUrl) {
-        const primaryGroupId =
-          rt.groupIds && rt.groupIds.length > 0 ? rt.groupIds[0] : null;
-        targetUrl = primaryGroupId
-          ? `${prodDomain}/servicedesk/customer/portal/${deskId}/group/${primaryGroupId}/create/${rt.id}`
-          : `${prodDomain}/servicedesk/customer/portal/${deskId}/create/${rt.id}`;
+        targetUrl = `${prodDomain}/servicedesk/customer/portal/${deskId}/create/${rt.id}`;
       }
 
       // Enforce pure production Jira domain and strictly purge any sandbox hostname
@@ -164,10 +158,6 @@ function HelpCenterContent() {
           /https:\/\/[^/]*sandbox[^/]*\.atlassian\.net/gi,
           prodDomain
         );
-      }
-      // Correct legacy sandbox service desk 4 in URL to production desk id
-      if (targetUrl.includes("/portal/4/")) {
-        targetUrl = targetUrl.replace("/portal/4/", `/${deskId}/`);
       }
       if (!targetUrl.startsWith("http")) {
         targetUrl = `${prodDomain}${targetUrl.startsWith("/") ? "" : "/"}${targetUrl}`;
