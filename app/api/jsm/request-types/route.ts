@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
       // In mock mode without live Jira IDs, link directly to the Service Desk portal landing page
       const fallbackUrl = primaryGroupId
         ? `https://emsmc1.atlassian.net/servicedesk/customer/portal/${deskId}/group/${primaryGroupId}/create/${rt.id}`
-        : `https://emsmc1.atlassian.net/servicedesk/customer/portal/${deskId}`;
+        : `https://emsmc1.atlassian.net/servicedesk/customer/portal/${deskId}/create/${rt.id}`;
 
       return {
         ...rt,

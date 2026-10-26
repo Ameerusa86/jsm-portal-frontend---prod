@@ -128,7 +128,6 @@ function HelpCenterContent() {
     fields,
     currentFormId,
     formLoading,
-    setFormLoading,
     reloadFields,
   } = useFormFields({
     requestParamId,
@@ -136,23 +135,13 @@ function HelpCenterContent() {
     setApiError,
   });
 
-  // Navigation handlers
+  // Navigation handlers: open native request type URL in a new tab
   const handleSelectType = useCallback(
     (rt: RequestTypeWithGroup) => {
-      setFormLoading(true);
       setSearchQuery("");
       setIsSearchOpen(false);
 
-      // Only open a new tab if this request type explicitly points to an external third-party URL
-      if (
-        rt.portalUrl &&
-        !rt.portalUrl.includes("atlassian.net") &&
-        rt.portalUrl.startsWith("http")
-      ) {
-        window.open(rt.portalUrl, "_blank", "noopener,noreferrer");
-        return;
-      }
-
+      const prodDomain = "https://emsmc1.atlassian.net";
       const deskId =
         (rt.serviceDeskId && rt.serviceDeskId !== "4"
           ? rt.serviceDeskId
@@ -160,14 +149,33 @@ function HelpCenterContent() {
               ? spaceParamId
               : "")) || "1";
 
-      let url = `/?request=${encodeURIComponent(rt.id)}`;
-      if (deskId) {
-        url = `/?space=${encodeURIComponent(deskId)}&request=${encodeURIComponent(rt.id)}`;
+      let targetUrl = rt.portalUrl;
+      if (!targetUrl) {
+        const primaryGroupId =
+          rt.groupIds && rt.groupIds.length > 0 ? rt.groupIds[0] : null;
+        targetUrl = primaryGroupId
+          ? `${prodDomain}/servicedesk/customer/portal/${deskId}/group/${primaryGroupId}/create/${rt.id}`
+          : `${prodDomain}/servicedesk/customer/portal/${deskId}/create/${rt.id}`;
       }
-      router.push(url);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // Enforce pure production Jira domain and strictly purge any sandbox hostname
+      if (targetUrl.includes("sandbox")) {
+        targetUrl = targetUrl.replace(
+          /https:\/\/[^/]*sandbox[^/]*\.atlassian\.net/gi,
+          prodDomain
+        );
+      }
+      // Correct legacy sandbox service desk 4 in URL to production desk id
+      if (targetUrl.includes("/portal/4/")) {
+        targetUrl = targetUrl.replace("/portal/4/", `/${deskId}/`);
+      }
+      if (!targetUrl.startsWith("http")) {
+        targetUrl = `${prodDomain}${targetUrl.startsWith("/") ? "" : "/"}${targetUrl}`;
+      }
+
+      window.open(targetUrl, "_blank", "noopener,noreferrer");
     },
-    [router, spaceParamId, setFormLoading]
+    [spaceParamId]
   );
 
   const handleBackToCatalog = () => {

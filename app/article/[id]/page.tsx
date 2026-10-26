@@ -304,7 +304,7 @@ function ArticleViewerContent() {
     }
   };
 
-  const USE_NATIVE_PORTAL = false;
+  const USE_NATIVE_PORTAL = true;
 
   // Derive missing ID synchronously during render to prevent cascading re-renders
   const displayedError = !articleId ? "Article ID is missing." : fetchError;
@@ -442,10 +442,7 @@ function ArticleViewerContent() {
 
     if (USE_NATIVE_PORTAL && articleData?.baseUrl) {
       if (finalRequestTypeId && serviceDeskId) {
-        const isMockId = /^(1\d\d|2\d\d|3\d\d|5\d\d)$/.test(String(finalRequestTypeId));
-        const targetUrl = isMockId
-          ? `${articleData.baseUrl}/servicedesk/customer/portal/${serviceDeskId}`
-          : `${articleData.baseUrl}/servicedesk/customer/portal/${serviceDeskId}/create/${finalRequestTypeId}`;
+        const targetUrl = `${articleData.baseUrl}/servicedesk/customer/portal/${serviceDeskId}/create/${finalRequestTypeId}`;
         window.open(targetUrl, "_blank", "noopener,noreferrer");
       } else if (serviceDeskId) {
         window.open(
