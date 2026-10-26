@@ -192,7 +192,7 @@ export async function POST(req: Request) {
       }
     });
 
-    // Ensure summary is ALWAYS present for Jira Service Management request
+    // Summary field is required for Jira Service Management request creation
     if (!standardPayload.summary) {
       const explicitSummary =
         (fieldValues?.summary as string) ||

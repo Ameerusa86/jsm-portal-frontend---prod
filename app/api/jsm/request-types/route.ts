@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MOCK_REQUEST_TYPES } from "@/lib/mock-data";
+import { MOCK_REQUEST_TYPES, MOCK_SPACES } from "@/lib/mock-data";
 import { getJiraAuthContext } from "@/lib/jira";
 import { JiraRequestTypeItem, RequestTypeWithGroup } from "@/types/jsm";
 import { classifyRequestType } from "@/lib/classifier";
@@ -34,22 +34,61 @@ const matchesCategory = (actual?: string, expected?: string) => {
   return commonWords.length > 0;
 };
 
+/**
+ * Determines whether a Jira Service Management request type is visible on the customer portal.
+ * In JSM, a request type is marked as "Hidden from portal" by removing it from all portal groups,
+ * causing `groupIds` to be empty ([]), null, or undefined.
+ */
+const isPortalVisibleRequestType = (
+  rt: JiraRequestTypeItem,
+  activeGroupMap?: Record<string, string>,
+): boolean => {
+  // 1. Explicit Jira hidden or portalVisible flags if present
+  if (rt.hidden === true || rt.portalVisible === false) {
+    return false;
+  }
+
+  // 2. In Jira Service Management, request types hidden from the portal have no assigned portal groups
+  if (!rt.groupIds || !Array.isArray(rt.groupIds) || rt.groupIds.length === 0) {
+    return false;
+  }
+
+  // 3. When active portal groups exist for the service desk, require at least one group match
+  if (activeGroupMap && Object.keys(activeGroupMap).length > 0) {
+    const hasValidPortalGroup = rt.groupIds.some((gid) => Boolean(activeGroupMap[String(gid)]));
+    if (!hasValidPortalGroup) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 export async function GET(req: NextRequest) {
   const authCtx = await getJiraAuthContext();
 
   const searchParams = req.nextUrl.searchParams;
   const serviceDeskIdParam = searchParams.get("serviceDeskId");
   const spaceCategory = searchParams.get("spaceCategory");
+  const includeHidden = searchParams.get("includeHidden") === "true";
   const serviceDeskId = serviceDeskIdParam || (spaceCategory ? "all" : undefined);
 
   // If credentials are not configured, seamlessly return mock data filtered by space
   if (!authCtx.isConfigured || !serviceDeskId) {
-    let mockList: RequestTypeWithGroup[] = MOCK_REQUEST_TYPES.map((rt) => {
-      const deskId = rt.serviceDeskId || "1";
+    let mockList: RequestTypeWithGroup[] = MOCK_REQUEST_TYPES
+      .filter((rt) => includeHidden || (!rt.hiddenFromPortal && (rt.groupIds ? rt.groupIds.length > 0 : true)))
+      .map((rt) => {
+      const space = MOCK_SPACES.find(
+        (s) => String(s.id) === String(rt.serviceDeskId || "4"),
+      );
       return {
         ...rt,
-        serviceDeskId: deskId,
-        portalUrl: `https://emsmc1.atlassian.net/servicedesk/customer/portal/${deskId}/create/${rt.id}`,
+        serviceDeskId: rt.serviceDeskId || "4",
+        spaceName: space?.projectName || "Information Technology",
+        spaceKey: space?.projectKey || "IT",
+        portalUrl:
+          rt.portalUrl ||
+          `https://emsmc1.atlassian.net/servicedesk/customer/portal/${rt.serviceDeskId || "4"}/create/${rt.id}`,
       };
     });
 
@@ -78,11 +117,11 @@ export async function GET(req: NextRequest) {
       "X-ExperimentalApi": "opt-in",
     };
 
-    const rawBase = process.env.JIRA_BASE_URL?.replace(/\/+$/, "");
     const baseUrl =
-      !rawBase || rawBase.includes("sandbox")
-        ? "https://emsmc1.atlassian.net"
-        : rawBase;
+      process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
+      (authCtx.baseUrl.startsWith("http") && !authCtx.baseUrl.includes("api.atlassian.com")
+        ? authCtx.baseUrl.replace(/\/+$/, "")
+        : "https://emsmc1.atlassian.net");
 
     // =========================================================================
     // SCENARIO 1: SINGLE SPECIFIC SERVICE DESK (e.g. /?space=2 for Billing)
@@ -91,6 +130,8 @@ export async function GET(req: NextRequest) {
     if (isSingleSpace) {
       // 1. Check if this specific service desk is IT or non-IT
       let isIT = false;
+      let singleSdProjectName = "";
+      let singleSdProjectKey = "";
       try {
         const singleSdRes = await fetch(
           `${authCtx.baseUrl}/rest/servicedeskapi/servicedesk/${serviceDeskId}`,
@@ -102,8 +143,10 @@ export async function GET(req: NextRequest) {
             projectName?: string;
             projectKey?: string;
           };
-          const name = (sdData.projectName || "").toLowerCase();
-          const key = (sdData.projectKey || "").toUpperCase();
+          singleSdProjectName = sdData.projectName || "";
+          singleSdProjectKey = sdData.projectKey || "";
+          const name = singleSdProjectName.toLowerCase();
+          const key = singleSdProjectKey.toUpperCase();
 
           isIT =
             key === "IT" ||
@@ -157,34 +200,37 @@ export async function GET(req: NextRequest) {
       const rtData = (await rtRes.json()) as { values?: JiraRequestTypeItem[] };
       const rawTypes = rtData.values || [];
 
-      // 3. For non-IT boards (Billing, HR, etc.), fetch native Jira portal groups
+      // 3. Fetch native Jira portal groups for this board
       const nativeGroupMap: Record<string, string> = {};
-      if (!isIT) {
-        try {
-          const groupRes = await fetch(
-            `${authCtx.baseUrl}/rest/servicedeskapi/servicedesk/${serviceDeskId}/requesttypegroup?limit=100`,
-            { headers: jiraExperimentalHeaders, cache: "no-store" },
-          );
+      try {
+        const groupRes = await fetch(
+          `${authCtx.baseUrl}/rest/servicedeskapi/servicedesk/${serviceDeskId}/requesttypegroup?limit=100`,
+          { headers: jiraExperimentalHeaders, cache: "no-store" },
+        );
 
-          if (groupRes.ok) {
-            const groupData = await groupRes.json();
-            if (groupData.values && Array.isArray(groupData.values)) {
-              groupData.values.forEach(
-                (g: { id?: string | number; name?: string }) => {
-                  if (g.id !== undefined && g.name) {
-                    nativeGroupMap[String(g.id)] = g.name;
-                  }
-                },
-              );
-            }
+        if (groupRes.ok) {
+          const groupData = await groupRes.json();
+          if (groupData.values && Array.isArray(groupData.values)) {
+            groupData.values.forEach(
+              (g: { id?: string | number; name?: string }) => {
+                if (g.id !== undefined && g.name) {
+                  nativeGroupMap[String(g.id)] = g.name;
+                }
+              },
+            );
           }
-        } catch (err) {
-          console.warn(`Failed to fetch native portal groups for SD ${serviceDeskId}:`, err);
         }
+      } catch (err) {
+        console.warn(`Failed to fetch native portal groups for SD ${serviceDeskId}:`, err);
       }
 
-      // 4. Map request types
-      const mappedTypes: RequestTypeWithGroup[] = rawTypes.map((rt) => {
+      // 4. Filter out request types that are marked as Hidden from Portal in JSM
+      const visibleTypes = includeHidden
+        ? rawTypes
+        : rawTypes.filter((rt) => isPortalVisibleRequestType(rt, nativeGroupMap));
+
+      // 5. Map request types
+      const mappedTypes: RequestTypeWithGroup[] = visibleTypes.map((rt) => {
         let groupName = "General Requests";
 
         if (isIT) {
@@ -230,6 +276,8 @@ export async function GET(req: NextRequest) {
           group: groupName,
           portalUrl,
           serviceDeskId: String(serviceDeskId),
+          spaceName: singleSdProjectName || (isIT ? "Information Technology" : undefined),
+          spaceKey: singleSdProjectKey || (isIT ? "IT" : undefined),
         };
       });
 
@@ -336,31 +384,36 @@ export async function GET(req: NextRequest) {
       const rtData = (await rtRes.json()) as { values?: JiraRequestTypeItem[] };
 
       const nativeGroupMap: Record<string, string> = {};
-      if (!isIT) {
-        try {
-          const groupRes = await fetch(
-            `${authCtx.baseUrl}/rest/servicedeskapi/servicedesk/${currentSdId}/requesttypegroup?limit=100`,
-            { headers: jiraExperimentalHeaders, cache: "no-store" },
-          );
+      try {
+        const groupRes = await fetch(
+          `${authCtx.baseUrl}/rest/servicedeskapi/servicedesk/${currentSdId}/requesttypegroup?limit=100`,
+          { headers: jiraExperimentalHeaders, cache: "no-store" },
+        );
 
-          if (groupRes.ok) {
-            const groupData = await groupRes.json();
-            if (groupData.values && Array.isArray(groupData.values)) {
-              groupData.values.forEach(
-                (g: { id?: string | number; name?: string }) => {
-                  if (g.id !== undefined && g.name) {
-                    nativeGroupMap[String(g.id)] = g.name;
-                  }
-                },
-              );
-            }
+        if (groupRes.ok) {
+          const groupData = await groupRes.json();
+          if (groupData.values && Array.isArray(groupData.values)) {
+            groupData.values.forEach(
+              (g: { id?: string | number; name?: string }) => {
+                if (g.id !== undefined && g.name) {
+                  nativeGroupMap[String(g.id)] = g.name;
+                }
+              },
+            );
           }
-        } catch {
-          // Ignore
         }
+      } catch {
+        // Ignore
       }
 
-      const mapped = (rtData.values || []).map((rt: JiraRequestTypeItem) => {
+      // Filter out request types marked as Hidden from Portal in JSM
+      const visibleTypes = includeHidden
+        ? (rtData.values || [])
+        : (rtData.values || []).filter((rt: JiraRequestTypeItem) =>
+            isPortalVisibleRequestType(rt, nativeGroupMap),
+          );
+
+      const mapped = visibleTypes.map((rt: JiraRequestTypeItem) => {
         let groupName = "General Requests";
 
         if (isIT) {
@@ -404,6 +457,8 @@ export async function GET(req: NextRequest) {
           group: groupName,
           portalUrl,
           serviceDeskId: currentSdId,
+          spaceName: sd.projectName,
+          spaceKey: sd.projectKey,
         };
       });
 

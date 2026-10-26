@@ -250,8 +250,6 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                       article.content?.iframeSrc ||
                       "#"
                     }
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="group flex flex-col bg-white border border-slate-200 hover:border-indigo-300 rounded-xl p-5 transition-all shadow-xs hover:shadow-md cursor-pointer"
                   >
                     <h4 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-2">

@@ -16,7 +16,6 @@ import {
   Briefcase,
   Zap,
   Headphones,
-  ShieldCheck,
   Building2,
   Sparkles,
 } from "lucide-react";
@@ -255,9 +254,8 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
       ? requestType.group
       : null;
 
-  // On non-IT space cards, user is already in that space, so we do NOT show the redundant space name.
-  // Instead, show the category name for that request type (and NOT the space name).
-  // Only for IT do we show the board name.
+  // Non-IT space cards display the category name instead of duplicating the active space.
+  // IT space cards display the specific board name.
   const displayBadge = isIT ? (boardName || categoryLabel) : categoryLabel;
   const footerLabel = isIT ? (boardName || categoryLabel || "Start Request") : (categoryLabel || "Start Request");
 

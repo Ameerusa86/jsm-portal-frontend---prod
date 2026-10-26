@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -11,21 +12,50 @@ export async function GET(request: NextRequest) {
       return new NextResponse("Image URL is missing", { status: 400 });
     }
 
-    const { JIRA_BASE_URL, JIRA_USER_EMAIL, JIRA_API_TOKEN } = process.env;
+    const session = await auth();
+    const rawBaseUrl =
+      session?.siteUrl ||
+      process.env.JIRA_BASE_URL ||
+      "";
 
-    if (!JIRA_BASE_URL || !JIRA_USER_EMAIL || !JIRA_API_TOKEN) {
+    const { JIRA_USER_EMAIL, JIRA_API_TOKEN } = process.env;
+
+    if (!rawBaseUrl || !JIRA_USER_EMAIL || !JIRA_API_TOKEN) {
       return new NextResponse("System Account API token is missing.", { status: 501 });
     }
 
-    const cleanBaseUrl = JIRA_BASE_URL.replace(/\/+$/, "");
+    const cleanBaseUrl = rawBaseUrl.replace(/\/+$/, "").replace(/\/wiki$/, "");
+
+    // If requested with full resolution (or for lightbox view), convert thumbnail URLs to full attachments
+    const isFull =
+      searchParams.get("full") === "1" ||
+      searchParams.get("full") === "true";
+
+    if (isFull) {
+      imageUrl = imageUrl
+        .replace(/\/thumbnails\//g, "/attachments/")
+        .replace(/([?&])(width|height|maxWidth|maxHeight)=\d+(&?)/gi, "$1")
+        .replace(/[?&]$/, "");
+    }
 
     // If the image URL is relative (starts with /), append it to the base URL
     if (imageUrl.startsWith("/")) {
       imageUrl = `${cleanBaseUrl}${imageUrl}`;
     }
 
-    // Only allow fetching from the configured Atlassian domain for security
-    if (!imageUrl.startsWith(cleanBaseUrl)) {
+    // Only allow fetching from authorized Atlassian domains for security
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(imageUrl);
+    } catch {
+      return new NextResponse("Invalid image URL", { status: 400 });
+    }
+
+    const isAtlassianDomain =
+      parsedUrl.hostname.endsWith(".atlassian.net") ||
+      imageUrl.startsWith(cleanBaseUrl);
+
+    if (!isAtlassianDomain) {
       return new NextResponse("Unauthorized image domain", { status: 403 });
     }
 

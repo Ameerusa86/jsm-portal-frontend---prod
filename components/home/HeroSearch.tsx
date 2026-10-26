@@ -87,7 +87,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
 
   return (
     <section
-      className={`relative w-full bg-linear-to-b from-slate-900 via-slate-900 to-slate-800 text-white px-4 sm:px-6 md:px-8 lg:px-10 xl:px-14 2xl:px-20 overflow-visible border-b border-slate-800 ${
+      className={`relative z-10 w-full bg-linear-to-b from-slate-900 via-slate-900 to-slate-800 text-white px-4 sm:px-6 md:px-8 lg:px-10 xl:px-14 2xl:px-20 overflow-visible border-b border-slate-800 ${
         compact ? "py-8 sm:py-10" : "pb-16 pt-12 sm:pt-16 sm:pb-20"
       }`}
     >
@@ -119,7 +119,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
 
         {/* Omni Search Bar with Floating Typeahead Dropdown */}
         <div
-          className={`max-w-3xl xl:max-w-4xl mx-auto relative z-50 ${
+          className={`max-w-3xl xl:max-w-4xl mx-auto relative z-20 ${
             compact ? "mt-4 sm:mt-5" : "mt-6 sm:mt-8"
           }`}
         >
@@ -163,6 +163,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
             isOpen={isSearchOpen}
             query={searchQuery}
             results={searchDropdownResults}
+            spaces={spaces}
             kbResults={kbResults}
             kbLoading={kbLoading}
             selectedIndex={selectedSearchIndex}

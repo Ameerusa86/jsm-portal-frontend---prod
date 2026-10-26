@@ -1,8 +1,8 @@
 # JSM Customer Portal Frontend
 
-A modern, full-featured Customer Portal for **Jira Service Management (JSM)** built with **Next.js 16 (App Router)**, **TypeScript**, **Tailwind CSS**, and **Atlassian REST APIs**.
+A customer portal for **Jira Service Management (JSM)** built with **Next.js 16 (App Router)**, **TypeScript**, **Tailwind CSS**, and **Atlassian REST APIs**.
 
-Supports Atlassian OAuth 2.0 (3LO), API Token authentication, full ProForma (Jira Forms) attached form rendering, comprehensive JSM field formats, real-time ticket tracking, and an offline mock mode for testing and local development.
+Features include Atlassian OAuth 2.0 (3LO) Single Sign-On, ProForma (Jira Forms) attached form rendering, Confluence Knowledge Base search and native article rendering, JSM request type catalog, customer ticket management with status timelines, and an offline mock mode for testing and local development.
 
 ---
 
@@ -15,26 +15,29 @@ Supports Atlassian OAuth 2.0 (3LO), API Token authentication, full ProForma (Jir
    - [External Jira Platform REST APIs (v3)](#3-external-jira-platform-rest-apis-v3)
    - [External Atlassian Forms (ProForma) Cloud APIs](#4-external-atlassian-forms-proforma-cloud-apis)
 3. [Supported JSM Field Types Matrix](#supported-jsm-field-types-matrix)
-4. [Environment Configuration](#environment-configuration)
-5. [Getting Started](#getting-started)
+4. [Knowledge Base Integration & Permissions](#knowledge-base-integration--permissions)
+5. [Environment Configuration](#environment-configuration)
+6. [Local Development & Build](#local-development--build)
 
 ---
 
 ## Architecture & Authentication Flow
 
-The application dynamically chooses authentication strategies in the following priority order via `getJiraAuthContext()`:
+Access control is enforced at the network boundary using Next.js 16 `proxy.ts`. Unauthenticated users are redirected to `/login`, while authenticated requests leverage Atlassian OAuth 2.0 (3LO) user tokens:
 
 ```mermaid
 flowchart TD
-    A[Incoming User Request] --> B{OAuth Session Active?}
-    B -- Yes --> C[Use Bearer Token + Cloud ID]
-    B -- No --> D{JIRA_API_TOKEN configured?}
-    D -- Yes --> E[Use Basic Auth: Email + API Token]
-    D -- No --> F[Use Mock Data Mode]
+    A[Incoming Request] --> B{proxy.ts: Active Session?}
+    B -- No --> C[Redirect to /login]
+    C --> D[Atlassian OAuth 2.0 3LO Consent]
+    D --> E[Session Token Established]
+    E --> F[Access Granted to Portal]
     
-    C --> G[Execute Jira / ProForma APIs]
-    E --> G
-    F --> H[Serve Simulated Mock Catalog & Form Data]
+    B -- Yes --> F
+    F --> G{API Request Type}
+    G -- JSM Request / Ticket Lookups --> H[User Bearer Token + Cloud ID]
+    G -- Confluence Article Body / Images --> I[Service Account Proxy: Basic Auth]
+    G -- Development Without Credentials --> J[Mock Data Fallback]
 ```
 
 ---
@@ -43,13 +46,13 @@ flowchart TD
 
 ### 1. Internal Next.js Route Handlers (`/api/jsm/*`)
 
-These endpoints are exposed by the Next.js backend and consumed by client-side portal components.
+Internal endpoints consumed by the portal frontend components.
 
 | Endpoint | Method | Description | Primary Query / Body Parameters |
 | :--- | :--- | :--- | :--- |
 | [`/api/jsm/portal`](file:///k:/Web%20Projects/jsm-portal-frontend/app/api/jsm/portal/route.ts) | `GET` | Returns service desk portal metadata (name, project, description, auth status). | None |
-| [`/api/jsm/request-types`](file:///k:/Web%20Projects/jsm-portal-frontend/app/api/jsm/request-types/route.ts) | `GET` | Fetches grouped request types and categories for the portal catalog. | None |
-| [`/api/jsm/fields/[id]`](file:///k:/Web%20Projects/jsm-portal-frontend/app/api/jsm/fields/[id]/route.ts) | `GET` | Resolves standard Jira fields and merges any attached ProForma forms for a given request type. | Route param `id`: Request Type ID |
+| [`/api/jsm/request-types`](file:///k:/Web%20Projects/jsm-portal-frontend/app/api/jsm/request-types/route.ts) | `GET` | Fetches grouped request types and categories for the portal catalog. | `space` (optional), `spaceCategory` (optional) |
+| [`/api/jsm/fields/[id]`](file:///k:/Web%20Projects/jsm-portal-frontend/app/api/jsm/fields/[id]/route.ts) | `GET` | Resolves standard Jira fields and merges attached ProForma forms for a given request type. | Route param `id`: Request Type ID |
 | [`/api/jsm/directory`](file:///k:/Web%20Projects/jsm-portal-frontend/app/api/jsm/directory/route.ts) | `GET` | Typeahead search for Single/Multi User Pickers and Group Pickers. | `type`: `user` \| `group`<br>`query`: string |
 | [`/api/jsm/submit`](file:///k:/Web%20Projects/jsm-portal-frontend/app/api/jsm/submit/route.ts) | `POST` | Validates and creates a JSM ticket + submits ProForma answers and attachments. | `{ requestTypeId, fieldValues, fields, userEmail }` |
 | [`/api/jsm/tickets`](file:///k:/Web%20Projects/jsm-portal-frontend/app/api/jsm/tickets/route.ts) | `GET` | Retrieves customer tickets filtered by reporter email or project JQL. | `email` (optional) |
@@ -61,7 +64,7 @@ These endpoints are exposed by the Next.js backend and consumed by client-side p
 
 ### 2. External Atlassian JSM REST APIs
 
-Used for Service Desk management, customer requests, field schemes, and ticket interactions.
+Direct Jira Service Management REST endpoints.
 
 | Endpoint | Method | Purpose in Portal | Upstream Docs |
 | :--- | :--- | :--- | :--- |
@@ -81,7 +84,7 @@ Used for Service Desk management, customer requests, field schemes, and ticket i
 
 ### 3. External Jira Platform REST APIs (v3)
 
-Used for user/group directory searches, JQL searches, and rich issue metadata.
+User directory lookups, JQL searches, and issue metadata resolution.
 
 | Endpoint | Method | Purpose in Portal |
 | :--- | :--- | :--- |
@@ -97,7 +100,7 @@ Used for user/group directory searches, JQL searches, and rich issue metadata.
 
 ### 4. External Atlassian Forms (ProForma) Cloud APIs
 
-Used for dynamic form rendering and submitting structured forms attached to request types.
+Form schema discovery and form answer submission.
 
 | Endpoint | Method | Purpose in Portal |
 | :--- | :--- | :--- |
@@ -110,7 +113,7 @@ Used for dynamic form rendering and submitting structured forms attached to requ
 
 ## Supported JSM Field Types Matrix
 
-The portal supports **all standard Jira Service Management field formats** and **ProForma question types**:
+The portal supports all standard Jira Service Management field formats and ProForma question types:
 
 | Field Format | JSM Schema Type / ProForma Code | Payload Structure (`requestFieldValues`) | ProForma Structure (`answers`) |
 | :--- | :--- | :--- | :--- |
@@ -139,92 +142,68 @@ The portal supports **all standard Jira Service Management field formats** and *
 
 ## Knowledge Base Integration & Permissions
 
-This portal supports rendering **Confluence Knowledge Base articles** natively (no iframes required) right inside the Next.js app. Because Atlassian maintains strict internal boundaries between Jira Service Management and Confluence, the portal utilizes a **Hybrid Dual-Auth Architecture**:
+The portal renders Confluence Knowledge Base articles natively without iframes. Due to Atlassian API permission boundaries between JSM and Confluence, the portal implements a dual-authentication architecture:
 
-1. **User Auth (OAuth 2.0 / 3LO):** 
-   - Used for all user-facing actions (searching the knowledge base, viewing tickets, creating requests).
-   - Generates tokens using the user's logged-in identity.
-2. **System Auth (API Token):**
-   - Used **exclusively** by the Next.js backend as a secure "System Account" proxy to download the raw HTML body and images of Confluence articles.
-   - Atlassian restricts retrieving raw Confluence page HTML via standard JSM OAuth scopes.
+1. **User Identity (OAuth 2.0 / 3LO)**:
+   - Powers all user interactions: portal navigation, ticket submission, personal ticket tracking, and knowledge base search.
+   - Operates under the authenticated user's session credentials.
+2. **Backend Service Account (API Token)**:
+   - Handles server-side fetching of raw Confluence article HTML bodies and inline media attachments.
+   - Operates via `JIRA_USER_EMAIL` and `JIRA_API_TOKEN` with an active Confluence product license, removing the need for individual Confluence licenses for every portal end-user.
 
-### Required Setup Steps for Knowledge Base
+### Atlassian Developer Console Scopes
 
-To make the native Knowledge Base article viewer work perfectly:
-
-#### 1. Configure the "System Account" (API Token)
-You must define an Atlassian account to act as the backend System Account.
-- Ensure the account belonging to `JIRA_USER_EMAIL` has an active **Confluence Product License** in your Atlassian Admin settings. If it does not have a Confluence license, Atlassian will return `401 Access Denied` when the backend attempts to fetch the article HTML.
-- Generate an Atlassian API Token for this account.
-- Add them to your `.env.local`:
-  ```env
-  JIRA_USER_EMAIL=your_admin_email@example.com
-  JIRA_API_TOKEN=your_generated_api_token
-  ```
-- **Note:** End-users (the people logging into the portal) **do not** need Confluence licenses. The backend proxy handles fetching the content on their behalf.
-
-#### 2. Configure the OAuth Application Scopes (Developer Console)
-In the **Atlassian Developer Console**, your OAuth 2.0 (3LO) app must have the following classic scopes enabled:
-- **Jira API (Classic):**
-  - `read:jira-work`
-  - `read:jira-user`
-  - `write:jira-work`
-  - `read:servicedesk-request`
-  - `write:servicedesk-request`
-- **Jira API (Granular):**
-  - `read:knowledgebase:jira-service-management` (Search and view knowledgebase articles)
-- **Confluence API (Classic):**
-  - `read:confluence-space.summary`
-  - `read:confluence-content.summary`
-- **User Identity API:**
-  - `read:me`
-
-After adding or modifying these scopes in the Atlassian Developer Console, **all users must sign out and sign back in** to generate a new token reflecting the updated consent permissions.
+The registered OAuth 2.0 application requires the following scopes:
+- **Jira API**: `read:me`, `read:jira-user`, `read:jira-work`, `write:jira-work`, `read:servicedesk-request`, `write:servicedesk-request`
+- **Knowledge Base**: `read:knowledgebase:jira-service-management`
+- **Confluence API**: `read:confluence-space.summary`, `read:confluence-content.summary`
+- **Token Management**: `offline_access`
 
 ---
 
 ## Environment Configuration
 
-Create a `.env.local` file in the root directory:
+Configuration template for `.env.local`:
 
 ```env
-# Atlassian Jira Cloud Configuration
-JIRA_BASE_URL=https://your-domain.atlassian.net
-JIRA_USER_EMAIL=service-account@company.com
-JIRA_API_TOKEN=your_jira_api_token
+# Atlassian Cloud Instance
+JIRA_BASE_URL=https://emsmc1.atlassian.net
 JIRA_SERVICE_DESK_ID=1
 
-# Optional: Atlassian Cloud ID for ProForma Forms API
-ATLASSIAN_CLOUD_ID=your_atlassian_cloud_id
+# Backend Service Account (Confluence Article Proxy)
+JIRA_USER_EMAIL=service-account@emsmc.com
+JIRA_API_TOKEN=<atlassian-api-token>
 
-# Optional: Atlassian OAuth 2.0 (3LO) Credentials
-ATLASSIAN_CLIENT_ID=your_oauth_client_id
-ATLASSIAN_CLIENT_SECRET=your_oauth_client_secret
-NEXTAUTH_SECRET=your_generated_nextauth_secret
-NEXTAUTH_URL=http://localhost:3000
+# Atlassian OAuth 2.0 (3LO)
+AUTH_ATLASSIAN_ID=<atlassian-client-id>
+AUTH_ATLASSIAN_SECRET=<atlassian-client-secret>
+
+# Auth.js / NextAuth Configuration
+AUTH_SECRET=<generated-secret>
+AUTH_URL=http://localhost:3001
+AUTH_TRUST_HOST=true
 ```
 
-> **Note**: If `JIRA_API_TOKEN` and OAuth are omitted, the application automatically activates **Mock Mode**, allowing complete offline evaluation with realistic request types and forms.
+When live credentials are not supplied, the portal automatically loads the local mock catalog for offline development.
 
 ---
 
-## Getting Started
+## Local Development & Build
 
 ### Install Dependencies
 ```bash
 npm install
 ```
 
-### Start Development Server
+### Run Development Server
 ```bash
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to access the customer portal.
+The portal runs at [http://localhost:3001](http://localhost:3001).
 
-### Build Production Bundle
+### Production Build & Start
 ```bash
 npm run build
 npm start
 ```
-

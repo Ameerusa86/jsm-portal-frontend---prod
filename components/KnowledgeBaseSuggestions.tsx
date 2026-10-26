@@ -24,22 +24,27 @@ export const KnowledgeBaseSuggestions: React.FC<KnowledgeBaseSuggestionsProps> =
 
   // Debounce the query to avoid spamming the API while typing
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(query), 500);
+    const timer = setTimeout(() => setDebouncedQuery(query), 250);
     return () => clearTimeout(timer);
   }, [query]);
 
   useEffect(() => {
-    const fetchArticles = async () => {
-      if (!debouncedQuery || debouncedQuery.trim().length < 3) {
+    if (!debouncedQuery || debouncedQuery.trim().length < 2) {
+      const resetTimer = setTimeout(() => {
         setArticles([]);
-        return;
-      }
+        setLoading(false);
+      }, 0);
+      return () => clearTimeout(resetTimer);
+    }
 
+    const controller = new AbortController();
+
+    const fetchArticles = async () => {
       setLoading(true);
       try {
         const res = await fetch(
           `/api/jsm/knowledgebase?query=${encodeURIComponent(debouncedQuery)}`,
-          { cache: "no-store" }
+          { cache: "no-store", signal: controller.signal }
         );
         if (res.ok) {
           const data = await res.json();
@@ -47,15 +52,23 @@ export const KnowledgeBaseSuggestions: React.FC<KnowledgeBaseSuggestionsProps> =
         } else {
           setArticles([]);
         }
-      } catch (error) {
-        console.error("Failed to fetch knowledge base articles", error);
-        setArticles([]);
+      } catch (error: unknown) {
+        if ((error as { name?: string })?.name !== "AbortError") {
+          console.error("Failed to fetch knowledge base articles via CQL:", error);
+          setArticles([]);
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchArticles();
+
+    return () => {
+      controller.abort();
+    };
   }, [debouncedQuery]);
 
   if (!loading && articles.length === 0) {
@@ -80,8 +93,6 @@ export const KnowledgeBaseSuggestions: React.FC<KnowledgeBaseSuggestionsProps> =
               <a
                 key={index}
                 href={article.portalUrl || article.content?.iframeSrc || article.url || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="group block rounded-lg border border-slate-200 bg-white p-3 transition-colors hover:border-blue-300 hover:bg-blue-50"
               >
                 <div className="flex items-start justify-between gap-4">

@@ -1,6 +1,6 @@
 # JSM Portal Frontend — Complete API Reference & List
 
-This document lists all **Internal Application API Endpoints** and **External Atlassian / Jira Cloud REST APIs** used across the project.
+Internal Application Route Handlers and External Atlassian / Jira Cloud REST APIs utilized by the portal.
 
 ---
 
@@ -19,13 +19,13 @@ These endpoints are implemented as Next.js Route Handlers in `app/api/` and cons
 | 7 | `/api/jsm/tickets/[id]` | `GET` | `app/api/jsm/tickets/[id]/route.ts` | Retrieves complete ticket details, SLA, status timeline, custom fields, and public customer comments. |
 | 8 | `/api/jsm/tickets/[id]/comment` | `POST` | `app/api/jsm/tickets/[id]/comment/route.ts` | Adds a public customer comment or reply to an existing ticket. |
 | 9 | `/api/auth/[...nextauth]` | `GET`, `POST` | `app/api/auth/[...nextauth]/route.ts` | NextAuth.js OAuth 2.0 (3LO) authentication handlers for Atlassian Cloud. |
-| 10 | `/api/jsm/knowledgebase` | `GET` | `app/api/jsm/knowledgebase/route.ts` | Searches for knowledge base (KCS) articles using a user-provided query to suggest self-service resolutions. |
+| 10 | `/api/jsm/knowledgebase` | `GET` | `app/api/jsm/knowledgebase/route.ts` | Searches Confluence knowledge base articles linked to service desks for self-service deflection. |
 
 ---
 
 ## 2. External Atlassian Service Desk REST APIs (`/rest/servicedeskapi/*`)
 
-Used for interacting with Jira Service Management service desks, request types, customer requests, and comments.
+Interactions with Jira Service Management service desks, request types, customer requests, and comments.
 
 | # | Jira Cloud Endpoint | Method | Used In | Purpose | Upstream Reference |
 |---|---|---|---|---|---|
@@ -46,7 +46,7 @@ Used for interacting with Jira Service Management service desks, request types, 
 
 ## 3. External Jira Cloud Platform REST APIs (`/rest/api/3/*`)
 
-Used for directory lookups, JQL ticket searches, and issue metadata resolution.
+Directory lookups, JQL ticket queries, and issue metadata resolution.
 
 | # | Jira Cloud Endpoint | Method | Used In | Purpose | Upstream Reference |
 |---|---|---|---|---|---|
@@ -62,7 +62,7 @@ Used for directory lookups, JQL ticket searches, and issue metadata resolution.
 
 ## 4. External Atlassian Forms (ProForma) Cloud APIs
 
-Used for dynamic form rendering and submitting structured forms attached to request types.
+Dynamic form rendering and structured form submissions attached to request types.
 
 | # | ProForma Cloud Endpoint | Method | Used In | Purpose | Upstream Reference |
 |---|---|---|---|---|---|
@@ -97,13 +97,3 @@ Used for dynamic form rendering and submitting structured forms attached to requ
 | **Text (Single Line)** | `string` / `te`, `ts` | `"Summary text"` | `{ text: "..." }` |
 | **File Upload** | `attachment` / `at` | Uploaded via attachment pipeline | Attachment ID |
 | **Info / Banner** | `info` / `in`, `message` | Client-side visual callout box | N/A |
-
----
-
-## 6. Frontend Libraries & Utilities
-
-While not traditional web APIs, the following critical libraries are used to power the client-side experience:
-
-| # | Library / Tool | Used In | Purpose |
-|---|---|---|---|
-| 1 | `fuse.js` | `app/page.tsx` | Provides client-side, lightweight fuzzy-searching across JSM request types and categories for the live-search dropdown and catalog filtering. |

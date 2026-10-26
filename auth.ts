@@ -111,6 +111,9 @@ const clientSecret =
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: authSecret,
   trustHost: true,
+  pages: {
+    signIn: "/login",
+  },
   providers: [
     Atlassian({
       clientId,

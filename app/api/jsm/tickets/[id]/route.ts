@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { getJiraAuthContext } from "@/lib/jira";
 import { TicketDetail, TicketStatusItem, TicketCommentItem } from "@/types/jsm";
+import { getMockTicketDetail } from "@/lib/mock-tickets";
 
 interface JsmRequestResponse {
   issueId?: string;
@@ -56,69 +57,20 @@ export async function GET(
 
   // If live credentials are not configured, return a rich mock ticket detail with progression & comments
   if (!authCtx.isConfigured) {
-    const mockDetail: TicketDetail = {
-      id: "mock-1001",
-      key: ticketKey,
-      summary: "MacBook Pro M3 Hardware Diagnostics & Battery Replacement",
-      status: "In Progress",
-      statusCategory: "INDETERMINATE",
-      type: "Hardware Support",
-      created: new Date(Date.now() - 86400000 * 2).toISOString(),
-      updated: new Date(Date.now() - 3600000 * 3).toISOString(),
-      reporter: {
-        displayName: authCtx.userName || "Employee User",
-        emailAddress: authCtx.userEmail || "employee@company.com",
-      },
-      statusHistory: [
-        {
-          status: "Waiting for support",
-          statusCategory: "NEW",
-          statusDate: new Date(Date.now() - 86400000 * 2).toISOString(),
-        },
-        {
-          status: "Under Review",
-          statusCategory: "INDETERMINATE",
-          statusDate: new Date(Date.now() - 86400000).toISOString(),
-        },
-        {
-          status: "In Progress",
-          statusCategory: "INDETERMINATE",
-          statusDate: new Date(Date.now() - 3600000 * 4).toISOString(),
-        },
-      ],
-      comments: [
-        {
-          id: "c-1",
-          author: {
-            displayName: "IT Service Desk System",
-            isAgent: true,
-          },
-          body: "Your request has been received and assigned to the Enterprise Hardware team (Tier 2).",
-          created: new Date(Date.now() - 86400000 * 2).toISOString(),
-          isPublic: true,
-        },
-        {
-          id: "c-2",
-          author: {
-            displayName: "Sarah Jenkins (Hardware Specialist)",
-            isAgent: true,
-          },
-          body: "Hi! We reviewed your battery swelling diagnostic report. We have dispatched a replacement loaner unit to your office desk, and scheduled diagnostic repair for your MacBook.",
-          created: new Date(Date.now() - 3600000 * 4).toISOString(),
-          isPublic: true,
-        },
-      ],
-      backendUrl: `https://mock.atlassian.net/browse/${ticketKey}`,
-      isMock: true,
-    };
-
+    const mockDetail = getMockTicketDetail(
+      ticketKey,
+      authCtx.userName,
+      authCtx.userEmail
+    );
     return NextResponse.json(mockDetail);
   }
 
   try {
     // 1. Fetch Customer Request metadata
     const requestRes = await fetch(
-      `${authCtx.baseUrl}/rest/servicedeskapi/request/${encodeURIComponent(ticketKey)}`,
+      `${authCtx.baseUrl}/rest/servicedeskapi/request/${encodeURIComponent(
+        ticketKey
+      )}`,
       {
         headers: {
           Authorization: authCtx.authHeader,
@@ -135,10 +87,23 @@ export async function GET(
       jsmData = (await requestRes.json()) as JsmRequestResponse;
     }
 
-    // Fetch Issue fields (summary, issuetype) via standard Jira API
+    // Fetch Issue fields (summary, issuetype, priority, assignee) via standard Jira API
+    let issueFields: {
+      summary?: string;
+      priority?: { name?: string; iconUrl?: string };
+      assignee?: {
+        displayName?: string;
+        emailAddress?: string;
+        avatarUrls?: Record<string, string>;
+      };
+      project?: { name?: string; key?: string };
+    } = {};
+
     try {
       const issueRes = await fetch(
-        `${authCtx.baseUrl}/rest/api/3/issue/${encodeURIComponent(ticketKey)}?fields=summary,issuetype,created,updated,status,reporter`,
+        `${authCtx.baseUrl}/rest/api/3/issue/${encodeURIComponent(
+          ticketKey
+        )}?fields=summary,issuetype,created,updated,status,reporter,priority,assignee,project`,
         {
           headers: {
             Authorization: authCtx.authHeader,
@@ -149,8 +114,11 @@ export async function GET(
       );
       if (issueRes.ok) {
         const issueData = await issueRes.json();
-        if (issueData.fields?.summary) {
-          summary = issueData.fields.summary;
+        if (issueData.fields) {
+          issueFields = issueData.fields;
+          if (issueData.fields.summary) {
+            summary = issueData.fields.summary;
+          }
         }
       }
     } catch (e) {
@@ -161,7 +129,9 @@ export async function GET(
     let statusHistory: TicketStatusItem[] = [];
     try {
       const statusRes = await fetch(
-        `${authCtx.baseUrl}/rest/servicedeskapi/request/${encodeURIComponent(ticketKey)}/status`,
+        `${authCtx.baseUrl}/rest/servicedeskapi/request/${encodeURIComponent(
+          ticketKey
+        )}/status`,
         {
           headers: {
             Authorization: authCtx.authHeader,
@@ -196,7 +166,9 @@ export async function GET(
     let comments: TicketCommentItem[] = [];
     try {
       const commentsRes = await fetch(
-        `${authCtx.baseUrl}/rest/servicedeskapi/request/${encodeURIComponent(ticketKey)}/comment?public=true`,
+        `${authCtx.baseUrl}/rest/servicedeskapi/request/${encodeURIComponent(
+          ticketKey
+        )}/comment?public=true`,
         {
           headers: {
             Authorization: authCtx.authHeader,
@@ -235,6 +207,11 @@ export async function GET(
       console.warn("Failed to load public comments:", e);
     }
 
+    const hostUrl =
+      authCtx.siteUrl ||
+      process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
+      "https://emsmc1.atlassian.net";
+
     const detail: TicketDetail = {
       id: jsmData?.issueId || ticketKey,
       key: ticketKey,
@@ -244,21 +221,43 @@ export async function GET(
       type: "Service Request",
       created: jsmData?.createdDate?.iso8601 || null,
       updated: jsmData?.currentStatus?.statusDate?.iso8601 || null,
+      priority: issueFields.priority?.name
+        ? {
+            name: issueFields.priority.name,
+            iconUrl: issueFields.priority.iconUrl,
+          }
+        : undefined,
+      projectName: issueFields.project?.name,
+      projectKey: issueFields.project?.key,
       reporter: {
         displayName: jsmData?.reporter?.displayName,
         emailAddress: jsmData?.reporter?.emailAddress,
       },
+      assignee: issueFields.assignee?.displayName
+        ? {
+            displayName: issueFields.assignee.displayName,
+            emailAddress: issueFields.assignee.emailAddress,
+            avatarUrl: issueFields.assignee.avatarUrls?.["48x48"],
+          }
+        : undefined,
       statusHistory,
       comments,
-      portalUrl: jsmData?._links?.web,
-      backendUrl: jsmData?._links?.web ? `${new URL(jsmData._links.web).origin}/browse/${ticketKey}` : undefined,
+      portalUrl:
+        jsmData?._links?.web ||
+        `${hostUrl}/servicedesk/customer/user/requests?issueKey=${encodeURIComponent(
+          ticketKey
+        )}`,
+      backendUrl: `${hostUrl}/browse/${encodeURIComponent(ticketKey)}`,
     };
 
     return NextResponse.json(detail);
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Failed to load ticket details";
-    console.error("Ticket details API error:", message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Ticket details API error, falling back to mock:", error);
+    const mockDetail = getMockTicketDetail(
+      ticketKey,
+      authCtx.userName,
+      authCtx.userEmail
+    );
+    return NextResponse.json(mockDetail);
   }
 }

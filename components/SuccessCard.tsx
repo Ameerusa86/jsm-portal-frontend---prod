@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { CheckCircle2, Copy, Check, ArrowRight, Home } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, Copy, Check, ArrowRight, Home, Ticket } from "lucide-react";
 
 interface SuccessCardProps {
   issueKey: string;
@@ -59,6 +60,7 @@ export const SuccessCard: React.FC<SuccessCardProps> = ({
                 {issueKey}
               </span>
               <button
+                type="button"
                 onClick={handleCopy}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium transition-all shadow-sm active:scale-95 cursor-pointer"
                 title="Copy reference key"
@@ -82,19 +84,29 @@ export const SuccessCard: React.FC<SuccessCardProps> = ({
 
           {/* Action Buttons */}
           <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href={`/tickets?id=${encodeURIComponent(issueKey)}`}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Ticket className="w-4 h-4" />
+              <span>Track in Custom Tickets</span>
+            </Link>
+
             <button
+              type="button"
               onClick={onBackToCatalog}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-slate-100 text-slate-700 font-medium text-sm hover:bg-slate-200 border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <Home className="w-4 h-4" />
               <span>Back to Help Center</span>
             </button>
 
             <button
+              type="button"
               onClick={onSubmitAnother}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-slate-100 text-slate-700 font-medium text-sm hover:bg-slate-200 border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-slate-50 text-slate-600 font-medium text-sm hover:bg-slate-100 border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>Submit Another Request</span>
+              <span>Submit Another</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

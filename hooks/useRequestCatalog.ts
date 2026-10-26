@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import Fuse from "fuse.js";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { JsmSpace, RequestTypeWithGroup } from "@/types/jsm";
 
 const normalizeCategoryName = (value?: string) =>
@@ -44,6 +43,64 @@ interface UseRequestCatalogProps {
   searchQuery: string;
   localSearchQuery: string;
   boardFilter: string;
+}
+
+function searchRequestTypes(
+  rawQuery: string,
+  allItems: RequestTypeWithGroup[],
+): RequestTypeWithGroup[] {
+  const query = rawQuery.trim().toLowerCase();
+  if (!query) return allItems;
+
+  const terms = query
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (terms.length === 0) return allItems;
+
+  const scoredResults: { item: RequestTypeWithGroup; score: number }[] = [];
+
+  for (const rt of allItems) {
+    const nameLower = rt.name.toLowerCase();
+    const descLower = (rt.description || "").toLowerCase();
+    const groupLower = (rt.group || "").toLowerCase();
+    const spaceLower = `${rt.spaceName || ""} ${rt.spaceKey || ""}`.toLowerCase();
+    const fullText = `${nameLower} ${descLower} ${groupLower} ${spaceLower}`;
+
+    // Precision requirement: all search terms must match somewhere in the item's metadata
+    const matchesAll = terms.every((term) => fullText.includes(term));
+    if (!matchesAll) continue;
+
+    let score = 0;
+    // Boost exact matches in name
+    if (nameLower === query) {
+      score += 100;
+    } else if (nameLower.startsWith(query)) {
+      score += 60;
+    } else if (nameLower.includes(query)) {
+      score += 40;
+    }
+
+    // Boost items where terms appear in name
+    if (terms.every((t) => nameLower.includes(t))) {
+      score += 30;
+    } else if (terms.some((t) => nameLower.includes(t))) {
+      score += 15;
+    }
+
+    // Boost items matching space or group
+    if (terms.some((t) => spaceLower.includes(t))) {
+      score += 10;
+    }
+    if (terms.some((t) => groupLower.includes(t))) {
+      score += 5;
+    }
+
+    scoredResults.push({ item: rt, score });
+  }
+
+  return scoredResults.sort((a, b) => b.score - a.score).map((r) => r.item);
 }
 
 export function useRequestCatalog({
@@ -144,36 +201,34 @@ export function useRequestCatalog({
     return requestTypes;
   }, [requestTypes, spaces, spacesLoading, spaceParamId, spaceCategoryParam]);
 
-  const globalFuse = useMemo(() => {
-    const pool = globalRequestTypes.length > 0 ? globalRequestTypes : requestTypes;
-    return new Fuse(pool, {
-      keys: ["name", "description", "group"],
-      threshold: 0.5,
-      ignoreLocation: true,
-      minMatchCharLength: 3,
-    });
-  }, [globalRequestTypes, requestTypes]);
+  const enrichWithSpace = useCallback(
+    (list: RequestTypeWithGroup[]) => {
+      if (!spaces || spaces.length === 0) return list;
+      const spaceMap = new Map(spaces.map((s) => [String(s.id), s]));
+      return list.map((rt) => {
+        const sp = rt.serviceDeskId ? spaceMap.get(String(rt.serviceDeskId)) : undefined;
+        return {
+          ...rt,
+          spaceName: rt.spaceName || sp?.projectName,
+          spaceKey: rt.spaceKey || (sp?.projectKey as string | undefined),
+        };
+      });
+    },
+    [spaces]
+  );
 
-  const fuse = useMemo(() => {
-    return new Fuse(baseRequestTypes, {
-      keys: ["name", "description", "group"],
-      threshold: 0.5,
-      ignoreLocation: true,
-      minMatchCharLength: 3,
-    });
-  }, [baseRequestTypes]);
+  const enrichedGlobalRequestTypes = useMemo(() => {
+    const pool = globalRequestTypes.length > 0 ? globalRequestTypes : requestTypes;
+    return enrichWithSpace(pool);
+  }, [globalRequestTypes, requestTypes, enrichWithSpace]);
+
+  const enrichedBaseRequestTypes = useMemo(() => {
+    return enrichWithSpace(baseRequestTypes);
+  }, [baseRequestTypes, enrichWithSpace]);
 
   const searchResults = useMemo(() => {
-    const query = searchQuery.trim();
-    if (!query) return baseRequestTypes;
-
-    const stopWords =
-      /\b(i|me|my|myself|we|our|ours|ourselves|you|your|yours|he|him|his|she|her|hers|it|its|they|them|their|what|which|who|whom|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|s|t|can|will|just|don|should|now|cant|cannot)\b/gi;
-    const cleanQuery = query.replace(stopWords, "").replace(/\s+/g, " ").trim();
-    const finalQuery = cleanQuery.length > 2 ? cleanQuery : query;
-
-    return fuse.search(finalQuery).map((result) => result.item);
-  }, [fuse, searchQuery, baseRequestTypes]);
+    return searchRequestTypes(searchQuery, enrichedBaseRequestTypes);
+  }, [searchQuery, enrichedBaseRequestTypes]);
 
   const availableBoards = useMemo(() => {
     // Never show cross-board filters when viewing a single specific space
@@ -222,25 +277,18 @@ export function useRequestCatalog({
   }, [searchResults, selectedCategory, localSearchQuery, boardFilter, spaces]);
 
   const searchDropdownResults = useMemo(() => {
-    const query = searchQuery.trim();
-    if (!query) return [];
-
-    const stopWords =
-      /\b(i|me|my|myself|we|our|ours|ourselves|you|your|yours|he|him|his|she|her|hers|it|its|they|them|their|what|which|who|whom|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|s|t|can|will|just|don|should|now|cant|cannot)\b/gi;
-    const cleanQuery = query.replace(stopWords, "").replace(/\s+/g, " ").trim();
-    const finalQuery = cleanQuery.length > 2 ? cleanQuery : query;
-
-    return globalFuse.search(finalQuery).map((result) => result.item);
-  }, [globalFuse, searchQuery]);
+    if (!searchQuery.trim()) return [];
+    return searchRequestTypes(searchQuery, enrichedGlobalRequestTypes);
+  }, [searchQuery, enrichedGlobalRequestTypes]);
 
   const categoriesWithCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: baseRequestTypes.length };
-    baseRequestTypes.forEach((rt) => {
+    const counts: Record<string, number> = { all: enrichedBaseRequestTypes.length };
+    enrichedBaseRequestTypes.forEach((rt) => {
       const g = rt.group || "General Requests";
       counts[g] = (counts[g] || 0) + 1;
     });
 
-    const result = [{ name: "all", count: baseRequestTypes.length }];
+    const result = [{ name: "all", count: enrichedBaseRequestTypes.length }];
     Object.entries(counts).forEach(([name, count]) => {
       if (name !== "all") {
         result.push({ name, count });
@@ -248,7 +296,7 @@ export function useRequestCatalog({
     });
 
     return result;
-  }, [baseRequestTypes]);
+  }, [enrichedBaseRequestTypes]);
 
   const groupedRequests = useMemo(() => {
     return filteredTypes.reduce(
@@ -263,12 +311,12 @@ export function useRequestCatalog({
   }, [filteredTypes]);
 
   return {
-    requestTypes,
-    globalRequestTypes,
+    requestTypes: enrichedBaseRequestTypes,
+    globalRequestTypes: enrichedGlobalRequestTypes,
     requestTypesLoading,
     apiError,
     setApiError,
-    baseRequestTypes,
+    baseRequestTypes: enrichedBaseRequestTypes,
     searchResults,
     filteredTypes,
     availableBoards,

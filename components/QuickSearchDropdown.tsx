@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { RequestTypeWithGroup } from "@/types/jsm";
+import { JsmSpace, RequestTypeWithGroup, KnowledgeBaseArticle } from "@/types/jsm";
 import {
   Laptop,
   Wifi,
@@ -13,22 +13,20 @@ import {
   ArrowRight,
   Clock,
   Search,
+  CreditCard,
+  Headphones,
+  Building2,
+  FolderKanban,
+  DollarSign,
 } from "lucide-react";
 
-export type DropdownKbArticle = {
-  title?: string;
-  excerpt?: string;
-  portalUrl?: string;
-  content?: {
-    iframeSrc?: string;
-  };
-  [key: string]: unknown;
-};
+export type DropdownKbArticle = KnowledgeBaseArticle;
 
 interface QuickSearchDropdownProps {
   isOpen: boolean;
   query: string;
   results: RequestTypeWithGroup[];
+  spaces?: JsmSpace[];
   kbResults?: DropdownKbArticle[];
   kbLoading?: boolean;
   selectedIndex: number;
@@ -40,6 +38,7 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
   isOpen,
   query,
   results,
+  spaces = [],
   kbResults = [],
   kbLoading = false,
   selectedIndex,
@@ -66,9 +65,138 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
 
   if (!isOpen || !query.trim()) return null;
 
-  const getServiceMeta = (rt: RequestTypeWithGroup) => {
-    const text = `${rt.name} ${rt.description || ""} ${rt.group || ""}`.toLowerCase();
+  const getSpaceInfo = (rt: RequestTypeWithGroup) => {
+    const matchedSpace = spaces.find((s) => String(s.id) === String(rt.serviceDeskId));
+    const spaceName =
+      rt.spaceName ||
+      matchedSpace?.projectName ||
+      (rt.serviceDeskId === "1" || rt.serviceDeskId === "4" ? "Information Technology" : undefined) ||
+      "Enterprise Service";
+    const spaceKey =
+      rt.spaceKey ||
+      (matchedSpace as { projectKey?: string })?.projectKey;
 
+    const lowerName = spaceName.toLowerCase();
+    const lowerKey = (spaceKey || "").toLowerCase();
+
+    // IT / Technology
+    if (
+      lowerKey === "it" ||
+      lowerKey === "tech" ||
+      lowerKey === "its" ||
+      lowerName.includes("information technology") ||
+      lowerName.includes("it support") ||
+      lowerName.includes("tech")
+    ) {
+      return {
+        name: spaceName,
+        key: spaceKey || "IT",
+        icon: Laptop,
+        badgeClass: "bg-blue-50 text-blue-700 border-blue-200/90",
+        dotClass: "bg-blue-500",
+      };
+    }
+
+    // Billing / Finance / Accounting / Revenue
+    if (
+      lowerKey === "bill" ||
+      lowerKey === "fin" ||
+      lowerKey === "rev" ||
+      lowerName.includes("billing") ||
+      lowerName.includes("finance") ||
+      lowerName.includes("revenue") ||
+      lowerName.includes("accounting")
+    ) {
+      return {
+        name: spaceName,
+        key: spaceKey || "BILL",
+        icon: CreditCard,
+        badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200/90",
+        dotClass: "bg-emerald-500",
+      };
+    }
+
+    // HR / Human Resources / People
+    if (
+      lowerKey === "hr" ||
+      lowerKey === "people" ||
+      lowerName.includes("human resources") ||
+      lowerName.includes("people") ||
+      lowerName.includes("talent") ||
+      lowerName.includes("employee")
+    ) {
+      return {
+        name: spaceName,
+        key: spaceKey || "HR",
+        icon: Users,
+        badgeClass: "bg-purple-50 text-purple-700 border-purple-200/90",
+        dotClass: "bg-purple-500",
+      };
+    }
+
+    // Client Operations / Support / Operations
+    if (
+      lowerKey === "ops" ||
+      lowerKey === "cs" ||
+      lowerName.includes("operations") ||
+      lowerName.includes("client") ||
+      lowerName.includes("customer")
+    ) {
+      return {
+        name: spaceName,
+        key: spaceKey || "OPS",
+        icon: Headphones,
+        badgeClass: "bg-sky-50 text-sky-700 border-sky-200/90",
+        dotClass: "bg-sky-500",
+      };
+    }
+
+    // Facilities / Workplace
+    if (
+      lowerName.includes("facilities") ||
+      lowerName.includes("workplace") ||
+      lowerName.includes("building")
+    ) {
+      return {
+        name: spaceName,
+        key: spaceKey || "FAC",
+        icon: Building2,
+        badgeClass: "bg-amber-50 text-amber-700 border-amber-200/90",
+        dotClass: "bg-amber-500",
+      };
+    }
+
+    return {
+      name: spaceName,
+      key: spaceKey,
+      icon: FolderKanban,
+      badgeClass: "bg-slate-100 text-slate-700 border-slate-200/90",
+      dotClass: "bg-slate-400",
+    };
+  };
+
+  const getServiceMeta = (rt: RequestTypeWithGroup, spaceName?: string) => {
+    const text = `${rt.name} ${rt.description || ""} ${rt.group || ""} ${spaceName || ""}`.toLowerCase();
+
+    // Financial / Billing specific
+    if (
+      text.includes("invoice") ||
+      text.includes("billing") ||
+      text.includes("reconcil") ||
+      text.includes("remittance") ||
+      text.includes("refund") ||
+      text.includes("tax") ||
+      text.includes("w-9") ||
+      text.includes("ledger")
+    ) {
+      return {
+        icon: text.includes("refund") ? DollarSign : CreditCard,
+        bg: "bg-emerald-50 text-emerald-600 border-emerald-200",
+        sla: "1-2 business days",
+      };
+    }
+
+    // Network / VPN / Access
     if (
       text.includes("vpn") ||
       text.includes("wifi") ||
@@ -81,6 +209,8 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
         sla: "Under 1 hr",
       };
     }
+
+    // Password / MFA / Security
     if (
       text.includes("password") ||
       text.includes("access") ||
@@ -94,6 +224,8 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
         sla: "Instant / 30m",
       };
     }
+
+    // Hardware / Laptop / Repair
     if (
       text.includes("hardware") ||
       text.includes("laptop") ||
@@ -108,6 +240,8 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
         sla: "1-2 business days",
       };
     }
+
+    // Software / SaaS
     if (
       text.includes("software") ||
       text.includes("license") ||
@@ -120,18 +254,51 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
         sla: "Same day",
       };
     }
+
+    // HR / Employee / Onboarding / Benefits
     if (
       text.includes("onboard") ||
       text.includes("employee") ||
       text.includes("hire") ||
-      text.includes("contractor")
+      text.includes("contractor") ||
+      text.includes("benefit") ||
+      text.includes("human resources")
     ) {
       return {
         icon: Users,
-        bg: "bg-emerald-50 text-emerald-600 border-emerald-200",
+        bg: "bg-purple-50 text-purple-600 border-purple-200",
         sla: "2 business days",
       };
     }
+
+    // Client Operations / Support
+    if (
+      text.includes("operations") ||
+      text.includes("client") ||
+      text.includes("customer")
+    ) {
+      return {
+        icon: Headphones,
+        bg: "bg-sky-50 text-sky-600 border-sky-200",
+        sla: "Same day",
+      };
+    }
+
+    // Facilities
+    if (
+      text.includes("badge") ||
+      text.includes("building") ||
+      text.includes("facilities") ||
+      text.includes("office")
+    ) {
+      return {
+        icon: Building2,
+        bg: "bg-amber-50 text-amber-700 border-amber-200",
+        sla: "1 business day",
+      };
+    }
+
+    // Incidents / Emergencies
     if (
       text.includes("incident") ||
       text.includes("urgent") ||
@@ -154,7 +321,7 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
   return (
     <div
       ref={dropdownRef}
-      className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 text-left"
+      className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden z-30 animate-in fade-in zoom-in-95 duration-150 text-left"
     >
       <div className="p-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-xs text-slate-500">
         <span className="font-semibold text-slate-700 flex items-center gap-1.5">
@@ -186,10 +353,8 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
             </div>
             {kbResults.map((article) => (
               <a
-                key={article.title}
+                key={String(article.id || article.portalUrl || article.title)}
                 href={article.portalUrl || article.content?.iframeSrc || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="w-full p-3.5 sm:p-4 flex items-start gap-3.5 text-left transition-colors hover:bg-indigo-50/30 cursor-pointer block border-b border-slate-100 last:border-0"
               >
                 <div className="w-10 h-10 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
@@ -221,11 +386,13 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
         )}
         {results.map((rt, index) => {
           const isSelected = index === selectedIndex;
-          const { icon: Icon, bg } = getServiceMeta(rt);
+          const spaceInfo = getSpaceInfo(rt);
+          const { icon: Icon, bg } = getServiceMeta(rt, spaceInfo.name);
+          const SpaceIcon = spaceInfo.icon;
 
           return (
             <button
-              key={rt.id}
+              key={`${rt.serviceDeskId || ""}-${rt.id}`}
               type="button"
               onClick={() => onSelect(rt)}
               className={`w-full p-3.5 sm:p-4 flex items-start gap-3.5 text-left transition-colors cursor-pointer border-b border-slate-100 last:border-0 ${
@@ -233,7 +400,7 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
               }`}
             >
               <div
-                className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 mt-0.5 ${bg}`}
+                className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 mt-0.5 shadow-2xs ${bg}`}
               >
                 <Icon className="w-5 h-5" />
               </div>
@@ -243,9 +410,24 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
                   <span className="font-semibold text-slate-900 text-sm sm:text-base leading-snug">
                     {rt.name}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-                    {rt.group || "General"}
+
+                  {/* Prominent Department / Space Badge */}
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border shadow-2xs transition-colors ${spaceInfo.badgeClass}`}
+                    title={`Department: ${spaceInfo.name}`}
+                  >
+                    <SpaceIcon className="w-3 h-3 shrink-0" />
+                    <span>{spaceInfo.name}</span>
                   </span>
+
+                  {/* Group / Category Badge */}
+                  {rt.group &&
+                    rt.group !== "General Requests" &&
+                    rt.group !== "General" && (
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200/80">
+                        {rt.group}
+                      </span>
+                    )}
                 </div>
 
                 {rt.description && (

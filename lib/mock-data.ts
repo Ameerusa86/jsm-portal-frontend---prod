@@ -128,10 +128,28 @@ export interface MockRequestType {
   group: string;
   serviceDeskId?: string;
   portalUrl?: string;
+  groupIds?: string[];
+  hiddenFromPortal?: boolean;
 }
 
 export const MOCK_REQUEST_TYPES: MockRequestType[] = [
   // --- INFORMATION TECHNOLOGY (Service Desk 4) ---
+  {
+    id: "199",
+    name: "Internal Datacenter Decommission (Agent Only)",
+    description: "Confidential infrastructure teardown run strictly by system admins. Hidden from customer portal.",
+    group: "Problems",
+    serviceDeskId: "4",
+    groupIds: [],
+    hiddenFromPortal: true,
+  },
+  {
+    id: "100",
+    name: "Get Help",
+    description: "General IT service desk inquiry, hardware/software troubleshooting, or immediate technical support.",
+    group: "Problems",
+    serviceDeskId: "4",
+  },
   {
     id: "101",
     name: "VPN & Remote Network Access",
@@ -205,6 +223,13 @@ export const MOCK_REQUEST_TYPES: MockRequestType[] = [
 
   // --- BILLING (Service Desk 2) ---
   {
+    id: "200",
+    name: "Get Help",
+    description: "General billing support, client invoicing questions, account ledger inquiries, or payment assistance.",
+    group: "Invoices & Payments",
+    serviceDeskId: "2",
+  },
+  {
     id: "201",
     name: "AR reconciliation",
     description: "Request accounts receivable balance reconciliation, audit matching, and discrepancy investigation.",
@@ -255,6 +280,13 @@ export const MOCK_REQUEST_TYPES: MockRequestType[] = [
   },
 
   // --- HUMAN RESOURCES (Service Desk 3) ---
+  {
+    id: "300",
+    name: "Get Help",
+    description: "General HR assistance, policy inquiries, benefits counseling, or employee relations support.",
+    group: "Benefits & Leave",
+    serviceDeskId: "3",
+  },
   {
     id: "107",
     name: "New Employee / Contractor Onboarding",

@@ -6,6 +6,7 @@ export interface JiraAuthContext {
   authType: "oauth" | "basic" | "mock";
   authHeader: string;
   baseUrl: string;
+  siteUrl?: string;
   cloudId?: string;
   serviceDeskId?: string;
   userEmail?: string;
@@ -26,6 +27,7 @@ export async function getCloudId(baseUrl: string): Promise<string> {
 /**
  * Resolves the current Jira authentication context, prioritizing OAuth (from Auth.js session)
  * and gracefully falling back to Basic Auth (from env vars) or Mock mode.
+ * Strictly targets production Jira (emsmc1.atlassian.net) and rejects sandbox connections.
  */
 export async function getJiraAuthContext(): Promise<JiraAuthContext> {
   const {
@@ -42,6 +44,14 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
     JIRA_SERVICE_DESK ||
     process.env.JSM_SERVICE_DESK_ID ||
     "1";
+
+  const configuredUrl = (
+    JIRA_BASE_URL && !JIRA_BASE_URL.includes("sandbox")
+      ? JIRA_BASE_URL
+      : "https://emsmc1.atlassian.net"
+  )
+    .trim()
+    .replace(/\/+$/, "");
 
   // 1. Check for logged-in user with Atlassian OAuth session
   try {
@@ -64,14 +74,10 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
           if (res.ok) {
             const resources = await res.json();
             if (Array.isArray(resources) && resources.length > 0) {
-              const configuredUrl = (
-                process.env.JIRA_BASE_URL && !process.env.JIRA_BASE_URL.includes("sandbox")
-                  ? process.env.JIRA_BASE_URL
-                  : "https://emsmc1.atlassian.net"
-              )
-                .trim()
-                .replace(/\/+$/, "");
-              const targetResource = resolveTargetResource(resources, configuredUrl);
+              const targetResource = resolveTargetResource(
+                resources,
+                configuredUrl,
+              );
               if (targetResource) {
                 cloudId = targetResource.id;
               }
@@ -86,14 +92,20 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
       }
 
       if (cloudId) {
+        const activeSite =
+          session.siteUrl && !session.siteUrl.includes("sandbox")
+            ? session.siteUrl
+            : configuredUrl;
+
         console.log(
-          `[Jira API Context] Active Site: ${session.siteUrl || "Atlassian Cloud"} (Cloud ID: ${cloudId}) | Service Desk: ${resolvedServiceDeskId}`,
+          `[Jira API Context] Active Site: ${activeSite} (Cloud ID: ${cloudId}) | Service Desk: ${resolvedServiceDeskId}`,
         );
         return {
           isConfigured: true,
           authType: "oauth",
           authHeader: `Bearer ${session.accessToken}`,
           baseUrl: `https://api.atlassian.com/ex/jira/${cloudId}`,
+          siteUrl: activeSite,
           cloudId,
           serviceDeskId: resolvedServiceDeskId,
           userEmail: session.user?.email || undefined,
@@ -111,7 +123,7 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
 
   // 2. Fallback to Basic Auth if environment variables are provided
   if (JIRA_BASE_URL && JIRA_USER_EMAIL && JIRA_API_TOKEN) {
-    const cleanUrl = JIRA_BASE_URL.replace(/\/+$/, "");
+    const cleanUrl = configuredUrl;
     return {
       isConfigured: true,
       authType: "basic",
@@ -119,6 +131,7 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
         `${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}`,
       ).toString("base64")}`,
       baseUrl: cleanUrl,
+      siteUrl: cleanUrl,
       serviceDeskId: resolvedServiceDeskId,
       userEmail: JSM_EMPLOYEE_EMAIL || JIRA_USER_EMAIL,
     };
@@ -130,6 +143,7 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
     authType: "mock",
     authHeader: "",
     baseUrl: "",
+    siteUrl: configuredUrl,
     serviceDeskId: resolvedServiceDeskId,
   };
 }

@@ -61,10 +61,16 @@ export interface RequestType {
   groupIds?: string[];
   portalUrl?: string;
   serviceDeskId?: string;
+  spaceName?: string;
+  spaceKey?: string;
+  hiddenFromPortal?: boolean;
 }
 
 export interface RequestTypeWithGroup extends RequestType {
   group?: string;
+  spaceName?: string;
+  spaceKey?: string;
+  hiddenFromPortal?: boolean;
 }
 
 export interface SubmitPayload {
@@ -96,6 +102,10 @@ export interface JiraRequestTypeItem {
   description?: string;
   helpText?: string;
   groupIds?: string[];
+  portalId?: string | number;
+  portalVisible?: boolean;
+  hidden?: boolean;
+  restrictionStatus?: string;
 }
 
 export interface ProformaQuestionItem {
@@ -144,6 +154,44 @@ export interface ProformaFormSummary {
   };
 }
 
+export interface TicketPriority {
+  name: string;
+  iconUrl?: string;
+}
+
+export interface TicketUser {
+  displayName?: string;
+  emailAddress?: string;
+  avatarUrl?: string;
+}
+
+export interface TicketItem {
+  id: string;
+  key: string;
+  summary: string;
+  status: string;
+  statusCategory?: "NEW" | "INDETERMINATE" | "DONE" | "new" | "indeterminate" | "done" | string;
+  statusCategoryName?: string;
+  type: string;
+  typeIconUrl?: string;
+  clientName?: string | null;
+  organization?: string | null;
+  created: string | null;
+  updated: string | null;
+  projectId?: string | null;
+  projectName?: string | null;
+  projectKey?: string | null;
+  priority?: TicketPriority;
+  reporter?: TicketUser;
+  assignee?: TicketUser;
+  resolution?: {
+    name?: string;
+    date?: string;
+  };
+  portalUrl?: string;
+  backendUrl?: string;
+}
+
 export interface TicketStatusItem {
   status: string;
   statusCategory?: "NEW" | "INDETERMINATE" | "DONE" | string;
@@ -170,11 +218,26 @@ export interface TicketDetail {
   status: string;
   statusCategory?: "NEW" | "INDETERMINATE" | "DONE" | string;
   type: string;
+  clientName?: string | null;
+  organization?: string | null;
   created: string | null;
   updated: string | null;
+  priority?: TicketPriority;
   reporter?: {
     displayName?: string;
     emailAddress?: string;
+    avatarUrl?: string;
+  };
+  assignee?: {
+    displayName?: string;
+    emailAddress?: string;
+    avatarUrl?: string;
+  };
+  projectKey?: string;
+  projectName?: string;
+  resolution?: {
+    name?: string;
+    date?: string;
   };
   statusHistory: TicketStatusItem[];
   comments: TicketCommentItem[];

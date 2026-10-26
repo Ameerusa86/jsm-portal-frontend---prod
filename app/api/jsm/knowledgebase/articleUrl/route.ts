@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -11,18 +12,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "articleId is missing" }, { status: 400 });
     }
 
-    // To bypass the restrictive OAuth scope requirements for Confluence,
-    // we use the System Account API token if available in the environment.
-    const { JIRA_BASE_URL, JIRA_USER_EMAIL, JIRA_API_TOKEN } = process.env;
+    // Determine target site dynamically from active user session (Prod vs Sandbox),
+    // falling back to JIRA_BASE_URL from environment variables.
+    const session = await auth();
+    const rawBaseUrl =
+      session?.siteUrl ||
+      process.env.JIRA_BASE_URL ||
+      "";
 
-    if (!JIRA_BASE_URL || !JIRA_USER_EMAIL || !JIRA_API_TOKEN) {
+    const { JIRA_USER_EMAIL, JIRA_API_TOKEN } = process.env;
+
+    if (!rawBaseUrl || !JIRA_USER_EMAIL || !JIRA_API_TOKEN) {
       return NextResponse.json({
-        error: "System Account API token is missing.",
-        message: "To render Knowledge Base articles natively, please add JIRA_API_TOKEN and JIRA_USER_EMAIL to your .env.local file. Otherwise, we must revert to opening articles in a new tab."
+        error: "System Account credentials or target site URL are missing.",
+        message: "To render Knowledge Base articles natively, please ensure JIRA_API_TOKEN and JIRA_USER_EMAIL are set in your environment."
       }, { status: 501 });
     }
 
-    const cleanBaseUrl = JIRA_BASE_URL.replace(/\/+$/, "");
+    const cleanBaseUrl = rawBaseUrl.replace(/\/+$/, "").replace(/\/wiki$/, "");
     
     // Confluence API using Basic Auth
     // Expand body.view for content, metadata.labels to parse rt-* labels, plus version, history, space
@@ -39,12 +46,21 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      console.error("Failed to fetch Confluence article with Basic Auth. Status:", response.status);
+      console.error(`Failed to fetch Confluence article (${articleId}) from ${cleanBaseUrl}. Status:`, response.status);
       const err = await response.text();
+
+      let detailedMsg = `Confluence rejected the request on ${cleanBaseUrl} with Status ${response.status}.`;
+      if (response.status === 404) {
+        detailedMsg += ` The article (ID: ${articleId}) was not found on ${cleanBaseUrl}, or the account (${JIRA_USER_EMAIL}) does not have permission to view it.`;
+      } else if (response.status === 401 || response.status === 403) {
+        detailedMsg += ` Authentication failed or access was denied for account (${JIRA_USER_EMAIL}). Please verify your API token and Confluence permissions.`;
+      }
+
       return NextResponse.json({ 
-        error: `Atlassian rejected your Basic Auth (Email + API Token) with Status ${response.status}. This usually means your API Token is invalid, or the email account (${JIRA_USER_EMAIL}) does not have a Confluence product license.`,
+        error: detailedMsg,
         status: response.status, 
-        atlassianError: err
+        atlassianError: err,
+        requestedSite: cleanBaseUrl
       }, { status: response.status });
     }
 
@@ -52,20 +68,60 @@ export async function GET(request: NextRequest) {
     let htmlContent = data.body?.view?.value || "<p>No content available.</p>";
     const title = data.title || "Knowledge Base Article";
 
-    // --- REWRITE IMAGE URLS TO USE OUR PROXY ---
-    // Match relative Confluence images (e.g. /wiki/download/attachments/...)
+    // --- REWRITE IMAGE & ATTACHMENT URLS FOR INTERNAL IMAGE PROXY ---
+    // Proxy image URL through local backend endpoint
+    const proxyImageUrl = (rawUrl: string, forceFull: boolean = false) => {
+      let fullUrl = rawUrl;
+      // If URL is relative, prepend base URL
+      if (fullUrl.startsWith("/")) {
+        fullUrl = `${cleanBaseUrl}${fullUrl}`;
+      }
+      if (forceFull) {
+        fullUrl = fullUrl
+          .replace(/\/thumbnails\//g, "/attachments/")
+          .replace(/([?&])(width|height|maxWidth|maxHeight)=\d+(&?)/gi, "$1")
+          .replace(/[?&]$/, "");
+      }
+      return `/api/jsm/knowledgebase/image?url=${encodeURIComponent(fullUrl)}${forceFull ? "&full=1" : ""}`;
+    };
+
+    // 1. Rewrite <img ... src="..." ...> tags to add data-full-src and proxy src
     htmlContent = htmlContent.replace(
-      /src=["'](\/wiki\/[^"']+)["']/g, 
-      (match: string, url: string) => `src="/api/jsm/knowledgebase/image?url=${encodeURIComponent(url)}"`
+      /<img\b([^>]*?)src=["']([^"']+)["']([^>]*?)>/gi,
+      (match: string, pre: string, src: string, post: string) => {
+        // Only rewrite Atlassian / wiki images
+        if (
+          src.startsWith("/") ||
+          src.includes(".atlassian.net") ||
+          src.includes(cleanBaseUrl)
+        ) {
+          const fullProxied = proxyImageUrl(src, true);
+          const normalProxied = proxyImageUrl(src, false);
+          return `<img ${pre}src="${normalProxied}" data-full-src="${fullProxied}" ${post}>`;
+        }
+        return match;
+      }
     );
-    
-    // Match absolute Atlassian images (e.g. https://[your-site].atlassian.net/wiki/...)
-    // Safely escape the cleanBaseUrl for regex
-    const escapedBaseUrl = cleanBaseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const absoluteRegex = new RegExp(`src=["'](${escapedBaseUrl}[^"']+)["']`, "g");
+
+    // 2. Rewrite any data-image-src or data-original-src attributes
     htmlContent = htmlContent.replace(
-      absoluteRegex, 
-      (match: string, url: string) => `src="/api/jsm/knowledgebase/image?url=${encodeURIComponent(url)}"`
+      /\b(data-image-src|data-original-src)=["']([^"']+)["']/gi,
+      (match: string, attr: string, val: string) => {
+        if (
+          val.startsWith("/") ||
+          val.includes(".atlassian.net") ||
+          val.includes(cleanBaseUrl)
+        ) {
+          return `${attr}="${proxyImageUrl(val, true)}"`;
+        }
+        return match;
+      }
+    );
+
+    // 3. Rewrite thumbnail / attachment anchor links so clicking them doesn't 404
+    htmlContent = htmlContent.replace(
+      /\bhref=["']([^"']*(?:\/wiki\/download\/(?:attachments|thumbnails)\/)[^"']*)["']/gi,
+      (match: string, href: string) => `href="${proxyImageUrl(href, true)}"`
     );
 
     // Scan Confluence labels for an rt-{id} tag (e.g. 'rt-45')

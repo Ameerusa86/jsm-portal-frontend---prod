@@ -3,32 +3,39 @@
 import {
   useState,
   useEffect,
+  useMemo,
   useRef,
   useCallback,
   Suspense,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { AlertCircle } from "lucide-react";
 
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SuccessCard } from "@/components/SuccessCard";
 
 import { HeroSearch } from "@/components/home/HeroSearch";
 import { TechnologySection } from "@/components/home/TechnologySection";
 import { OtherSolutionsSection } from "@/components/home/OtherSolutionsSection";
+import { FormViewContainer } from "@/components/home/FormViewContainer";
 import { CatalogBrowser } from "@/components/home/CatalogBrowser";
 
 import { useJsmSpaces } from "@/hooks/useJsmSpaces";
 import { useRequestCatalog } from "@/hooks/useRequestCatalog";
 import { useKnowledgeBase } from "@/hooks/useKnowledgeBase";
+import { useFormFields } from "@/hooks/useFormFields";
 
-import { RequestTypeWithGroup } from "@/types/jsm";
+import { RequestTypeWithGroup, SubmitResponse } from "@/types/jsm";
 
 function HelpCenterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const requestParamId = searchParams.get("request");
   const spaceParamId = searchParams.get("space");
   const spaceCategoryParam = searchParams.get("spaceCategory");
+  const { data: session } = useSession();
 
   // 1. Spaces & Departments Hook
   const { spaces, spacesLoading, spacesByCategory } = useJsmSpaces();
@@ -43,18 +50,37 @@ function HelpCenterContent() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedSearchIndex, setSelectedSearchIndex] = useState(0);
+  const [submittedKey, setSubmittedKey] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Sync category and filters whenever space or URL changes
-  useEffect(() => {
+  const [prevParamsKey, setPrevParamsKey] = useState(
+    `${spaceParamId}-${spaceCategoryParam}-${searchParams.get("category") || "all"}`
+  );
+  const currentParamsKey = `${spaceParamId}-${spaceCategoryParam}-${searchParams.get("category") || "all"}`;
+
+  if (prevParamsKey !== currentParamsKey) {
+    setPrevParamsKey(currentParamsKey);
     setSelectedCategory(searchParams.get("category") || "all");
     setBoardFilter("all");
     setLocalSearchQuery("");
-  }, [spaceParamId, spaceCategoryParam, searchParams]);
+  }
+
+  useEffect(() => {
+    if (searchParams.get("focusSearch") === "1") {
+      searchInputRef.current?.focus();
+    }
+  }, [searchParams]);
+
+  const currentSpace =
+    spaceParamId && spaceParamId !== "all"
+      ? spaces.find((s) => String(s.id) === String(spaceParamId))
+      : null;
 
   // 3. Request Types & Catalog Hook
   const {
     requestTypes,
+    globalRequestTypes,
     requestTypesLoading,
     apiError,
     setApiError,
@@ -74,63 +100,153 @@ function HelpCenterContent() {
     boardFilter,
   });
 
+  // Selected request type derived from URL param
+  const selectedType = useMemo(() => {
+    if (!requestParamId) return null;
+    return (
+      requestTypes.find((rt) => rt.id === requestParamId) ||
+      globalRequestTypes.find((rt) => rt.id === requestParamId) ||
+      null
+    );
+  }, [requestParamId, requestTypes, globalRequestTypes]);
+
   // 4. Knowledge Base Hook (Global across all spaces)
   const { kbResults, kbLoading } = useKnowledgeBase({
     searchQuery,
   });
 
-  // Navigation handlers: strictly open Jira Production form in a new tab
+  // Resolve target space ID for form fields
+  const targetSpaceId =
+    (spaceParamId && spaceParamId !== "all" ? spaceParamId : null) ||
+    selectedType?.serviceDeskId ||
+    null;
+
+  // 5. Form Fields & Dynamic Form Hook
+  const {
+    fields,
+    currentFormId,
+    formLoading,
+    setFormLoading,
+    reloadFields,
+  } = useFormFields({
+    requestParamId,
+    spaceParamId: targetSpaceId,
+    setApiError,
+  });
+
+  // Navigation handlers
   const handleSelectType = useCallback(
-    (rt: RequestTypeWithGroup & { portalUrl?: string; serviceDeskId?: string }) => {
+    (rt: RequestTypeWithGroup) => {
+      setFormLoading(true);
       setSearchQuery("");
       setIsSearchOpen(false);
 
-      const prodDomain = "https://emsmc1.atlassian.net";
-      const deskId =
-        rt.serviceDeskId ||
-        (spaceParamId && spaceParamId !== "all" ? spaceParamId : "") ||
-        "1";
-
-      let targetUrl = rt.portalUrl;
-      if (!targetUrl || targetUrl.includes("sandbox")) {
-        targetUrl = `${prodDomain}/servicedesk/customer/portal/${deskId}/create/${rt.id}`;
-      } else {
-        // Enforce canonical production domain
-        targetUrl = targetUrl.replace(/https:\/\/[^/]+/, prodDomain);
+      if (rt.portalUrl) {
+        window.open(rt.portalUrl, "_blank");
+        return;
       }
 
-      window.open(targetUrl, "_blank", "noopener,noreferrer");
+      const targetDeskId =
+        rt.serviceDeskId || (spaceParamId && spaceParamId !== "all" ? spaceParamId : "") || "";
+      let url = `/?request=${rt.id}`;
+      if (targetDeskId) {
+        url = `/?space=${targetDeskId}&request=${rt.id}`;
+      }
+      router.push(url);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [spaceParamId]
+    [router, spaceParamId, setFormLoading]
   );
 
+  const handleBackToCatalog = () => {
+    setSubmittedKey(null);
+    if (spaceParamId && spaceParamId !== "all") {
+      router.push(`/?space=${spaceParamId}`);
+    } else if (spaceCategoryParam) {
+      router.push(
+        `/?space=all&spaceCategory=${encodeURIComponent(spaceCategoryParam)}`
+      );
+    } else {
+      router.push("/");
+    }
+  };
+
   const handleBackToSpaces = () => {
+    setSubmittedKey(null);
     router.push("/");
+  };
+
+  const handleFormSubmit = async (values: Record<string, unknown>) => {
+    const effectiveServiceDeskId =
+      targetSpaceId || selectedType?.serviceDeskId || spaceParamId || undefined;
+
+    const res = await fetch("/api/jsm/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        serviceDeskId: effectiveServiceDeskId,
+        requestTypeId: selectedType?.id,
+        requestTypeName: selectedType?.name,
+        formId: currentFormId,
+        fieldValues: values,
+        fields,
+        userEmail: session?.user?.email || undefined,
+      }),
+    });
+
+    const result = (await res.json()) as SubmitResponse;
+    if (result.success && result.issueKey) {
+      setSubmittedKey(result.issueKey);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      throw new Error(
+        result.error || "Ticket creation failed. Please try again."
+      );
+    }
+  };
+
+  const handleReloadFields = () => {
+    setSubmittedKey(null);
+    reloadFields();
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans selection:bg-blue-600 selection:text-white w-full">
       {/* GLOBAL ENTERPRISE HEADER */}
-      <Header onHomeClick={handleBackToSpaces} />
-
-      {/* GLOBAL HERO SEARCH SECTION */}
-      <HeroSearch
-        spaceParamId={spaceParamId}
-        spaceCategoryParam={spaceCategoryParam}
-        spaces={spaces}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        isSearchOpen={isSearchOpen}
-        setIsSearchOpen={setIsSearchOpen}
-        selectedSearchIndex={selectedSearchIndex}
-        setSelectedSearchIndex={setSelectedSearchIndex}
-        searchDropdownResults={searchDropdownResults}
-        kbResults={kbResults}
-        kbLoading={kbLoading}
-        handleSelectType={handleSelectType}
-        searchInputRef={searchInputRef}
-        compact={false}
+      <Header
+        onHomeClick={handleBackToSpaces}
+        currentSpaceName={currentSpace?.projectName}
+        onSearchFocus={() => {
+          if (searchInputRef.current) {
+            searchInputRef.current.focus();
+            searchInputRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }
+        }}
       />
+
+      {/* GLOBAL HERO SEARCH SECTION (Available everywhere: Home, Spaces/Boards, and Ticket Forms) */}
+      {!submittedKey && (
+        <HeroSearch
+          spaceParamId={spaceParamId}
+          spaceCategoryParam={spaceCategoryParam}
+          spaces={spaces}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          isSearchOpen={isSearchOpen}
+          setIsSearchOpen={setIsSearchOpen}
+          selectedSearchIndex={selectedSearchIndex}
+          setSelectedSearchIndex={setSelectedSearchIndex}
+          searchDropdownResults={searchDropdownResults}
+          kbResults={kbResults}
+          kbLoading={kbLoading}
+          handleSelectType={handleSelectType}
+          searchInputRef={searchInputRef}
+          compact={Boolean(selectedType)}
+        />
+      )}
 
       {/* MAIN BODY AREA */}
       <main className="grow w-full px-4 sm:px-6 md:px-8 lg:px-10 xl:px-14 2xl:px-20 py-8 sm:py-12">
@@ -151,8 +267,27 @@ function HelpCenterContent() {
           </div>
         )}
 
-        {!spaceParamId ? (
-          /* STATE 1: GLOBAL HELP CENTER VIEW */
+        {/* STATE 1: TICKET SUBMISSION SUCCESS CONFIRMATION */}
+        {submittedKey ? (
+          <div className="max-w-3xl xl:max-w-4xl mx-auto w-full">
+            <SuccessCard
+              issueKey={submittedKey}
+              requestTypeName={selectedType?.name}
+              onBackToCatalog={handleBackToCatalog}
+              onSubmitAnother={handleReloadFields}
+            />
+          </div>
+        ) : selectedType ? (
+          /* STATE 2: ENTERPRISE FORM DETAILS VIEW */
+          <FormViewContainer
+            selectedType={selectedType}
+            fields={fields}
+            formLoading={formLoading}
+            onBackToCatalog={handleBackToCatalog}
+            onSubmit={handleFormSubmit}
+          />
+        ) : !spaceParamId ? (
+          /* STATE 3: GLOBAL HELP CENTER VIEW */
           <div className="space-y-12 sm:space-y-16 max-w-7xl mx-auto w-full">
             <TechnologySection />
             <OtherSolutionsSection
@@ -162,7 +297,7 @@ function HelpCenterContent() {
             />
           </div>
         ) : (
-          /* STATE 2: SERVICE CATALOG & CATEGORY BROWSER */
+          /* STATE 4: SERVICE CATALOG & CATEGORY BROWSER */
           <CatalogBrowser
             spaceParamId={spaceParamId}
             spaceCategoryParam={spaceCategoryParam}

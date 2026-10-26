@@ -1,23 +1,74 @@
 @import "tailwindcss";
-@plugin "../node_modules/@tailwindcss/typography/src/index.js";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-}
+@custom-variant dark (&:is(.dark *));
+@plugin "../node_modules/@tailwindcss/typography/src/index.js";
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans:
-    var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+    var(--font-roboto), Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --font-mono: var(--font-roboto-mono), "Roboto Mono", monospace;
+  --font-heading:
+    var(--font-roboto), Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius: 0.625rem;
+  --radius-xs: calc(var(--radius) * 0.4);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-full: 9999px;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 10rem;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -49,13 +100,18 @@ body {
 }
 
 /* =========================================================================
-   Knowledge Base Article Enterprise Document Styles
+   Knowledge Base Article Enterprise Document Styles (Tailwind v4 Optimized)
    ========================================================================= */
+
 .kb-article-content {
-  color: #334155;
+  color: var(--color-slate-700, #334155);
   line-height: 1.8;
   font-size: 1.0625rem;
   word-break: break-word;
+}
+
+:is(.dark .kb-article-content) {
+  color: var(--color-slate-300, #cbd5e1);
 }
 
 .kb-article-content h1,
@@ -64,16 +120,26 @@ body {
 .kb-article-content h4,
 .kb-article-content h5,
 .kb-article-content h6 {
-  color: #0f172a;
+  color: var(--color-slate-900, #0f172a);
   font-weight: 700;
   letter-spacing: -0.025em;
-  scroll-margin-top: 6.5rem;
+  scroll-margin-top: 10rem;
+}
+
+:is(.dark .kb-article-content) :is(h1, h2, h3, h4, h5, h6) {
+  color: #f8fafc;
+}
+
+.kb-article-content [id],
+.kb-article-content a[name],
+.kb-article-content .confluence-anchor-link {
+  scroll-margin-top: 10rem;
 }
 
 .kb-article-content h1 {
-  font-size: 2rem;
+  font-size: 2.125rem;
   line-height: 1.25;
-  margin-top: 2.5rem;
+  margin-top: 2.75rem;
   margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid #e2e8f0;
@@ -88,20 +154,25 @@ body {
   border-bottom: 1px solid #f1f5f9;
 }
 
+:is(.dark .kb-article-content) h1 {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+:is(.dark .kb-article-content) h2 {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
 .kb-article-content h3 {
   font-size: 1.25rem;
   line-height: 1.4;
   margin-top: 1.75rem;
   margin-bottom: 0.75rem;
 }
-
 .kb-article-content h4 {
   font-size: 1.125rem;
   line-height: 1.45;
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
 }
-
 .kb-article-content p {
   margin-bottom: 1.25rem;
 }
@@ -116,11 +187,20 @@ body {
 .kb-article-content a:hover {
   color: #1d4ed8;
 }
+:is(.dark .kb-article-content) a {
+  color: #60a5fa;
+}
+:is(.dark .kb-article-content) a:hover {
+  color: #93c5fd;
+}
 
 .kb-article-content strong,
 .kb-article-content b {
   color: #0f172a;
   font-weight: 600;
+}
+:is(.dark .kb-article-content) :is(strong, b) {
+  color: #f8fafc;
 }
 
 .kb-article-content ul {
@@ -128,41 +208,72 @@ body {
   padding-left: 1.625rem;
   margin-bottom: 1.25rem;
 }
-
 .kb-article-content ol {
   list-style-type: decimal;
   padding-left: 1.625rem;
   margin-bottom: 1.25rem;
 }
-
 .kb-article-content li {
   margin-bottom: 0.5rem;
 }
-
 .kb-article-content li > ul,
 .kb-article-content li > ol {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
 }
-
 .kb-article-content hr {
   border: 0;
   border-top: 1px solid #e2e8f0;
   margin: 2.5rem 0;
 }
+:is(.dark .kb-article-content) hr {
+  border-color: rgba(255, 255, 255, 0.1);
+}
 
-/* Confluence Tables */
+/* =========================================================================
+   Confluence Tables & Responsive Wrappers
+   ========================================================================= */
+
+/* Responsive scroll wrapper (in case Confluence markup or client script emits it) */
+.kb-article-content .table-wrap,
+.kb-article-content .confluenceTableWrapper {
+  width: 100%;
+  margin: 1.75rem 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+}
+
+:is(.dark .kb-article-content) :is(.table-wrap, .confluenceTableWrapper) {
+  border-color: rgba(255, 255, 255, 0.1);
+  background-color: #0b0f19;
+}
+
 .kb-article-content table,
 .kb-article-content .confluenceTable {
   width: 100%;
+  min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   margin: 1.75rem 0;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
   border-radius: 0.75rem;
-  overflow: hidden;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  background-color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+}
+
+/* If inside a scroll wrapper, drop redundant outer borders */
+.kb-article-content .table-wrap table,
+.kb-article-content .confluenceTableWrapper table {
+  margin: 0;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .kb-article-content th,
@@ -170,11 +281,16 @@ body {
   background-color: #f8fafc;
   color: #0f172a;
   font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
   text-align: left;
-  padding: 0.875rem 1rem;
+  padding: 0.875rem 1.125rem;
   border-bottom: 1px solid #e2e8f0;
   border-right: 1px solid #f1f5f9;
+  white-space: nowrap;
 }
+
 .kb-article-content th:last-child,
 .kb-article-content .confluenceTh:last-child {
   border-right: none;
@@ -182,25 +298,199 @@ body {
 
 .kb-article-content td,
 .kb-article-content .confluenceTd {
-  padding: 0.875rem 1rem;
+  padding: 0.875rem 1.125rem;
   border-bottom: 1px solid #f1f5f9;
   border-right: 1px solid #f1f5f9;
   color: #334155;
   background-color: #ffffff;
+  vertical-align: top;
 }
+
 .kb-article-content td:last-child,
 .kb-article-content .confluenceTd:last-child {
   border-right: none;
 }
+
 .kb-article-content tr:last-child td,
 .kb-article-content tr:last-child .confluenceTd {
   border-bottom: none;
 }
-.kb-article-content tr:hover td {
-  background-color: #f8fafc;
+
+/* Zebra striping & hover */
+.kb-article-content tbody tr:nth-child(even) td,
+.kb-article-content tbody tr:nth-child(even) .confluenceTd {
+  background-color: #fbfcfd;
 }
 
-/* Confluence Information Macros / Alert Panels */
+.kb-article-content tr:hover td,
+.kb-article-content tr:hover .confluenceTd {
+  background-color: #f1f5f9 !important;
+}
+
+/* Dark Mode Tables */
+:is(.dark .kb-article-content) table,
+:is(.dark .kb-article-content) .confluenceTable {
+  background-color: #0b0f19;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:is(.dark .kb-article-content) :is(th, .confluenceTh) {
+  background-color: #111827;
+  color: #f1f5f9;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  border-right-color: rgba(255, 255, 255, 0.05);
+}
+
+:is(.dark .kb-article-content) :is(td, .confluenceTd) {
+  background-color: #0b0f19;
+  color: #cbd5e1;
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+  border-right-color: rgba(255, 255, 255, 0.05);
+}
+
+:is(.dark .kb-article-content) tbody tr:nth-child(even) :is(td, .confluenceTd) {
+  background-color: #0f1523;
+}
+
+:is(.dark .kb-article-content) tr:hover :is(td, .confluenceTd) {
+  background-color: #172033 !important;
+}
+
+/* =========================================================================
+   Confluence Code Blocks & Panels
+   ========================================================================= */
+
+/* Confluence Outer Code Panel Container */
+.kb-article-content .code.panel,
+.kb-article-content .code,
+.kb-article-content .confluence-information-macro-code {
+  position: relative;
+  margin: 1.75rem 0;
+  border-radius: 0.875rem;
+  border: 1px solid #1e293b;
+  background-color: #090d16;
+  overflow: hidden;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.25);
+}
+
+/* Code Header bar emitted by Confluence (if titled or tagged with language) */
+.kb-article-content .codeHeader,
+.kb-article-content .code-header {
+  padding: 0.625rem 1rem;
+  background-color: #111827;
+  border-bottom: 1px solid #1e293b;
+  color: #94a3b8;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Code Content Area & Pre tags */
+.kb-article-content pre,
+.kb-article-content .codeContent pre,
+.kb-article-content .syntaxhighlighter-pre {
+  background-color: #090d16 !important;
+  color: #e2e8f0 !important;
+  font-family: var(--font-mono);
+  padding: 1.125rem 1.375rem;
+  border-radius: 0.875rem;
+  overflow-x: auto;
+  margin: 1.75rem 0;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  border: 1px solid #1e293b;
+  tab-size: 2;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+}
+
+/* When pre is inside a .code.panel, strip duplicate margins & borders */
+.kb-article-content .code.panel pre,
+.kb-article-content .codeContent pre {
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+/* Syntax Highlighting Line Numbers table emitted by Confluence */
+.kb-article-content table.syntaxhighlighterTable {
+  border: none !important;
+  margin: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.kb-article-content table.syntaxhighlighterTable td.gutter {
+  width: 2.5rem;
+  padding: 1rem 0.5rem 1rem 0.75rem !important;
+  border-right: 1px solid #1e293b !important;
+  border-bottom: none !important;
+  background-color: #0c111c !important;
+  color: #475569 !important;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  text-align: right;
+  user-select: none;
+}
+
+.kb-article-content table.syntaxhighlighterTable td.code {
+  padding: 1rem 1.25rem !important;
+  border: none !important;
+  background-color: transparent !important;
+}
+
+/* Inline Code Badges */
+.kb-article-content code:not(pre code) {
+  font-family: var(--font-mono);
+  background-color: #f1f5f9;
+  color: #0f172a;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.375rem;
+  font-size: 0.85em;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+}
+
+:is(.dark .kb-article-content) code:not(pre code) {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Custom Scrollbar for Code Blocks */
+.kb-article-content pre::-webkit-scrollbar,
+.kb-article-content .codeContent::-webkit-scrollbar,
+.kb-article-content .table-wrap::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.kb-article-content pre::-webkit-scrollbar-track,
+.kb-article-content .codeContent::-webkit-scrollbar-track,
+.kb-article-content .table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+.kb-article-content pre::-webkit-scrollbar-thumb,
+.kb-article-content .codeContent::-webkit-scrollbar-thumb,
+.kb-article-content .table-wrap::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+.kb-article-content pre::-webkit-scrollbar-thumb:hover,
+.kb-article-content .codeContent::-webkit-scrollbar-thumb:hover,
+.kb-article-content .table-wrap::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* =========================================================================
+   Confluence Information Macros / Alert Panels
+   ========================================================================= */
 .kb-article-content .confluence-information-macro {
   margin: 1.75rem 0;
   padding: 1.125rem 1.375rem;
@@ -229,51 +519,53 @@ body {
   color: #92400e;
 }
 
-/* Confluence Images */
+:is(.dark .kb-article-content) .confluence-information-macro-information {
+  background-color: rgba(30, 64, 175, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+}
+:is(.dark .kb-article-content) .confluence-information-macro-tip {
+  background-color: rgba(22, 101, 52, 0.15);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #86efac;
+}
+:is(.dark .kb-article-content)
+  :is(
+    .confluence-information-macro-warning,
+    .confluence-information-macro-note
+  ) {
+  background-color: rgba(146, 64, 14, 0.15);
+  border-color: rgba(234, 179, 8, 0.3);
+  color: #fde047;
+}
+
+/* =========================================================================
+   Confluence Embedded Images & Blockquotes
+   ========================================================================= */
 .kb-article-content img,
 .kb-article-content .confluence-embedded-image {
   max-width: 100%;
   height: auto;
   border-radius: 0.75rem;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -2px rgba(0, 0, 0, 0.05);
   margin: 1.75rem auto;
   display: block;
   cursor: zoom-in;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .kb-article-content img:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
 }
-
-/* Code Blocks & Inline Code */
-.kb-article-content pre,
-.kb-article-content .codeContent pre,
-.kb-article-content .syntaxhighlighter-pre {
-  background-color: #0f172a;
-  color: #f1f5f9;
-  font-family: var(--font-mono);
-  padding: 1.125rem 1.375rem;
-  border-radius: 0.875rem;
-  overflow-x: auto;
-  margin: 1.75rem 0;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  border: 1px solid #1e293b;
+:is(.dark .kb-article-content) :is(img, .confluence-embedded-image) {
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
-.kb-article-content code:not(pre code) {
-  font-family: var(--font-mono);
-  background-color: #f1f5f9;
-  color: #0f172a;
-  padding: 0.2rem 0.45rem;
-  border-radius: 0.375rem;
-  font-size: 0.875em;
-  border: 1px solid #e2e8f0;
-}
-
-/* Blockquotes */
 .kb-article-content blockquote {
   border-left: 4px solid #3b82f6;
   padding-left: 1.25rem;
@@ -281,24 +573,7 @@ body {
   color: #475569;
   font-style: italic;
 }
-
-/* Print Styles */
-@media print {
-  header,
-  footer,
-  .no-print,
-  nav,
-  button {
-    display: none !important;
-  }
-  body,
-  main {
-    background: #ffffff !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-  .kb-article-content {
-    font-size: 11pt !important;
-    color: #000000 !important;
-  }
+:is(.dark .kb-article-content) blockquote {
+  color: #94a3b8;
+  border-left-color: #60a5fa;
 }

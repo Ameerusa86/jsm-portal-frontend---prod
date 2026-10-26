@@ -9,7 +9,7 @@ const RULES: Record<Exclude<CategoryKey, 'WORK_ORDERS'>, RegExp[]> = {
 
 export function classifyRequestType(req: { name: string; description?: string; helpText?: string }): CategoryKey {
   // Combine the Description and the Instruction (helpText) fields. 
-  // We omit req.name so the title does not influence the routing.
+  // Exclude req.name so title keywords do not bias category classification.
   const textToEvaluate = `${req.description || ''} ${req.helpText || ''}`;
 
   for (const [category, patterns] of Object.entries(RULES)) {

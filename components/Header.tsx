@@ -1,24 +1,147 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { LogIn, LogOut, Ticket, ChevronDown, Layers, X, Search } from "lucide-react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
+import {
+  LogIn,
+  LogOut,
+  Ticket,
+  ChevronDown,
+  Layers,
+  X,
+  Search,
+  ExternalLink,
+  Laptop,
+  CreditCard,
+  Users,
+  Headphones,
+  Building2,
+  ArrowRight,
+  LayoutGrid,
+  LayoutList,
+  Check,
+} from "lucide-react";
+import Image from "next/image";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { JsmSpace } from "@/types/jsm";
 
 interface HeaderProps {
-  onHomeClick: () => void;
+  onHomeClick?: () => void;
+  currentSpaceName?: string;
+  onSearchFocus?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onHomeClick }) => {
+const getSpaceIconAndTheme = (projectName = "", category = "") => {
+  const text = `${projectName} ${category}`.toLowerCase();
+
+  // 1. Finance, Billing & Accounting
+  if (
+    text.includes("bill") ||
+    text.includes("finance") ||
+    text.includes("accounting") ||
+    text.includes("revenue") ||
+    text.includes("invoice")
+  ) {
+    return {
+      icon: CreditCard,
+      color: "text-emerald-400",
+      bg: "bg-emerald-500/10 border-emerald-500/25",
+      badge: "Finance",
+    };
+  }
+
+  // 2. HR & People & Culture
+  if (
+    text.includes("hr") ||
+    text.includes("human resources") ||
+    text.includes("people") ||
+    text.includes("talent") ||
+    text.includes("culture")
+  ) {
+    return {
+      icon: Users,
+      color: "text-purple-400",
+      bg: "bg-purple-500/10 border-purple-500/25",
+      badge: "People & HR",
+    };
+  }
+
+  // 3. Customer Operations & Support
+  if (
+    text.includes("support") ||
+    text.includes("operations") ||
+    text.includes("client") ||
+    text.includes("customer")
+  ) {
+    return {
+      icon: Headphones,
+      color: "text-sky-400",
+      bg: "bg-sky-500/10 border-sky-500/25",
+      badge: "Support",
+    };
+  }
+
+  // 4. Workplace, Facilities & Real Estate
+  if (
+    text.includes("facilit") ||
+    text.includes("workplace") ||
+    text.includes("building") ||
+    text.includes("office")
+  ) {
+    return {
+      icon: Building2,
+      color: "text-amber-400",
+      bg: "bg-amber-500/10 border-amber-500/25",
+      badge: "Facilities",
+    };
+  }
+
+  // 5. IT / Technology
+  if (
+    text.includes("it") ||
+    text.includes("tech") ||
+    text.includes("engineer") ||
+    text.includes("software") ||
+    text.includes("security")
+  ) {
+    return {
+      icon: Laptop,
+      color: "text-blue-400",
+      bg: "bg-blue-500/10 border-blue-500/25",
+      badge: "IT & Tech",
+    };
+  }
+
+  // Default
+  return {
+    icon: Layers,
+    color: "text-indigo-400",
+    bg: "bg-indigo-500/10 border-indigo-500/25",
+    badge: "General",
+  };
+};
+
+export const Header: React.FC<HeaderProps> = ({
+  onHomeClick,
+  currentSpaceName,
+  onSearchFocus,
+}) => {
+  const router = useRouter();
   const { data: session, status } = useSession();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [spacesOpen, setSpacesOpen] = useState(false);
-  const [spaces, setSpaces] = useState<{ id: string; projectName: string }[]>(
-    [],
-  );
+  const [spaces, setSpaces] = useState<JsmSpace[]>([]);
   const [spacesFilter, setSpacesFilter] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const spacesDropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -52,93 +175,261 @@ export const Header: React.FC<HeaderProps> = ({ onHomeClick }) => {
     };
   }, [spacesOpen]);
 
+  // Global Ctrl+K / Cmd+K shortcut listener to focus search
+  const handleSearchClick = useCallback(() => {
+    if (onSearchFocus) {
+      onSearchFocus();
+      return;
+    }
+    const heroInput = document.querySelector<HTMLInputElement>(
+      'input[placeholder*="Search for help"]',
+    );
+    if (heroInput) {
+      heroInput.focus();
+      heroInput.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else {
+      router.push("/");
+    }
+  }, [onSearchFocus, router]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        handleSearchClick();
+      }
+      if (e.key === "Escape") {
+        setSpacesOpen(false);
+        setDropdownOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleSearchClick]);
+
+  // Load spaces
   useEffect(() => {
     fetch("/api/jsm/spaces")
       .then(async (res) => {
         const data = await res.json();
-        if (data.values) {
+        if (data.values && Array.isArray(data.values)) {
           setSpaces(data.values);
         }
       })
       .catch((err) => console.error("Failed to load spaces in header", err));
   }, []);
 
-  const filteredSpaces = spaces.filter((space) =>
-    space.projectName.toLowerCase().includes(spacesFilter.toLowerCase()),
-  );
+  // Auto-focus search input when spaces dropdown opens
+  useEffect(() => {
+    if (spacesOpen) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    }
+  }, [spacesOpen]);
+
+  const filteredSpaces = useMemo(() => {
+    const q = spacesFilter.toLowerCase().trim();
+    if (!q) return spaces;
+    return spaces.filter((space) => {
+      const name = space.projectName.toLowerCase();
+      const cat = ((space.category as string) || "").toLowerCase();
+      const key = ((space.projectKey as string) || "").toLowerCase();
+      return name.includes(q) || cat.includes(q) || key.includes(q);
+    });
+  }, [spaces, spacesFilter]);
+
+  const handleHomeClick = () => {
+    setSpacesOpen(false);
+    if (onHomeClick) {
+      onHomeClick();
+    } else {
+      router.push("/");
+    }
+  };
 
   return (
-    <header className="w-full border-b border-slate-800 text-white sticky top-0 z-50 backdrop-blur-md bg-slate-900/95 transition-all pt-[env(safe-area-inset-top,0px)]">
+    <header className="w-full border-b border-slate-800 text-white sticky top-0 z-50 backdrop-blur-xl bg-slate-900/90 transition-all pt-[env(safe-area-inset-top,0px)] shadow-lg shadow-black/20">
       <div className="w-full px-4 sm:px-6 md:px-8 lg:px-10 xl:px-14 2xl:px-20">
-        <div className="flex items-center justify-between h-16 sm:h-18">
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* Logo */}
+        <div className="flex items-center justify-between h-16 sm:h-18 gap-3 sm:gap-6">
+          {/* ========================================================= */}
+          {/* LEFT: BRAND LOGO + ACTIVE BREADCRUMB + PORTALS DROPDOWN */}
+          {/* ========================================================= */}
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            {/* EMSMC Brand Title */}
             <button
-              onClick={onHomeClick}
-              className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-lg transition-all cursor-pointer group py-1 min-h-[44px] flex items-center"
+              type="button"
+              onClick={handleHomeClick}
+              className="flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl transition-all cursor-pointer group py-1 min-h-[44px]"
+              aria-label="EMSMC Help Center Home"
             >
-              <span className="font-extrabold text-xl sm:text-2xl tracking-wider text-white group-hover:text-blue-400 transition-colors">
-                EMSMC
+              <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-white group-hover:text-blue-400 transition-colors">
+                EMS|MC
               </span>
             </button>
 
-            {/* Spaces Trigger Button */}
+            {/* Active Space Breadcrumb */}
+            {currentSpaceName && (
+              <div className="hidden md:flex items-center gap-2 text-xs text-slate-400 pl-2 border-l border-slate-800">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/90 text-blue-300 border border-slate-700/80 font-medium shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  <span className="max-w-[160px] lg:max-w-[200px] truncate">
+                    {currentSpaceName}
+                  </span>
+                </span>
+              </div>
+            )}
+
+            {/* Spaces / Portals Dropdown Trigger */}
             {spaces.length > 0 && (
-              <div className="relative ml-1 sm:ml-4" ref={spacesDropdownRef}>
+              <div className="relative ml-1 sm:ml-2" ref={spacesDropdownRef}>
                 <button
                   type="button"
                   onClick={() => setSpacesOpen((prev) => !prev)}
-                  className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-lg border border-slate-800 sm:border-transparent hover:border-slate-700 bg-slate-800/60 sm:bg-transparent hover:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer min-h-[44px]"
-                  aria-label="Browse Spaces"
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-xl border text-xs sm:text-sm font-semibold transition-all cursor-pointer min-h-[44px] ${
+                    spacesOpen
+                      ? "bg-slate-800 border-blue-500/60 text-white shadow-sm ring-2 ring-blue-500/20"
+                      : "bg-slate-800/60 sm:bg-transparent border-slate-800 sm:border-transparent hover:border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-white"
+                  }`}
+                  aria-label="Browse Portals and Spaces"
                 >
                   <Layers className="w-4 h-4 text-blue-400 shrink-0" />
-                  <span className="inline text-xs sm:text-sm">Spaces</span>
-                  <ChevronDown className="w-3.5 h-3.5 shrink-0" />
+                  <span className="inline">Portals</span>
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-400 border border-slate-700 hidden sm:inline">
+                    {spaces.length}
+                  </span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${
+                      spacesOpen ? "rotate-180 text-blue-400" : "text-slate-400"
+                    }`}
+                  />
                 </button>
 
-                {/* Desktop Dropdown Menu (hidden on mobile) */}
+                {/* Desktop Dropdown Menu */}
                 {spacesOpen && (
-                  <div className="hidden sm:block absolute left-0 mt-2 w-72 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
-                    <div className="px-3 py-2 border-b border-slate-700 mb-1">
+                  <div className="hidden sm:block absolute left-0 mt-2.5 w-84 lg:w-96 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 text-left">
+                    {/* Search and Filter */}
+                    <div className="p-3 bg-slate-800/80 border-b border-slate-700/80 space-y-2">
                       <div className="relative">
-                        <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                         <input
+                          ref={searchInputRef}
                           type="text"
-                          placeholder="Search spaces..."
+                          placeholder="Search boards or departments..."
                           value={spacesFilter}
-                          className="w-full bg-slate-700 text-slate-200 placeholder-slate-400 text-xs rounded-lg pl-8 pr-3 py-1.5 border border-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                          className="w-full bg-slate-950 text-slate-100 placeholder-slate-400 text-xs sm:text-sm rounded-xl pl-9 pr-8 py-2 border border-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                           onChange={(e) => setSpacesFilter(e.target.value)}
                           onClick={(e) => e.stopPropagation()}
                         />
+                        {spacesFilter && (
+                          <button
+                            type="button"
+                            onClick={() => setSpacesFilter("")}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
-                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-2">
-                        Select a Space
-                      </p>
+
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
+                        <span className="font-semibold uppercase tracking-wider text-[10px] text-slate-400">
+                          Available Service Desks ({filteredSpaces.length})
+                        </span>
+                        <span className="text-[10px]">Esc to close</span>
+                      </div>
                     </div>
-                    <div className="max-h-64 overflow-y-auto">
-                      {filteredSpaces.map((space) => (
-                        <Link
-                          key={space.id}
-                          href={`/?space=${space.id}`}
-                          onClick={() => {
-                            setSpacesOpen(false);
-                            setSpacesFilter("");
-                          }}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-200 hover:bg-slate-700 hover:text-white transition-colors"
-                        >
-                          <div className="w-6 h-6 rounded-md bg-slate-700 flex items-center justify-center shrink-0">
-                            <Layers className="w-3.5 h-3.5 text-blue-400" />
+
+                    {/* Reset to All Portals Item */}
+                    <div className="p-1.5 border-b border-slate-800 bg-slate-900/60">
+                      <button
+                        type="button"
+                        onClick={handleHomeClick}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-200 hover:bg-slate-800/90 hover:text-white transition-all cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
+                            <LayoutGrid className="w-3.5 h-3.5" />
                           </div>
-                          <div className="truncate">
-                            <p className="font-medium truncate">
-                              {space.projectName}
-                            </p>
-                          </div>
-                        </Link>
-                      ))}
+                          <span>All Portals & Solutions</span>
+                        </div>
+                        <span className="text-[11px] text-blue-400 font-medium group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
+                          Overview
+                          <ArrowRight className="w-3 h-3" />
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Spaces List */}
+                    <div className="max-h-72 overflow-y-auto p-1.5 space-y-1">
+                      {filteredSpaces.map((space) => {
+                        const theme = getSpaceIconAndTheme(
+                          space.projectName,
+                          space.category as string,
+                        );
+                        const Icon = theme.icon;
+                        const isCurrent =
+                          currentSpaceName &&
+                          currentSpaceName.toLowerCase() ===
+                            space.projectName.toLowerCase();
+
+                        return (
+                          <Link
+                            key={space.id}
+                            href={`/?space=${space.id}`}
+                            onClick={() => {
+                              setSpacesOpen(false);
+                              setSpacesFilter("");
+                            }}
+                            className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all group ${
+                              isCurrent
+                                ? "bg-blue-600/15 border border-blue-500/30 text-white"
+                                : "text-slate-200 hover:bg-slate-800/90 hover:text-white"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${theme.bg} ${theme.color} group-hover:scale-105 transition-transform`}
+                              >
+                                <Icon className="w-4 h-4" />
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold text-xs sm:text-sm truncate">
+                                    {space.projectName}
+                                  </p>
+                                  {Boolean(space.projectKey) && (
+                                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                                      {String(space.projectKey)}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[11px] text-slate-400 truncate">
+                                  {(space.category as string) || "General"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="shrink-0 flex items-center text-slate-500 group-hover:text-blue-400 transition-colors">
+                              {isCurrent ? (
+                                <Check className="w-4 h-4 text-blue-400" />
+                              ) : (
+                                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                              )}
+                            </div>
+                          </Link>
+                        );
+                      })}
+
                       {filteredSpaces.length === 0 && (
-                        <div className="px-4 py-3 text-xs text-slate-400 text-center">
-                          No spaces found matching &ldquo;{spacesFilter}&rdquo;.
+                        <div className="px-4 py-8 text-center text-xs text-slate-400 space-y-1">
+                          <p className="font-semibold text-slate-300">
+                            No service desks found
+                          </p>
+                          <p className="text-slate-500 text-[11px]">
+                            No results matching &ldquo;{spacesFilter}&rdquo;.
+                          </p>
                         </div>
                       )}
                     </div>
@@ -148,89 +439,154 @@ export const Header: React.FC<HeaderProps> = ({ onHomeClick }) => {
             )}
           </div>
 
-          {/* Navigation / User Controls */}
+          {/* ========================================================= */}
+          {/* RIGHT: MY TICKETS + USER PROFILE */}
+          {/* ========================================================= */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {session && (
+            {/* Custom Tickets Page Link */}
+            <Link
+              href="/tickets"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 rounded-xl border border-blue-500/30 hover:border-blue-400 bg-blue-600/10 hover:bg-blue-600/20 text-blue-300 hover:text-white text-xs sm:text-sm font-semibold transition-all cursor-pointer shrink-0 min-h-[42px] group shadow-xs"
+              title="Custom tickets page with advanced filtering & sorting"
+            >
+              <LayoutList className="w-4 h-4 text-blue-400 group-hover:scale-105 transition-transform shrink-0" />
+              <span className="hidden sm:inline">Custom Tickets</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                New
+              </span>
+            </Link>
+
+            {/* My Tickets Button */}
+            {session ? (
               <Link
                 href="/my-tickets"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs sm:text-sm font-semibold transition-all cursor-pointer shrink-0 min-h-[44px]"
-                title="View My Tickets"
+                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 rounded-xl border border-slate-700/90 hover:border-blue-500/50 bg-slate-800/60 hover:bg-slate-800 text-slate-200 hover:text-white text-xs sm:text-sm font-semibold transition-all cursor-pointer shrink-0 min-h-[42px] group shadow-xs"
+                title="View all your Jira tickets and requests"
               >
-                <Ticket className="w-4 h-4 text-blue-400 shrink-0" />
+                <Ticket className="w-4 h-4 text-blue-400 group-hover:rotate-12 transition-transform shrink-0" />
                 <span className="hidden sm:inline">My Tickets</span>
+                <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-slate-300 transition-colors hidden sm:inline shrink-0" />
               </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => signIn("atlassian")}
+                className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 text-xs sm:text-sm font-medium transition-all cursor-pointer min-h-[42px]"
+                title="Log in to view your tickets"
+              >
+                <Ticket className="w-4 h-4 text-slate-500" />
+                <span>My Tickets</span>
+              </button>
             )}
 
+            {/* User Session / Profile */}
             {status === "loading" ? (
-              <div className="w-9 h-9 rounded-full bg-slate-800 animate-pulse" />
+              <div className="w-9 h-9 rounded-xl bg-slate-800 animate-pulse border border-slate-700" />
             ) : session ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   type="button"
                   onClick={() => setDropdownOpen((prev) => !prev)}
-                  className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs sm:text-sm font-medium text-slate-200 transition-all cursor-pointer min-h-[44px]"
+                  className={`inline-flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-medium transition-all cursor-pointer min-h-[42px] ${
+                    dropdownOpen
+                      ? "bg-slate-800 border-blue-500/50 text-white shadow-sm ring-2 ring-blue-500/20"
+                      : "bg-slate-800 hover:bg-slate-750 border-slate-700/80 text-slate-200"
+                  }`}
+                  aria-label="User Profile Menu"
                 >
-                  {session.user?.image ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={session.user.image}
-                      alt={session.user.name || "User"}
-                      className="w-6 h-6 rounded-full border border-slate-600 shrink-0"
-                    />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
-                      {(session.user?.name || session.user?.email || "U")
-                        .charAt(0)
-                        .toUpperCase()}
-                    </div>
-                  )}
-                  <span className="hidden md:inline max-w-30 sm:max-w-45 truncate">
+                  <div className="relative shrink-0">
+                    {session.user?.image ? (
+                      <Image
+                        src={session.user.image}
+                        alt={session.user.name || "User"}
+                        width={28}
+                        height={28}
+                        className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-linear-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-2xs">
+                        {(session.user?.name || session.user?.email || "U")
+                          .charAt(0)
+                          .toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  <span className="hidden md:inline max-w-28 lg:max-w-40 truncate font-semibold">
                     {session.user?.name || session.user?.email}
                   </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
+                      dropdownOpen ? "rotate-180 text-blue-400" : ""
+                    }`}
+                  />
                 </button>
 
+                {/* Profile Dropdown Menu */}
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-slate-800 border border-slate-700 rounded-xl shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
-                    <div className="px-4 py-2 border-b border-slate-700">
-                      <p className="text-xs font-semibold text-white truncate">
+                  <div className="absolute right-0 mt-2.5 w-64 max-w-[calc(100vw-2rem)] bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="px-4 py-2.5 border-b border-slate-800">
+                      <p className="text-xs font-bold text-white truncate">
                         {session.user?.name || "Atlassian User"}
                       </p>
-                      <p className="text-[11px] text-slate-400 truncate">
+                      <p className="text-[11px] text-slate-400 truncate mt-0.5">
                         {session.user?.email}
                       </p>
                     </div>
 
-                    <Link
-                      href="/my-tickets"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-200 hover:bg-slate-700 hover:text-white transition-colors min-h-[40px]"
-                    >
-                      <Ticket className="w-4 h-4 text-blue-400" />
-                      <span>View My Tickets</span>
-                    </Link>
+                    <div className="p-1 space-y-0.5">
+                      <Link
+                        href="/tickets"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center justify-between px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 rounded-xl transition-colors min-h-[40px] group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <LayoutList className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                          <span>Custom Tickets Page</span>
+                        </div>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                          New
+                        </span>
+                      </Link>
 
-                    <button
-                      onClick={() => {
-                        setDropdownOpen(false);
-                        signOut();
-                      }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-rose-300 hover:bg-slate-700 hover:text-rose-200 transition-colors cursor-pointer text-left min-h-[40px]"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Sign Out</span>
-                    </button>
+                      <Link
+                        href="/my-tickets"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center justify-between px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 rounded-xl transition-colors min-h-[40px] group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Ticket className="w-4 h-4 text-blue-400 group-hover:rotate-12 transition-transform" />
+                          <span>View My Tickets</span>
+                        </div>
+                        <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-slate-300" />
+                      </Link>
+                    </div>
+
+                    <div className="p-1 border-t border-slate-800 pt-1 mt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDropdownOpen(false);
+                          signOut({ callbackUrl: "/login", redirectTo: "/login" });
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-rose-300 hover:bg-rose-500/10 hover:text-rose-200 rounded-xl transition-colors cursor-pointer text-left min-h-[40px]"
+                      >
+                        <LogOut className="w-4 h-4 text-rose-400" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             ) : (
               <button
+                type="button"
                 onClick={() => signIn("atlassian")}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold transition-all shadow-sm active:scale-95 cursor-pointer min-h-[44px]"
+                className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold transition-all shadow-md shadow-blue-600/25 active:scale-95 cursor-pointer min-h-[42px]"
               >
                 <LogIn className="w-4 h-4" />
                 <span>Log In</span>
@@ -240,75 +596,140 @@ export const Header: React.FC<HeaderProps> = ({ onHomeClick }) => {
         </div>
       </div>
 
-      {/* Mobile Slide-Over Drawer for Spaces */}
+      {/* ========================================================= */}
+      {/* MOBILE SLIDE-OVER DRAWER FOR SPACES & ACTIONS */}
+      {/* ========================================================= */}
       {spacesOpen && (
         <div className="sm:hidden fixed inset-0 z-50 flex">
           {/* Backdrop overlay */}
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
             onClick={() => setSpacesOpen(false)}
           />
 
           {/* Slide-in drawer container */}
-          <div className="relative w-4/5 max-w-xs bg-slate-900 border-r border-slate-800 flex flex-col h-full z-10 shadow-2xl animate-in slide-in-from-left duration-250 pb-[env(safe-area-inset-bottom,16px)]">
+          <div className="relative w-4/5 max-w-xs bg-slate-950 border-r border-slate-800 flex flex-col h-full z-10 shadow-2xl animate-in slide-in-from-left duration-250 pb-[env(safe-area-inset-bottom,16px)]">
             {/* Drawer Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-800">
+            <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
                   <Layers className="w-4 h-4" />
                 </div>
-                <h3 className="font-bold text-base text-white">Select a Space</h3>
+                <div>
+                  <h3 className="font-bold text-sm text-white">
+                    Service Desks
+                  </h3>
+                  <p className="text-[10px] text-slate-400">
+                    Select a portal to browse
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSpacesOpen(false)}
-                className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
                 aria-label="Close menu"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Search Input (16px to prevent iOS Safari auto-zoom) */}
-            <div className="p-4 border-b border-slate-800/80">
+            {/* Search Input */}
+            <div className="p-3 border-b border-slate-800/80 bg-slate-900/50">
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Filter boards & spaces..."
+                  placeholder="Filter portals..."
                   value={spacesFilter}
                   onChange={(e) => setSpacesFilter(e.target.value)}
-                  className="w-full bg-slate-800 text-slate-100 placeholder-slate-400 text-base rounded-xl pl-9 pr-4 py-2.5 border border-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
+                  className="w-full bg-slate-900 text-slate-100 placeholder-slate-400 text-sm rounded-xl pl-9 pr-4 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
                 />
               </div>
             </div>
 
+            {/* Quick Action Buttons */}
+            <div className="px-3 pt-3 space-y-1.5">
+              <button
+                type="button"
+                onClick={handleHomeClick}
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-blue-600/10 border border-blue-500/30 text-blue-300 font-semibold text-xs transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <LayoutGrid className="w-4 h-4 text-blue-400" />
+                  <span>All Portals & Solutions</span>
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-blue-400" />
+              </button>
+
+              <Link
+                href="/tickets"
+                onClick={() => setSpacesOpen(false)}
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-blue-500/30 text-blue-300 font-semibold text-xs transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <LayoutList className="w-4 h-4 text-blue-400" />
+                  <span>Custom Tickets Page</span>
+                </span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                  New
+                </span>
+              </Link>
+
+              <Link
+                href="/my-tickets"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setSpacesOpen(false)}
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold text-xs transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <Ticket className="w-4 h-4 text-slate-400" />
+                  <span>My Tickets (Native)</span>
+                </span>
+                <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+              </Link>
+            </div>
+
             {/* Spaces List with big touch targets */}
             <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
-              {filteredSpaces.map((space) => (
-                <Link
-                  key={space.id}
-                  href={`/?space=${space.id}`}
-                  onClick={() => {
-                    setSpacesOpen(false);
-                    setSpacesFilter("");
-                  }}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800 border border-slate-800/80 hover:border-slate-700 text-slate-200 hover:text-white transition-all min-h-[48px]"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-blue-400 shrink-0 border border-slate-700/60">
-                    <Layers className="w-4 h-4" />
-                  </div>
-                  <div className="flex-1 truncate">
-                    <p className="font-semibold text-sm text-slate-100 truncate">
-                      {space.projectName}
-                    </p>
-                  </div>
-                </Link>
-              ))}
+              {filteredSpaces.map((space) => {
+                const theme = getSpaceIconAndTheme(
+                  space.projectName,
+                  space.category as string,
+                );
+                const Icon = theme.icon;
+
+                return (
+                  <Link
+                    key={space.id}
+                    href={`/?space=${space.id}`}
+                    onClick={() => {
+                      setSpacesOpen(false);
+                      setSpacesFilter("");
+                    }}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800/80 text-slate-200 hover:text-white transition-all min-h-[48px]"
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${theme.bg} ${theme.color}`}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 truncate">
+                      <p className="font-semibold text-xs text-slate-100 truncate">
+                        {space.projectName}
+                      </p>
+                      <p className="text-[10px] text-slate-400 truncate">
+                        {(space.category as string) || "General"}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
 
               {filteredSpaces.length === 0 && (
-                <div className="p-6 text-center text-slate-400 text-sm">
-                  No spaces found matching &ldquo;{spacesFilter}&rdquo;.
+                <div className="p-6 text-center text-slate-400 text-xs">
+                  No portals found matching &ldquo;{spacesFilter}&rdquo;.
                 </div>
               )}
             </div>

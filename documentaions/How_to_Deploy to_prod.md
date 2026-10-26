@@ -1,32 +1,51 @@
-# EMSMC IT - Jira Service Management Custom Portal
+# Production Deployment Runbook — EMSMC JSM Portal
 
-This repository contains the Next.js custom frontend portal for EMSMC IT, built using Atlassian's REST APIs and Auth.js for OAuth 2.0 (3LO) authentication. 
+Operational deployment procedures, environment configuration, and verification steps for the EMSMC Jira Service Management custom portal.
 
-## 1. Atlassian Developer Console Preparation
-* Navigate to the [Atlassian Developer Console](https://developer.atlassian.com/console/myapps/).
-* Select the **Distribution** tab and change the app's status from private to "Sharing" to allow internal employee authentication.
-* Under the **Authorization** menu, update the Callback URL to your production domain (e.g., `https://your-portal-domain.com/api/auth/callback/atlassian`). 
-* Verify under the **Permissions** tab that the necessary Classic Scopes (`read:me`, `write:servicedesk-request`, `read:confluence-content.summary`, `offline_access`) are active.
-* Create a completely separate OAuth app in the console for your production environment to keep development and production user bases isolated.
+## 1. Atlassian Developer Console Configuration
+1. Open the [Atlassian Developer Console](https://developer.atlassian.com/console/myapps/).
+2. **Distribution**: Set application status to **Sharing** so internal organization accounts can authenticate via OAuth 2.0 (3LO).
+3. **Authorization**: Register the production callback URL:
+   ```
+   https://<production-domain>/api/auth/callback/atlassian
+   ```
+4. **Permissions / Scopes**: Confirm the following scopes are enabled:
+   - `read:me`
+   - `read:jira-user`
+   - `read:jira-work`
+   - `write:jira-work`
+   - `read:servicedesk-request`
+   - `write:servicedesk-request`
+   - `read:knowledgebase:jira-service-management`
+   - `read:confluence-space.summary`
+   - `read:confluence-content.summary`
+   - `offline_access`
+5. Maintain dedicated OAuth applications per tier (Development / Sandbox vs. Production) to isolate user authorization grants and client secrets.
 
-## 2. Next.js Production Environment Variables
-Set the following environment variables in your production hosting provider's secure dashboard before building the application:
+## 2. Production Environment Variables
+Configure the following environment variables in the production deployment target:
 
-* `AUTH_SECRET`: A cryptographically secure random string used to encrypt session data. Generate this via terminal using `openssl rand -base64 33` or `npm exec auth secret`.
-* `AUTH_URL`: The absolute canonical URL of your production deployment (e.g., `https://your-portal-domain.com`).
-* `ATLASSIAN_CLIENT_ID`: The public identifier for your production Atlassian OAuth app.
-* `ATLASSIAN_CLIENT_SECRET`: The secure token for your production Atlassian OAuth app.
-* `JSM_SERVICE_DESK_ID`: The numeric ID for your active production JSM instance.
-* `JSM_REQUEST_TYPE_ID`: The numeric ID for the specific ticket type in production.
-* `AUTH_TRUST_HOST`: Set this to `true` if your production application is deployed behind a reverse proxy (this ensures proxy headers like `X-Forwarded-Host` are trusted by Auth.js).
+| Variable | Description | Example / Format |
+|---|---|---|
+| `AUTH_SECRET` | Encryption key for Auth.js sessions and JWTs. | 32+ char base64 string (`openssl rand -base64 33`) |
+| `AUTH_URL` | Canonical root URL of the production deployment. | `https://portal.emsmc.com` |
+| `AUTH_TRUST_HOST` | Trust upstream reverse proxy headers (`X-Forwarded-Host`, `X-Forwarded-Proto`). | `true` |
+| `ATLASSIAN_CLIENT_ID` | Production OAuth 2.0 client ID from Atlassian Console. | Atlassian Client ID string |
+| `ATLASSIAN_CLIENT_SECRET` | Production OAuth 2.0 client secret. | Atlassian Client Secret string |
+| `JIRA_BASE_URL` | Production Atlassian Cloud instance URL. | `https://emsmc.atlassian.net` |
+| `JIRA_USER_EMAIL` | Service account email used for Confluence KB body proxying. | `svc-jsm-portal@emsmc.com` |
+| `JIRA_API_TOKEN` | Service account API token with Confluence read permissions. | API token string |
+| `JIRA_SERVICE_DESK_ID` | Primary JSM Service Desk ID. | Numeric ID (e.g. `4`) |
 
-## 3. Deployment & Hosting Configuration
-* Deploy your application to your chosen platform (e.g., Vercel, AWS, Azure, Cloudflare Pages). 
-* Ensure your application is served over HTTPS, as Atlassian OAuth providers will reject non-HTTPS redirect URIs in production.
-* Ensure your `middleware.ts` is configured to intercept and protect ticketing and dashboard routes so unauthenticated traffic is redirected to the login page.
+## 3. Host & Runtime Requirements
+- **Protocol**: HTTPS is mandatory. Atlassian OAuth rejects plain HTTP redirect URIs outside `localhost`.
+- **Node.js**: Node 20+ runtime environment.
+- **Request Proxy**: Next.js 16 `proxy.ts` handles all incoming route protection. Unauthenticated requests to portal routes are redirected to `/login`, while unauthorized API requests receive `401`.
 
-## 4. Production Smoke Testing
-* Navigate to your live production URL and click login to initiate the OAuth flow.
-* On the Atlassian consent screen, explicitly select your **production** JSM environment from the site dropdown.
-* Submit a test ticket through the Next.js UI.
-* Confirm that the generated issue key matches the live JSM project queues.
+## 4. Post-Deployment Verification
+1. Access the production portal URL. Confirm unauthenticated sessions redirect to `/login`.
+2. Select **Sign In with Atlassian** and complete OAuth authorization with the production tenant.
+3. Confirm redirection lands on `/` and loads the active service desk catalog.
+4. Submit a test ticket through the request catalog.
+5. Confirm the generated ticket key appears in the live Jira Service Management queue.
+6. Confirm sign-out clears the active session and returns to `/login`.

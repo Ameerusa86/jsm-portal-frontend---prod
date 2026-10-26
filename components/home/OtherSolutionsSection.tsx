@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   LayoutGrid,
   Layers,
   ChevronDown,
-  ChevronUp,
   ArrowRight,
   CreditCard,
   Users,
@@ -18,6 +17,14 @@ import {
   LucideIcon,
 } from "lucide-react";
 import { JsmSpace } from "@/types/jsm";
+import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
 
 interface OtherSolutionsSectionProps {
   spaces: JsmSpace[];
@@ -28,6 +35,7 @@ interface OtherSolutionsSectionProps {
 interface SpaceTheme {
   icon: LucideIcon;
   iconBg: string;
+  headerIconBg: string;
   deptBadge: string;
   gradient: string;
   borderHover: string;
@@ -48,8 +56,9 @@ const getSpaceTheme = (projectName = "", category = ""): SpaceTheme => {
   ) {
     return {
       icon: CreditCard,
+      headerIconBg: "bg-emerald-50 text-emerald-700 border-emerald-200/90 shadow-2xs",
       iconBg:
-        "bg-emerald-50 text-emerald-600 border-emerald-200/80 group-hover:bg-emerald-600 group-hover:text-white",
+        "bg-emerald-50 text-emerald-700 border-emerald-200/90 group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600",
       deptBadge:
         "bg-emerald-50 text-emerald-700 border-emerald-200/80 group-hover:border-emerald-300",
       gradient: "from-emerald-500 to-teal-600",
@@ -70,13 +79,14 @@ const getSpaceTheme = (projectName = "", category = ""): SpaceTheme => {
   ) {
     return {
       icon: Users,
+      headerIconBg: "bg-purple-50 text-purple-700 border-purple-200/90 shadow-2xs",
       iconBg:
-        "bg-indigo-50 text-indigo-600 border-indigo-200/80 group-hover:bg-indigo-600 group-hover:text-white",
+        "bg-purple-50 text-purple-700 border-purple-200/90 group-hover:bg-purple-600 group-hover:text-white group-hover:border-purple-600",
       deptBadge:
-        "bg-indigo-50 text-indigo-700 border-indigo-200/80 group-hover:border-indigo-300",
-      gradient: "from-indigo-500 to-purple-600",
-      borderHover: "hover:border-indigo-300",
-      glow: "hover:shadow-indigo-500/10",
+        "bg-purple-50 text-purple-700 border-purple-200/80 group-hover:border-purple-300",
+      gradient: "from-purple-500 to-indigo-600",
+      borderHover: "hover:border-purple-300",
+      glow: "hover:shadow-purple-500/10",
     };
   }
 
@@ -91,8 +101,9 @@ const getSpaceTheme = (projectName = "", category = ""): SpaceTheme => {
   ) {
     return {
       icon: Headphones,
+      headerIconBg: "bg-sky-50 text-sky-700 border-sky-200/90 shadow-2xs",
       iconBg:
-        "bg-sky-50 text-sky-600 border-sky-200/80 group-hover:bg-sky-600 group-hover:text-white",
+        "bg-sky-50 text-sky-700 border-sky-200/90 group-hover:bg-sky-600 group-hover:text-white group-hover:border-sky-600",
       deptBadge:
         "bg-sky-50 text-sky-700 border-sky-200/80 group-hover:border-sky-300",
       gradient: "from-sky-500 to-blue-600",
@@ -111,8 +122,9 @@ const getSpaceTheme = (projectName = "", category = ""): SpaceTheme => {
   ) {
     return {
       icon: Building2,
+      headerIconBg: "bg-amber-50 text-amber-800 border-amber-200/90 shadow-2xs",
       iconBg:
-        "bg-amber-50 text-amber-600 border-amber-200/80 group-hover:bg-amber-600 group-hover:text-white",
+        "bg-amber-50 text-amber-800 border-amber-200/90 group-hover:bg-amber-600 group-hover:text-white group-hover:border-amber-600",
       deptBadge:
         "bg-amber-50 text-amber-700 border-amber-200/80 group-hover:border-amber-300",
       gradient: "from-amber-500 to-orange-600",
@@ -132,8 +144,9 @@ const getSpaceTheme = (projectName = "", category = ""): SpaceTheme => {
   ) {
     return {
       icon: ShieldCheck,
+      headerIconBg: "bg-blue-50 text-blue-700 border-blue-200/90 shadow-2xs",
       iconBg:
-        "bg-blue-50 text-blue-600 border-blue-200/80 group-hover:bg-blue-600 group-hover:text-white",
+        "bg-blue-50 text-blue-700 border-blue-200/90 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600",
       deptBadge:
         "bg-blue-50 text-blue-700 border-blue-200/80 group-hover:border-blue-300",
       gradient: "from-blue-600 to-indigo-600",
@@ -151,13 +164,14 @@ const getSpaceTheme = (projectName = "", category = ""): SpaceTheme => {
   ) {
     return {
       icon: FileText,
+      headerIconBg: "bg-violet-50 text-violet-700 border-violet-200/90 shadow-2xs",
       iconBg:
-        "bg-purple-50 text-purple-600 border-purple-200/80 group-hover:bg-purple-600 group-hover:text-white",
+        "bg-violet-50 text-violet-700 border-violet-200/90 group-hover:bg-violet-600 group-hover:text-white group-hover:border-violet-600",
       deptBadge:
-        "bg-purple-50 text-purple-700 border-purple-200/80 group-hover:border-purple-300",
-      gradient: "from-purple-500 to-fuchsia-600",
-      borderHover: "hover:border-purple-300",
-      glow: "hover:shadow-purple-500/10",
+        "bg-violet-50 text-violet-700 border-violet-200/80 group-hover:border-violet-300",
+      gradient: "from-violet-500 to-fuchsia-600",
+      borderHover: "hover:border-violet-300",
+      glow: "hover:shadow-violet-500/10",
     };
   }
 
@@ -170,8 +184,9 @@ const getSpaceTheme = (projectName = "", category = ""): SpaceTheme => {
   ) {
     return {
       icon: Sparkles,
+      headerIconBg: "bg-rose-50 text-rose-700 border-rose-200/90 shadow-2xs",
       iconBg:
-        "bg-rose-50 text-rose-600 border-rose-200/80 group-hover:bg-rose-600 group-hover:text-white",
+        "bg-rose-50 text-rose-700 border-rose-200/90 group-hover:bg-rose-600 group-hover:text-white group-hover:border-rose-600",
       deptBadge:
         "bg-rose-50 text-rose-700 border-rose-200/80 group-hover:border-rose-300",
       gradient: "from-rose-500 to-pink-600",
@@ -183,8 +198,9 @@ const getSpaceTheme = (projectName = "", category = ""): SpaceTheme => {
   // Default / Other
   return {
     icon: Layers,
+    headerIconBg: "bg-blue-50 text-blue-700 border-blue-200/90 shadow-2xs",
     iconBg:
-      "bg-slate-100 text-slate-700 border-slate-200 group-hover:bg-slate-900 group-hover:text-white",
+      "bg-slate-100 text-slate-700 border-slate-200 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600",
     deptBadge:
       "bg-slate-100 text-slate-600 border-slate-200 group-hover:border-slate-300",
     gradient: "from-slate-600 to-slate-800",
@@ -202,28 +218,13 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
   const [spacesViewMode, setSpacesViewMode] = useState<"all" | "categories">(
     "categories",
   );
-  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-
-  // Automatically expand categories by default so users see boards immediately
-  useEffect(() => {
-    const keys = Object.keys(spacesByCategory);
-    if (keys.length > 0) {
-      setExpandedCategories(keys);
-    }
-  }, [spacesByCategory]);
-
-  const toggleCategory = (cat: string) => {
-    setExpandedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat],
-    );
-  };
 
   return (
     <section>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-8 border-t border-slate-200/70">
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-slate-800 to-slate-950 text-white flex items-center justify-center shadow-md shadow-slate-900/10">
-            <LayoutGrid className="w-5 h-5 text-blue-400" />
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200/90 flex items-center justify-center shadow-2xs">
+            <LayoutGrid className="w-5 h-5" />
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
             Other Solutions
@@ -260,11 +261,43 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
       </div>
 
       {spacesLoading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-3 bg-white rounded-3xl border border-slate-200/80 shadow-2xs">
-          <div className="w-10 h-10 rounded-full border-3 border-slate-200 border-t-blue-600 animate-spin" />
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            Loading Boards...
-          </p>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <Badge
+              variant="secondary"
+              className="px-3.5 py-1.5 text-xs font-medium gap-2 bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs"
+            >
+              <Spinner data-icon="inline-start" className="size-3.5 text-blue-600" />
+              Loading Spaces...
+            </Badge>
+            <span className="text-xs text-slate-400 font-medium hidden sm:inline-block">
+              Discovering available portals...
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="relative flex flex-col justify-between bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs min-h-[145px] sm:min-h-[155px] animate-pulse overflow-hidden"
+              >
+                {/* Accent line skeleton */}
+                <div className="absolute top-0 inset-x-0 h-1 bg-slate-100" />
+
+                {/* Icon Squircle skeleton */}
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200/50 mb-3" />
+
+                {/* Card content skeleton */}
+                <div className="w-full space-y-3">
+                  <div className="h-4.5 bg-slate-100 rounded-lg w-3/4" />
+                  <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                    <div className="h-3 bg-slate-100 rounded w-20" />
+                    <div className="w-7 h-7 rounded-full bg-slate-100" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       ) : spaces.length > 0 ? (
         spacesViewMode === "all" ? (
@@ -315,52 +348,52 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
             })}
           </div>
         ) : (
-          <div className="space-y-4">
+          <Accordion
+            multiple
+            defaultValue={[]}
+            className="space-y-4"
+          >
             {Object.entries(spacesByCategory).map(([catName, catSpaces]) => {
-              const isExpanded = expandedCategories.includes(catName);
               const deptTheme = getSpaceTheme("", catName);
               const DeptIcon = deptTheme.icon;
 
               return (
-                <div
+                <AccordionItem
                   key={catName}
-                  className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden transition-all duration-200"
+                  value={catName}
+                  className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden transition-all duration-200 not-last:border-b-0 border-b"
                 >
-                  <button
-                    type="button"
-                    onClick={() => toggleCategory(catName)}
-                    className="w-full flex items-center justify-between p-5 sm:p-6 bg-slate-50/40 hover:bg-slate-50/80 transition-colors cursor-pointer text-left"
-                  >
+                  <AccordionTrigger className="w-full flex items-center justify-between p-5 sm:p-6 bg-slate-50/40 hover:bg-slate-50/80 transition-colors cursor-pointer text-left hover:no-underline rounded-none [&>[data-slot=accordion-trigger-icon]]:hidden">
                     <div className="flex items-center gap-4">
                       <div
-                        className={`w-11 h-11 rounded-2xl flex items-center justify-center border shadow-2xs shrink-0 ${deptTheme.iconBg.replace("group-hover:", "")}`}
+                        className={`w-11 h-11 rounded-2xl flex items-center justify-center border shrink-0 ${deptTheme.headerIconBg}`}
                       >
-                        <DeptIcon className="w-5 h-5" />
+                        <DeptIcon className="w-5.5 h-5.5" />
                       </div>
                       <div className="flex items-center gap-2.5">
                         <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
                           {catName}
                         </h3>
                         <span className="px-2.5 py-0.5 text-xs font-semibold bg-white text-slate-600 rounded-full border border-slate-200 shadow-2xs">
-                          {catSpaces.length} {catSpaces.length === 1 ? "desk" : "desks"}
+                          {catSpaces.length}{" "}
+                          {catSpaces.length === 1 ? "desk" : "desks"}
                         </span>
                       </div>
                     </div>
 
-                    <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 shadow-2xs transition-colors shrink-0">
-                      {isExpanded ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
+                    <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover/accordion-trigger:text-slate-800 shadow-2xs transition-colors shrink-0 ml-auto">
+                      <ChevronDown className="w-4 h-4 transition-transform duration-200 group-aria-expanded/accordion-trigger:rotate-180" />
                     </div>
-                  </button>
+                  </AccordionTrigger>
 
-                  {isExpanded && (
+                  <AccordionContent className="p-0 text-inherit">
                     <div className="p-5 sm:p-6 border-t border-slate-100 bg-white">
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                         {catSpaces.map((space) => {
-                          const spaceTheme = getSpaceTheme(space.projectName, catName);
+                          const spaceTheme = getSpaceTheme(
+                            space.projectName,
+                            catName,
+                          );
                           const SpaceIcon = spaceTheme.icon;
 
                           return (
@@ -374,7 +407,7 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                                 <div
                                   className={`w-11 h-11 rounded-xl flex items-center justify-center border shadow-2xs group-hover:scale-105 transition-all shrink-0 ${spaceTheme.iconBg}`}
                                 >
-                                  <SpaceIcon className="w-5 h-5" />
+                                  <SpaceIcon className="w-5.5 h-5.5" />
                                 </div>
                               </div>
 
@@ -395,15 +428,17 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                         })}
                       </div>
                     </div>
-                  )}
-                </div>
+                  </AccordionContent>
+                </AccordionItem>
               );
             })}
-          </div>
+          </Accordion>
         )
       ) : (
         <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-300">
-          <p className="text-slate-500 font-medium">No other boards or departmental service desks available.</p>
+          <p className="text-slate-500 font-medium">
+            No other boards or departmental service desks available.
+          </p>
         </div>
       )}
     </section>
