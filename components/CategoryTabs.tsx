@@ -24,19 +24,25 @@ import { cn } from "@/lib/utils";
 
 interface CategoryTabsProps {
   categories: { name: string; count: number }[];
-  activeCategory: string;
+  activeCategory?: string;
+  selectedCategory?: string;
   onSelectCategory: (category: string) => void;
   viewMode?: "grid" | "list";
   onToggleViewMode?: (mode: "grid" | "list") => void;
+  onViewModeChange?: (mode: "grid" | "list") => void;
 }
 
 export const CategoryTabs: React.FC<CategoryTabsProps> = ({
   categories,
   activeCategory,
+  selectedCategory,
   onSelectCategory,
   viewMode = "grid",
   onToggleViewMode,
+  onViewModeChange,
 }) => {
+  const effectiveActive = selectedCategory ?? activeCategory ?? "all";
+  const handleToggle = onToggleViewMode ?? onViewModeChange;
   const getCategoryIcon = (name: string) => {
     const n = name.toLowerCase();
     if (
@@ -110,7 +116,7 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
       {/* Category Pills (horizontally scrollable on small screens) */}
       <div className="flex overflow-x-auto sm:flex-wrap items-center gap-2 pb-2 sm:pb-0 flex-1 no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0">
         {categories.map((cat) => {
-          const isActive = activeCategory === cat.name;
+          const isActive = effectiveActive === cat.name;
           const Icon = getCategoryIcon(cat.name);
 
           return (
@@ -122,24 +128,24 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
               className={cn(
                 "cursor-pointer gap-2 shrink-0 rounded-xl h-9 font-medium shadow-xs",
                 isActive
-                  ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                  : "bg-card text-muted-foreground hover:text-foreground border-border hover:bg-muted/50"
+                  ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600 shadow-sm font-semibold"
+                  : "bg-white text-slate-600 hover:text-slate-900 border-slate-200/90 hover:border-slate-300 hover:bg-slate-50/80"
               )}
             >
               <Icon
                 className={cn(
                   "size-4 transition-colors",
-                  isActive ? "text-white" : "text-muted-foreground"
+                  isActive ? "text-white" : "text-slate-400 group-hover:text-slate-600"
                 )}
               />
               <span>{cat.name === "all" ? "All Services" : cat.name}</span>
               <Badge
-                variant={isActive ? "secondary" : "secondary"}
+                variant="secondary"
                 className={cn(
                   "px-1.5 py-0 text-[11px] font-semibold h-4 min-w-4 rounded-full",
                   isActive
                     ? "bg-blue-700/80 text-white"
-                    : "bg-muted text-muted-foreground"
+                    : "bg-slate-100 text-slate-500"
                 )}
               >
                 {cat.count}
@@ -151,17 +157,17 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
 
       {/* Right Controls: View Switcher (Grid/List) */}
       <div className="flex items-center gap-2.5 shrink-0 self-end lg:self-auto">
-        {onToggleViewMode && (
-          <div className="inline-flex items-center p-1 bg-card border border-border rounded-xl shadow-xs">
+        {handleToggle && (
+          <div className="inline-flex items-center p-1 bg-white border border-slate-200/90 rounded-xl shadow-xs">
             <Button
               type="button"
               variant={viewMode === "grid" ? "secondary" : "ghost"}
               size="icon-xs"
-              onClick={() => onToggleViewMode("grid")}
+              onClick={() => handleToggle("grid")}
               title="Grid View"
               className={cn(
                 "cursor-pointer",
-                viewMode === "grid" && "bg-muted text-primary shadow-xs"
+                viewMode === "grid" && "bg-slate-100 text-blue-600 shadow-xs"
               )}
             >
               <LayoutGrid className="size-3.5" />
@@ -170,11 +176,11 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
               type="button"
               variant={viewMode === "list" ? "secondary" : "ghost"}
               size="icon-xs"
-              onClick={() => onToggleViewMode("list")}
+              onClick={() => handleToggle("list")}
               title="List View"
               className={cn(
                 "cursor-pointer",
-                viewMode === "list" && "bg-muted text-primary shadow-xs"
+                viewMode === "list" && "bg-slate-100 text-blue-600 shadow-xs"
               )}
             >
               <List className="size-3.5" />

@@ -254,7 +254,7 @@ function HelpCenterContent() {
       <main className="grow w-full px-4 sm:px-6 md:px-8 lg:px-10 xl:px-14 2xl:px-20 py-8 sm:py-12">
         {/* Error Alert */}
         {apiError && (
-          <Card className="bg-destructive/10 border-destructive/20 text-destructive p-4 rounded-xl mb-8 flex flex-row items-start gap-3 shadow-xs max-w-4xl mx-auto gap-0">
+          <Card className="bg-destructive/10 border-destructive/20 text-destructive p-4 rounded-xl mb-8 flex flex-row items-start gap-3 shadow-xs max-w-4xl mx-auto">
             <AlertCircle className="size-5 text-destructive shrink-0 mt-0.5" />
             <div className="flex-1 text-sm">
               <p className="font-semibold text-destructive">Unable to connect to Service Desk</p>

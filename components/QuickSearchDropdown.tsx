@@ -324,7 +324,7 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
   return (
     <Card
       ref={dropdownRef}
-      className="absolute left-0 right-0 top-full mt-2 bg-card rounded-2xl shadow-2xl border-border overflow-hidden z-30 animate-in fade-in zoom-in-95 duration-150 text-left gap-0 py-0"
+      className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden z-30 animate-in fade-in zoom-in-95 duration-150 text-left"
     >
       <div className="p-3 bg-muted/40 border-b border-border/60 flex items-center justify-between text-xs text-muted-foreground">
         <span className="font-semibold text-foreground flex items-center gap-1.5">

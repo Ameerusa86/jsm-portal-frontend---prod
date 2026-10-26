@@ -135,8 +135,8 @@ export const UserPickerField: React.FC<UserPickerFieldProps> = ({
           </div>
 
           {isOpen && (
-            <Card className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-border bg-popover text-popover-foreground py-1 shadow-2xl">
-              <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/40 text-[11px] font-semibold text-muted-foreground">
+            <Card className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-2xl">
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100 bg-slate-50 text-[11px] font-semibold text-slate-500">
                 <span>Select Users</span>
                 <Button
                   type="button"
@@ -224,7 +224,7 @@ export const UserPickerField: React.FC<UserPickerFieldProps> = ({
   return (
     <div className="space-y-2 relative" ref={containerRef}>
       {selectedUser && selectedId ? (
-        <Card className="flex items-center justify-between p-3 rounded-xl bg-card border border-border text-card-foreground shadow-xs">
+        <Card className="flex items-center justify-between p-3 rounded-xl bg-blue-50/80 border border-blue-200 text-slate-900 shadow-xs">
           <div className="flex items-center gap-3 min-w-0">
             <Avatar className="w-8 h-8 shrink-0 text-xs font-bold">
               <AvatarFallback className="bg-primary text-primary-foreground">
@@ -293,8 +293,8 @@ export const UserPickerField: React.FC<UserPickerFieldProps> = ({
           </div>
 
           {isOpen && (
-            <Card className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-border bg-popover text-popover-foreground py-1 shadow-2xl">
-              <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/40 text-[11px] font-semibold text-muted-foreground">
+            <Card className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-2xl">
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100 bg-slate-50 text-[11px] font-semibold text-slate-500">
                 <span>Suggested Users</span>
                 <Button
                   type="button"

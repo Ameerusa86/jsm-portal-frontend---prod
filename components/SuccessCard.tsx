@@ -33,7 +33,7 @@ export const SuccessCard: React.FC<SuccessCardProps> = ({
 
   return (
     <div className="max-w-2xl mx-auto w-full">
-      <Card className="rounded-2xl border-border shadow-lg overflow-hidden py-0 gap-0">
+      <Card className="bg-white rounded-2xl border border-slate-200/80 shadow-lg overflow-hidden">
         {/* Header Accent Bar */}
         <div className="h-2 bg-linear-to-r from-emerald-500 via-blue-500 to-indigo-600" />
 

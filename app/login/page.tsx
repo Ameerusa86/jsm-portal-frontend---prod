@@ -110,7 +110,7 @@ function LoginContent() {
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 py-12">
         <div className="w-full max-w-md">
           {/* Card Container */}
-          <Card className="bg-slate-900/90 border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 backdrop-blur-xl relative overflow-hidden py-0 gap-0">
+          <Card className="bg-slate-900/90 border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 backdrop-blur-xl relative overflow-hidden">
             {/* Top Accent Line */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 via-indigo-500 to-sky-400" />
 

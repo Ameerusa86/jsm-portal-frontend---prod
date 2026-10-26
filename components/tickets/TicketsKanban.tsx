@@ -14,7 +14,7 @@ import {
   ClientBadge,
   formatRelativeTime,
 } from "./TicketBadge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -136,57 +136,55 @@ export const TicketsKanban: React.FC<TicketsKanbanProps> = ({
                     key={ticket.id || ticket.key}
                     onClick={() => onSelectTicket(ticket)}
                     className={cn(
-                      "cursor-pointer group flex flex-col justify-between py-0 gap-0 transition-all",
+                      "p-3.5 rounded-xl border transition-all cursor-pointer group flex flex-col justify-between",
                       isSelected
-                        ? "bg-blue-50/50 border-blue-500 shadow-sm ring-2 ring-blue-500/20 dark:bg-blue-950/30"
-                        : "bg-card hover:bg-muted/40 border-border hover:border-slate-300 shadow-2xs hover:shadow-xs"
+                        ? "bg-blue-50/50 border-blue-500 shadow-sm ring-2 ring-blue-500/20"
+                        : "bg-white hover:bg-slate-50/60 border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-xs"
                     )}
                   >
-                    <CardContent className="p-3.5 flex-1 flex flex-col justify-between">
-                      <div>
-                        {/* Top info */}
-                        <div className="flex items-center justify-between gap-1 mb-2">
-                          <Badge
-                            variant="outline"
-                            className="font-mono text-[11px] font-bold text-blue-700 bg-blue-50 border-blue-200/80 px-1.5 py-0.5 rounded"
-                          >
-                            {ticket.key}
-                          </Badge>
-                          <PriorityChip
-                            priority={ticket.priority?.name || "Medium"}
-                            showLabel={false}
+                    <div>
+                      {/* Top info */}
+                      <div className="flex items-center justify-between gap-1 mb-2">
+                        <Badge
+                          variant="outline"
+                          className="font-mono text-[11px] font-bold text-blue-700 bg-blue-50 border-blue-200/80 px-1.5 py-0.5 rounded"
+                        >
+                          {ticket.key}
+                        </Badge>
+                        <PriorityChip
+                          priority={ticket.priority?.name || "Medium"}
+                          showLabel={false}
+                        />
+                      </div>
+
+                      {/* Summary */}
+                      <p className="text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-relaxed mb-1.5">
+                        {ticket.summary}
+                      </p>
+
+                      {/* Client Name */}
+                      {(ticket.clientName || ticket.organization) && (
+                        <div className="mb-2">
+                          <ClientBadge
+                            clientName={
+                              ticket.clientName || ticket.organization
+                            }
                           />
                         </div>
+                      )}
+                    </div>
 
-                        {/* Summary */}
-                        <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-relaxed mb-1.5">
-                          {ticket.summary}
-                        </p>
-
-                        {/* Client Name */}
-                        {(ticket.clientName || ticket.organization) && (
-                          <div className="mb-2">
-                            <ClientBadge
-                              clientName={
-                                ticket.clientName || ticket.organization
-                              }
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Footer */}
-                      <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[10px] text-muted-foreground mt-2">
-                        <span className="truncate max-w-[120px] font-medium text-foreground">
-                          {ticket.projectName ||
-                            ticket.projectKey ||
-                            ticket.type}
-                        </span>
-                        <span className="font-mono text-muted-foreground">
-                          {formatRelativeTime(ticket.updated || ticket.created)}
-                        </span>
-                      </div>
-                    </CardContent>
+                    {/* Footer */}
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 mt-2">
+                      <span className="truncate max-w-[120px] font-medium text-slate-600">
+                        {ticket.projectName ||
+                          ticket.projectKey ||
+                          ticket.type}
+                      </span>
+                      <span className="font-mono text-slate-400">
+                        {formatRelativeTime(ticket.updated || ticket.created)}
+                      </span>
+                    </div>
                   </Card>
                 );
               })}

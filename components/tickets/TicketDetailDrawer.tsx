@@ -22,7 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -367,8 +367,8 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
               </div>
 
               {/* Progression Stepper */}
-              <Card className="p-4 bg-muted/30 border-border gap-0">
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
+              <Card className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-xl">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">
                   Progress Tracker
                 </p>
                 <div className="grid grid-cols-4 gap-2 text-center text-xs">
@@ -376,7 +376,7 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                     <div className="size-7 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-700 flex items-center justify-center font-bold text-xs mb-1">
                       ✓
                     </div>
-                    <span className="text-[11px] text-foreground font-semibold">
+                    <span className="text-[11px] text-slate-800 font-semibold">
                       Submitted
                     </span>
                   </div>
@@ -392,7 +392,7 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                     >
                       {detail.statusCategory !== "NEW" ? "✓" : "2"}
                     </div>
-                    <span className="text-[11px] text-foreground font-semibold">
+                    <span className="text-[11px] text-slate-800 font-semibold">
                       Reviewed
                     </span>
                   </div>
@@ -405,12 +405,12 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                           ? "bg-emerald-100 border-emerald-300 text-emerald-700"
                           : detail.statusCategory === "INDETERMINATE"
                           ? "bg-blue-100 border-blue-400 text-blue-700 animate-pulse"
-                          : "bg-muted border-border text-muted-foreground"
+                          : "bg-slate-100 border-slate-200 text-slate-400"
                       )}
                     >
                       {isClosed ? "✓" : "3"}
                     </div>
-                    <span className="text-[11px] text-foreground font-semibold">
+                    <span className="text-[11px] text-slate-800 font-semibold">
                       In Progress
                     </span>
                   </div>
@@ -421,12 +421,12 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                         "size-7 rounded-full flex items-center justify-center font-bold text-xs mb-1 border",
                         isClosed
                           ? "bg-emerald-100 border-emerald-300 text-emerald-700"
-                          : "bg-muted border-border text-muted-foreground"
+                          : "bg-slate-100 border-slate-200 text-slate-400"
                       )}
                     >
                       {isClosed ? "✓" : "4"}
                     </div>
-                    <span className="text-[11px] text-foreground font-semibold">
+                    <span className="text-[11px] text-slate-800 font-semibold">
                       Resolved
                     </span>
                   </div>
@@ -435,48 +435,48 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
 
               {/* Metadata Details Grid */}
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <Card className="p-3.5 bg-muted/20 border-border gap-0">
-                  <p className="text-muted-foreground text-[11px] font-semibold mb-1">
+                <Card className="p-3.5 bg-white border border-slate-200/80 rounded-xl space-y-1">
+                  <p className="text-slate-400 text-[11px] font-semibold mb-1">
                     Client / Organization
                   </p>
-                  <p className="font-bold text-foreground">
+                  <p className="font-bold text-slate-900">
                     {detail.clientName || detail.organization || "Direct / Internal"}
                   </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Account Profile</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Account Profile</p>
                 </Card>
 
-                <Card className="p-3.5 bg-muted/20 border-border gap-0">
-                  <p className="text-muted-foreground text-[11px] font-semibold mb-1">
+                <Card className="p-3.5 bg-white border border-slate-200/80 rounded-xl space-y-1">
+                  <p className="text-slate-400 text-[11px] font-semibold mb-1">
                     Assigned Specialist
                   </p>
-                  <p className="font-bold text-foreground truncate">
+                  <p className="font-bold text-slate-900 truncate">
                     {detail.assignee?.displayName || "Support Team"}
                   </p>
-                  <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                  <p className="text-[10px] text-slate-400 truncate mt-0.5">
                     {detail.assignee?.emailAddress || "Tier 2 Support"}
                   </p>
                 </Card>
 
-                <Card className="p-3.5 bg-muted/20 border-border gap-0">
-                  <p className="text-muted-foreground text-[11px] font-semibold mb-1">
+                <Card className="p-3.5 bg-white border border-slate-200/80 rounded-xl space-y-1">
+                  <p className="text-slate-400 text-[11px] font-semibold mb-1">
                     Created
                   </p>
-                  <p className="font-bold text-foreground">
+                  <p className="font-bold text-slate-900">
                     {formatFullDate(detail.created)}
                   </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                  <p className="text-[10px] text-slate-400 mt-0.5">
                     {formatRelativeTime(detail.created)}
                   </p>
                 </Card>
 
-                <Card className="p-3.5 bg-muted/20 border-border gap-0">
-                  <p className="text-muted-foreground text-[11px] font-semibold mb-1">
+                <Card className="p-3.5 bg-white border border-slate-200/80 rounded-xl space-y-1">
+                  <p className="text-slate-400 text-[11px] font-semibold mb-1">
                     Last Updated
                   </p>
-                  <p className="font-bold text-foreground">
+                  <p className="font-bold text-slate-900">
                     {formatFullDate(detail.updated || detail.created)}
                   </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                  <p className="text-[10px] text-slate-400 mt-0.5">
                     {formatRelativeTime(detail.updated || detail.created)}
                   </p>
                 </Card>
@@ -486,11 +486,11 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
               <div className="space-y-3 pt-2">
                 <Separator />
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Conversation Thread (
                     {(detail.comments && detail.comments.length) || 0})
                   </h4>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-[11px] text-slate-400">
                     Visible to Support Team
                   </span>
                 </div>
@@ -505,15 +505,15 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                         <Card
                           key={comment.id}
                           className={cn(
-                            "p-4 border gap-0",
+                            "p-4 rounded-xl border space-y-2.5 shadow-2xs",
                             isAgent
-                              ? "bg-blue-50/40 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900"
-                              : "bg-muted/30 border-border"
+                              ? "bg-blue-50/40 border-blue-200"
+                              : "bg-slate-50/60 border-slate-200/80"
                           )}
                         >
                           <div className="flex items-center justify-between gap-2 mb-2">
                             <div className="flex items-center gap-2">
-                              <Avatar size="sm" className="size-6 border border-border">
+                              <Avatar size="sm" className="size-6 border border-slate-200">
                                 {comment.author?.avatarUrl && (
                                   <AvatarImage
                                     src={comment.author.avatarUrl}
@@ -524,7 +524,7 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                                   {comment.author?.displayName?.charAt(0).toUpperCase() || "U"}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="font-bold text-xs text-foreground">
+                              <span className="font-bold text-xs text-slate-900">
                                 {comment.author?.displayName}
                               </span>
                               {isAgent && (
@@ -536,19 +536,19 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                                 </Badge>
                               )}
                             </div>
-                            <span className="text-[11px] text-muted-foreground font-mono">
+                            <span className="text-[11px] text-slate-400 font-mono">
                               {formatRelativeTime(comment.created)}
                             </span>
                           </div>
 
-                          <p className="text-xs sm:text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                          <p className="text-xs sm:text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
                             {comment.body}
                           </p>
                         </Card>
                       );
                     })
                   ) : (
-                    <Card className="p-6 bg-muted/20 border-dashed border-border text-center text-xs text-muted-foreground gap-0">
+                    <Card className="p-6 bg-slate-50/50 border border-dashed border-slate-200 rounded-xl text-center text-xs text-slate-400">
                       No customer comments logged yet. Use the field below to
                       send a message or update to our support team.
                     </Card>

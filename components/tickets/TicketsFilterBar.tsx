@@ -288,7 +288,7 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
 
           {/* Column Filter Interactive Modal / Flyout */}
           {showColumnModal && (
-            <Card className="absolute left-0 mt-2 w-80 sm:w-96 bg-card border border-border shadow-xl p-4 z-50 text-left animate-in fade-in zoom-in-95 duration-150">
+            <Card className="absolute left-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200 shadow-xl p-4 z-50 text-left animate-in fade-in zoom-in-95 duration-150 rounded-2xl">
               <div className="flex items-center justify-between pb-2 border-b border-border/60 mb-3">
                 <span className="text-xs font-bold text-foreground">
                   Filter by Column of Your Choice

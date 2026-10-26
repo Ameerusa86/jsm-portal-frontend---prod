@@ -30,10 +30,9 @@ import {
   Maximize2,
   ExternalLink,
 } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { cn } from "cn";
 
 interface ArticleData {
   title: string;
@@ -747,10 +746,10 @@ function ArticleViewerContent() {
           <main className="w-full px-6 lg:px-12 xl:px-16 2xl:px-24 py-10 flex-1">
             <div className="flex flex-col lg:flex-row items-start gap-10 xl:gap-16 w-full">
               {/* Document Container */}
-              <Card className="flex-1 min-w-0 w-full bg-white rounded-2xl border border-border p-6 sm:p-10 xl:p-12 shadow-xs">
+              <Card className="flex-1 min-w-0 w-full bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-10 xl:p-12 shadow-xs">
                 {/* Mobile TOC Accordion */}
                 {toc.length > 0 && (
-                  <Card className="block lg:hidden mb-8 bg-slate-50 border border-border rounded-xl overflow-hidden shadow-2xs">
+                  <Card className="block lg:hidden mb-8 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
                     <Button
                       type="button"
                       variant="ghost"
@@ -803,7 +802,7 @@ function ArticleViewerContent() {
               <aside className="w-full lg:w-80 2xl:w-96 shrink-0 hidden lg:block sticky top-36 self-start space-y-6">
                 {/* On This Page (Table of Contents) */}
                 {toc.length > 0 && (
-                  <Card className="bg-white rounded-2xl border border-border p-5 shadow-xs">
+                  <Card className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs">
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5">
                       <BookOpen className="w-3.5 h-3.5 text-blue-600" />
                       <span>On this page</span>
@@ -857,7 +856,7 @@ function ArticleViewerContent() {
                 </Card>
 
                 {/* Document Utilities */}
-                <Card className="bg-white rounded-2xl border border-border p-5 shadow-xs space-y-3">
+                <Card className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-3">
                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                     Article Tools
                   </h4>

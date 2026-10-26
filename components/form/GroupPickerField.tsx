@@ -127,8 +127,8 @@ export const GroupPickerField: React.FC<GroupPickerFieldProps> = ({
           </div>
 
           {isOpen && (
-            <Card className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-border bg-popover text-popover-foreground py-1 shadow-2xl">
-              <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/40 text-[11px] font-semibold text-muted-foreground">
+            <Card className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-2xl">
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100 bg-slate-50 text-[11px] font-semibold text-slate-500">
                 <span>Select Groups</span>
                 <Button
                   type="button"

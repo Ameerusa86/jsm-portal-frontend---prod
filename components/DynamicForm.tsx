@@ -232,7 +232,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       )}
 
       {validationError && (
-        <Card className="p-4 bg-destructive/10 border-destructive/20 text-destructive flex flex-row items-start gap-3 text-sm animate-shake gap-0">
+        <Card className="p-4 bg-destructive/10 border-destructive/20 text-destructive flex flex-row items-start gap-3 text-sm animate-shake">
           <AlertCircle className="size-5 shrink-0 mt-0.5 text-destructive" />
           <div className="flex-1">
             <p className="font-semibold text-destructive">Submission Incomplete</p>
@@ -308,7 +308,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
               {/* Render Field By Type */}
               {isInfo ? (
-                <Card className="rounded-xl bg-blue-50/90 border-blue-200/90 dark:bg-blue-950/40 dark:border-blue-900 p-4 text-blue-900 dark:text-blue-200 my-2 flex flex-row items-start gap-3 gap-0">
+                <Card className="rounded-xl bg-blue-50/90 border-blue-200/90 dark:bg-blue-950/40 dark:border-blue-900 p-4 text-blue-900 dark:text-blue-200 my-2 flex flex-row items-start gap-3">
                   <Info className="size-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                   <div className="text-xs space-y-1">
                     <p className="font-semibold text-sm text-blue-950 dark:text-blue-100">

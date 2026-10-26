@@ -328,7 +328,7 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                     }
                   }}
                   className={cn(
-                    "group relative flex flex-col justify-between text-left bg-card hover:bg-muted/30 rounded-2xl sm:rounded-3xl border-border p-5 sm:p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer min-h-[145px] sm:min-h-[155px] w-full gap-0 py-0",
+                    "group relative flex flex-col justify-between text-left bg-white hover:bg-linear-to-b hover:from-white hover:to-slate-50/70 rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer min-h-[145px] sm:min-h-[155px] w-full",
                     theme.borderHover,
                     theme.glow
                   )}
@@ -342,7 +342,7 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                   />
 
                   {/* Top Row: Icon */}
-                  <div className="flex items-start justify-between gap-2 pt-5 mb-3">
+                  <div className="flex items-start justify-between gap-2 mb-3">
                     <div
                       className={cn(
                         "size-12 rounded-2xl flex items-center justify-center border shadow-2xs group-hover:scale-105 transition-all duration-300 shrink-0",
@@ -354,17 +354,17 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                   </div>
 
                   {/* Space Name Title (Never cropped, full display) */}
-                  <div className="w-full pb-5">
-                    <h3 className="font-extrabold text-foreground group-hover:text-primary transition-colors text-base sm:text-lg leading-snug tracking-tight mb-3 break-words">
+                  <div className="w-full">
+                    <h3 className="font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors text-base sm:text-lg leading-snug tracking-tight mb-3 break-words">
                       {space.projectName}
                     </h3>
 
                     {/* Footer: Space Name Action */}
-                    <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground group-hover:text-primary transition-colors pt-2.5 border-t border-border/60 gap-2">
-                      <span className="text-xs font-semibold text-muted-foreground group-hover:text-primary transition-colors break-words">
+                    <div className="flex items-center justify-between text-xs font-semibold text-slate-400 group-hover:text-blue-600 transition-colors pt-2.5 border-t border-slate-100/80 gap-2">
+                      <span className="text-xs font-semibold text-slate-500 group-hover:text-blue-600 transition-colors break-words">
                         {space.projectName}
                       </span>
-                      <div className="size-7 rounded-full bg-muted group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center transition-all text-muted-foreground shrink-0">
+                      <div className="size-7 rounded-full bg-slate-100 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all text-slate-400 shrink-0">
                         <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
@@ -435,12 +435,12 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                                 }
                               }}
                               className={cn(
-                                "group relative flex flex-col justify-between items-start bg-muted/30 hover:bg-card p-5 rounded-2xl border-border shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-left cursor-pointer min-h-[145px] w-full gap-0 py-0",
+                                "group relative flex flex-col justify-between items-start bg-slate-50/60 hover:bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-left cursor-pointer min-h-[145px] w-full",
                                 spaceTheme.borderHover,
                                 spaceTheme.glow
                               )}
                             >
-                              <div className="w-full flex items-start justify-between gap-2 pt-5 mb-3">
+                              <div className="w-full flex items-start justify-between gap-2 mb-3">
                                 <div
                                   className={cn(
                                     "size-11 rounded-xl flex items-center justify-center border shadow-2xs group-hover:scale-105 transition-all shrink-0",
@@ -451,13 +451,13 @@ export const OtherSolutionsSection: React.FC<OtherSolutionsSectionProps> = ({
                                 </div>
                               </div>
 
-                              <div className="w-full pb-5">
-                                <h4 className="font-bold text-foreground text-base leading-snug group-hover:text-primary transition-colors mb-3 break-words">
+                              <div className="w-full">
+                                <h4 className="font-bold text-slate-900 text-base leading-snug group-hover:text-blue-600 transition-colors mb-3 break-words">
                                   {space.projectName}
                                 </h4>
 
-                                <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground group-hover:text-primary transition-colors pt-2 border-t border-border/60">
-                                  <span className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">
+                                <div className="flex items-center justify-between text-xs font-semibold text-slate-400 group-hover:text-blue-600 transition-colors pt-2 border-t border-slate-100/80">
+                                  <span className="text-xs font-medium text-slate-500 group-hover:text-blue-600 transition-colors">
                                     {catName}
                                   </span>
                                   <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />

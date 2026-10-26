@@ -277,7 +277,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           }
         }}
         className={cn(
-          "group w-full p-4 sm:p-5 bg-card hover:bg-muted/40 border-border hover:border-blue-300 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-row items-center justify-between gap-4 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring relative overflow-hidden",
+          "group w-full p-4 sm:p-5 bg-white hover:bg-slate-50/80 rounded-2xl border border-slate-200/80 hover:border-blue-300 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-row items-center justify-between gap-4 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 relative overflow-hidden",
           glow
         )}
       >
@@ -296,7 +296,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-bold text-foreground group-hover:text-primary transition-colors text-sm sm:text-base leading-snug tracking-tight">
+              <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-sm sm:text-base leading-snug tracking-tight">
                 {requestType.name}
               </h3>
               {displayBadge && (
@@ -337,7 +337,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
         }
       }}
       className={cn(
-        "group relative flex flex-col justify-between text-left bg-card hover:bg-muted/30 border-border hover:border-primary/60 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-full cursor-pointer overflow-hidden min-h-[175px] sm:min-h-[190px]",
+        "group relative flex flex-col justify-between text-left bg-white hover:bg-linear-to-b hover:from-white hover:to-slate-50/60 rounded-2xl sm:rounded-3xl border border-slate-200/90 hover:border-blue-400/80 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full cursor-pointer overflow-hidden min-h-[175px] sm:min-h-[190px]",
         glow
       )}
     >
@@ -367,15 +367,15 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
 
       {/* Bottom Area: Title & Footer */}
       <div className="mt-auto">
-        <h3 className="font-extrabold text-foreground group-hover:text-primary transition-colors text-base sm:text-lg leading-snug tracking-tight mb-3 break-words">
+        <h3 className="font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors text-base sm:text-lg leading-snug tracking-tight mb-3 break-words">
           {requestType.name}
         </h3>
 
-        <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground group-hover:text-primary transition-colors pt-3 border-t border-border/60 gap-2">
-          <span className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors break-words">
+        <div className="flex items-center justify-between text-xs font-semibold text-slate-400 group-hover:text-blue-600 transition-colors pt-3 border-t border-slate-100 gap-2">
+          <span className="text-xs sm:text-sm font-medium text-slate-500 group-hover:text-blue-600 transition-colors break-words">
             {footerLabel}
           </span>
-          <div className="size-7 rounded-full bg-muted group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center transition-all text-muted-foreground shrink-0">
+          <div className="size-7 rounded-full bg-slate-100 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all text-slate-400 shrink-0">
             <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
           </div>
         </div>

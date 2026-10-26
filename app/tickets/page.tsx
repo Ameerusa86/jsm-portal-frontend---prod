@@ -461,7 +461,7 @@ function TicketsContent() {
               </p>
             </div>
           ) : error ? (
-            <Card className="p-8 bg-destructive/10 border-destructive/20 text-center space-y-3 max-w-lg mx-auto gap-0">
+            <Card className="p-8 bg-destructive/10 border-destructive/20 text-center space-y-3 max-w-lg mx-auto">
               <AlertCircle className="size-10 text-destructive mx-auto" />
               <h3 className="text-base font-bold text-foreground">
                 Could not load requests
@@ -479,7 +479,7 @@ function TicketsContent() {
               </Button>
             </Card>
           ) : filteredTickets.length === 0 ? (
-            <Card className="py-20 text-center space-y-4 bg-card rounded-3xl border-border p-8 shadow-xs gap-0">
+            <Card className="py-20 text-center space-y-4 bg-white rounded-3xl border border-slate-200/80 p-8 shadow-xs">
               <div className="size-16 rounded-2xl bg-muted border border-border flex items-center justify-center mx-auto text-muted-foreground">
                 <Inbox className="size-8" />
               </div>
