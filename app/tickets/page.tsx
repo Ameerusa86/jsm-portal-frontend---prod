@@ -57,17 +57,18 @@ function TicketsContent() {
     requestType: searchParams.get("type") || "all",
     priority: searchParams.get("priority") || "all",
     dateRange: searchParams.get("date") || "all",
-    sortBy: "updated-desc",
+    sortBy: "created-desc",
     viewMode: (searchParams.get("view") as ViewMode) || "grid",
     columnFilters: [],
   });
 
   const [currentTime] = useState(() => Date.now());
 
-  // Fetch tickets on mount
+  // Automatic live updating & continuous background synchronization
   useEffect(() => {
     let ignore = false;
-    const fetchTickets = async () => {
+
+    const fetchTickets = async (isInitial = false) => {
       try {
         const res = await fetch("/api/jsm/tickets", { cache: "no-store" });
         if (!res.ok) {
@@ -79,25 +80,46 @@ function TicketsContent() {
           setError(null);
         }
       } catch (err) {
-        if (!ignore) {
+        if (!ignore && isInitial) {
           const msg = err instanceof Error ? err.message : "Error loading tickets";
           setError(msg);
         }
       } finally {
-        if (!ignore) {
+        if (!ignore && isInitial) {
           setLoading(false);
         }
       }
     };
 
-    void fetchTickets();
+    // 1. Initial load
+    void fetchTickets(true);
+
+    // 2. Auto-polling interval every 25 seconds
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void fetchTickets(false);
+      }
+    }, 25000);
+
+    // 3. Immediate update when tab/window regains user focus
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === "visible") {
+        void fetchTickets(false);
+      }
+    };
+
+    window.addEventListener("focus", handleVisibilityOrFocus);
+    document.addEventListener("visibilitychange", handleVisibilityOrFocus);
 
     return () => {
       ignore = true;
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", handleVisibilityOrFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityOrFocus);
     };
   }, []);
 
-  // Manual refresh handler
+  // Manual retry handler (used in error banner)
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -133,7 +155,7 @@ function TicketsContent() {
       requestType: "all",
       priority: "all",
       dateRange: "all",
-      sortBy: "updated-desc",
+      sortBy: "created-desc",
       viewMode: filters.viewMode,
       columnFilters: [],
     });
@@ -317,14 +339,14 @@ function TicketsContent() {
       const createB = new Date(b.created || 0).getTime();
 
       switch (filters.sortBy) {
-        case "updated-desc":
-          return timeB - timeA;
-        case "updated-asc":
-          return timeA - timeB;
         case "created-desc":
           return createB - createA;
         case "created-asc":
           return createA - createB;
+        case "updated-desc":
+          return timeB - timeA;
+        case "updated-asc":
+          return timeA - timeB;
         case "key-asc":
           return (a.key || "").localeCompare(b.key || "");
         case "summary-asc":
@@ -346,7 +368,7 @@ function TicketsContent() {
           return scoreB - scoreA;
         }
         default:
-          return timeB - timeA;
+          return createB - createA;
       }
     });
 
@@ -398,9 +420,7 @@ function TicketsContent() {
         <div className="space-y-6 sm:space-y-8 w-full">
           {/* Page Top Header */}
           <TicketsHeader
-            onRefresh={handleRefresh}
             onExportCsv={handleExportCsv}
-            refreshing={refreshing}
             totalCount={filteredTickets.length}
           />
 

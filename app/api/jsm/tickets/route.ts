@@ -165,6 +165,11 @@ export async function GET(req: Request) {
       });
     }
 
+    results.sort(
+      (a, b) =>
+        new Date(b.created || 0).getTime() - new Date(a.created || 0).getTime()
+    );
+
     return NextResponse.json(results.slice(0, limitParam));
   }
 

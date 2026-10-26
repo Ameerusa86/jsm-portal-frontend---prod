@@ -195,10 +195,10 @@ export const TicketsFilterBar: React.FC<TicketsFilterBarProps> = ({
               className="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl pl-8 pr-7 py-2.5 appearance-none focus:outline-none focus:border-blue-500 cursor-pointer hover:border-slate-300 transition-colors shadow-2xs"
               aria-label="Sort tickets by"
             >
+              <option value="created-desc">Latest Submitted (Default)</option>
               <option value="updated-desc">Recently Updated</option>
+              <option value="created-asc">Oldest Submitted</option>
               <option value="updated-asc">Oldest Updated</option>
-              <option value="created-desc">Recently Created</option>
-              <option value="created-asc">Oldest Created</option>
               <option value="priority-desc">Priority (Highest first)</option>
               <option value="key-asc">Ticket Key (A-Z)</option>
               <option value="summary-asc">Title (A-Z)</option>
