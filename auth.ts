@@ -73,7 +73,15 @@ export function resolveTargetResource(
     return !urlLower.includes("sandbox") && !nameLower.includes("sandbox");
   });
 
-  const candidates = prodResources.length > 0 ? prodResources : resources;
+  // Pure Production Policy: Never fall back to sandbox resources under any condition
+  if (prodResources.length === 0) {
+    console.warn(
+      "⚠️ [Atlassian Production OAuth] No production Jira resource found in accessible-resources. All sandbox sites are strictly rejected.",
+    );
+    return undefined;
+  }
+
+  const candidates = prodResources;
 
   // 2. Exact match against configuredBaseUrl if specified
   const targetHost = configuredBaseUrl
@@ -196,6 +204,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 if (targetResource) {
                   token.cloudId = targetResource.id;
                   token.siteUrl = targetResource.url.replace(/\/+$/, "");
+                } else {
+                  console.warn(
+                    "   ⚠️ [Atlassian OAuth] No production site matched in accessible-resources. Token cloudId unset.",
+                  );
+                  token.cloudId = undefined;
+                  token.siteUrl = configuredBaseUrl;
                 }
               } else {
                 console.warn(

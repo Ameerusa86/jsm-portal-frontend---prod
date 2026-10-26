@@ -79,16 +79,16 @@ export async function GET(req: NextRequest) {
       .filter((rt) => includeHidden || (!rt.hiddenFromPortal && (rt.groupIds ? rt.groupIds.length > 0 : true)))
       .map((rt) => {
       const space = MOCK_SPACES.find(
-        (s) => String(s.id) === String(rt.serviceDeskId || "4"),
+        (s) => String(s.id) === String(rt.serviceDeskId || "1"),
       );
       return {
         ...rt,
-        serviceDeskId: rt.serviceDeskId || "4",
+        serviceDeskId: rt.serviceDeskId || "1",
         spaceName: space?.projectName || "Information Technology",
         spaceKey: space?.projectKey || "IT",
         portalUrl:
           rt.portalUrl ||
-          `https://emsmc1.atlassian.net/servicedesk/customer/portal/${rt.serviceDeskId || "4"}/create/${rt.id}`,
+          `https://emsmc1.atlassian.net/servicedesk/customer/portal/${rt.serviceDeskId || "1"}/create/${rt.id}`,
       };
     });
 
@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
         (rt) => String(rt.serviceDeskId) === String(serviceDeskId),
       );
     } else if (spaceCategory) {
-      const itSpaceIds = new Set(["1", "4"]);
+      const itSpaceIds = new Set(["1"]);
       mockList = mockList.filter((rt) => rt.serviceDeskId && itSpaceIds.has(rt.serviceDeskId));
     }
 

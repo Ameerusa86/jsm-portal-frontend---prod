@@ -143,16 +143,37 @@ function HelpCenterContent() {
       setSearchQuery("");
       setIsSearchOpen(false);
 
-      if (rt.portalUrl) {
-        window.open(rt.portalUrl, "_blank");
+      const prodDomain = "https://emsmc1.atlassian.net";
+      const deskId =
+        (rt.serviceDeskId && rt.serviceDeskId !== "4"
+          ? rt.serviceDeskId
+          : (spaceParamId && spaceParamId !== "all" && spaceParamId !== "4"
+              ? spaceParamId
+              : "")) || "1";
+
+      let targetUrl = rt.portalUrl;
+      if (targetUrl) {
+        // Enforce pure production Jira domain and strictly purge any sandbox hostname
+        if (targetUrl.includes("sandbox")) {
+          targetUrl = targetUrl.replace(
+            /https:\/\/[^/]*sandbox[^/]*\.atlassian\.net/gi,
+            prodDomain
+          );
+        }
+        // Correct legacy sandbox service desk 4 in URL to production desk id
+        if (targetUrl.includes("/portal/4/")) {
+          targetUrl = targetUrl.replace("/portal/4/", `/${deskId}/`);
+        }
+        if (!targetUrl.startsWith("http")) {
+          targetUrl = `${prodDomain}${targetUrl.startsWith("/") ? "" : "/"}${targetUrl}`;
+        }
+        window.open(targetUrl, "_blank", "noopener,noreferrer");
         return;
       }
 
-      const targetDeskId =
-        rt.serviceDeskId || (spaceParamId && spaceParamId !== "all" ? spaceParamId : "") || "";
       let url = `/?request=${rt.id}`;
-      if (targetDeskId) {
-        url = `/?space=${targetDeskId}&request=${rt.id}`;
+      if (deskId) {
+        url = `/?space=${deskId}&request=${rt.id}`;
       }
       router.push(url);
       window.scrollTo({ top: 0, behavior: "smooth" });
