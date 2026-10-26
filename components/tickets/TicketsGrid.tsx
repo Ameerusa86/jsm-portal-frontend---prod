@@ -102,7 +102,8 @@ export const TicketsGrid: React.FC<TicketsGridProps> = ({
 
               {/* Request Type */}
               <p className="text-xs text-slate-500 mb-4 line-clamp-1">
-                <span className="font-medium text-slate-400">Type:</span> {ticket.type}
+                <span className="font-medium text-slate-400">Type:</span>{" "}
+                {ticket.type}
               </p>
             </div>
 
@@ -133,8 +134,8 @@ export const TicketsGrid: React.FC<TicketsGridProps> = ({
                         {ticket.assignee.displayName.charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <span className="hidden sm:inline max-w-[90px] truncate text-[11px] font-medium text-slate-700">
-                      {ticket.assignee.displayName.split(" ")[0]}
+                    <span className="hidden sm:inline max-w-22.5 truncate text-[11px] font-medium text-slate-700">
+                      {ticket.assignee.displayName}
                     </span>
                   </div>
                 ) : (
