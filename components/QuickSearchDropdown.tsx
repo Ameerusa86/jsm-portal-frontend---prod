@@ -18,6 +18,7 @@ import {
   Building2,
   FolderKanban,
   DollarSign,
+  Lock,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -417,6 +418,15 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
                   <span className="font-semibold text-foreground text-sm sm:text-base leading-snug">
                     {rt.name}
                   </span>
+                  {rt.isLocked && (
+                    <Badge
+                      variant="outline"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-400 shadow-2xs"
+                    >
+                      <Lock className="size-2.5 text-amber-600 dark:text-amber-400" />
+                      <span>Restricted</span>
+                    </Badge>
+                  )}
 
                   {/* Prominent Department / Space Badge */}
                   <Badge
@@ -451,9 +461,18 @@ export const QuickSearchDropdown: React.FC<QuickSearchDropdownProps> = ({
                 )}
               </div>
 
-              <div className="shrink-0 flex items-center self-center text-primary font-medium text-xs gap-1 pl-2">
-                <span className="hidden sm:inline">Select</span>
-                <ArrowRight className="size-4" />
+              <div className="shrink-0 flex items-center self-center font-medium text-xs gap-1 pl-2">
+                {rt.isLocked ? (
+                  <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                    <Lock className="size-3.5" />
+                    <span className="hidden sm:inline">Locked</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-primary">
+                    <span className="hidden sm:inline">Select</span>
+                    <ArrowRight className="size-4" />
+                  </span>
+                )}
               </div>
             </button>
           );

@@ -10,7 +10,15 @@ import {
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Lock, ShieldAlert } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -53,6 +61,7 @@ function HelpCenterContent() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedSearchIndex, setSelectedSearchIndex] = useState(0);
   const [submittedKey, setSubmittedKey] = useState<string | null>(null);
+  const [lockedNoticeType, setLockedNoticeType] = useState<RequestTypeWithGroup | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Sync category and filters whenever space or URL changes
@@ -140,6 +149,12 @@ function HelpCenterContent() {
     (rt: RequestTypeWithGroup) => {
       setSearchQuery("");
       setIsSearchOpen(false);
+
+      // Intercept restricted/locked requests: show access notice dialog instead of navigating
+      if (rt.isLocked) {
+        setLockedNoticeType(rt);
+        return;
+      }
 
       const prodDomain = "https://emsmc1.atlassian.net";
       let deskId =
@@ -374,6 +389,48 @@ function HelpCenterContent() {
           />
         )}
       </main>
+
+      
+      {/* ACCESS RESTRICTION NOTICE DIALOG */}
+      <Dialog
+        open={Boolean(lockedNoticeType)}
+        onOpenChange={(open) => !open && setLockedNoticeType(null)}
+      >
+        <DialogContent className="max-w-md p-6 bg-white rounded-3xl border border-slate-200 shadow-2xl">
+          <DialogHeader className="space-y-3">
+            <div className="size-12 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200/90 flex items-center justify-center shadow-xs">
+              <Lock className="size-6 text-amber-600" />
+            </div>
+            <DialogTitle className="text-xl font-extrabold text-slate-900 tracking-tight">
+              Restricted Service Request
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-600 leading-relaxed">
+              <span className="font-semibold text-slate-900">{lockedNoticeType?.name}</span> is restricted to authorized personnel or specific user groups.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 space-y-2">
+            <div className="flex items-center gap-2 font-semibold text-amber-800">
+              <ShieldAlert className="size-4 text-amber-600 shrink-0" />
+              <span>Permission Required</span>
+            </div>
+            <p className="text-amber-800/90 leading-relaxed">
+              Your account does not currently have permissions to submit this type of request. If you require access to this service, please reach out to your department lead or Jira administrator.
+            </p>
+          </div>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-2">
+            <Button
+              type="button"
+              variant="default"
+              onClick={() => setLockedNoticeType(null)}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-semibold cursor-pointer shadow-sm"
+            >
+              Understood
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* GLOBAL ENTERPRISE FOOTER */}
       <Footer />

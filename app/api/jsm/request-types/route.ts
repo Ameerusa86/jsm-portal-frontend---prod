@@ -124,6 +124,9 @@ export async function GET(req: NextRequest) {
         spaceName: space?.projectName || "Information Technology",
         spaceKey: space?.projectKey || "IT",
         portalUrl: rt.portalUrl || fallbackUrl,
+        isLocked: Boolean(rt.canCreate === false || rt.restricted === true || rt.isLocked === true),
+        restricted: rt.restricted ?? Boolean(rt.isLocked),
+        canCreate: rt.canCreate ?? !Boolean(rt.isLocked),
       };
     });
 
@@ -314,6 +317,10 @@ export async function GET(req: NextRequest) {
           serviceDeskId: String(serviceDeskId),
           spaceName: singleSdProjectName || (isIT ? "Information Technology" : undefined),
           spaceKey: singleSdProjectKey || (isIT ? "IT" : undefined),
+          isLocked: Boolean(rt.canCreate === false || rt.restricted === true || rt.restrictionStatus === "RESTRICTED"),
+          restricted: rt.restricted ?? (rt.restrictionStatus === "RESTRICTED"),
+          restrictionStatus: rt.restrictionStatus,
+          canCreate: rt.canCreate,
         };
       });
 
@@ -496,6 +503,10 @@ export async function GET(req: NextRequest) {
           serviceDeskId: currentSdId,
           spaceName: sd.projectName,
           spaceKey: sd.projectKey,
+          isLocked: Boolean(rt.canCreate === false || rt.restricted === true || rt.restrictionStatus === "RESTRICTED"),
+          restricted: rt.restricted ?? (rt.restrictionStatus === "RESTRICTED"),
+          restrictionStatus: rt.restrictionStatus,
+          canCreate: rt.canCreate,
         };
       });
 

@@ -66,6 +66,10 @@ export interface RequestType {
   spaceName?: string;
   spaceKey?: string;
   hiddenFromPortal?: boolean;
+  restricted?: boolean;
+  restrictionStatus?: string;
+  canCreate?: boolean;
+  isLocked?: boolean;
 }
 
 export interface RequestTypeWithGroup extends RequestType {
@@ -108,6 +112,8 @@ export interface JiraRequestTypeItem {
   portalVisible?: boolean;
   hidden?: boolean;
   restrictionStatus?: string;
+  restricted?: boolean;
+  canCreate?: boolean;
 }
 
 export interface ProformaQuestionItem {

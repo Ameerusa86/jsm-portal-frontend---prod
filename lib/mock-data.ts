@@ -130,6 +130,9 @@ export interface MockRequestType {
   portalUrl?: string;
   groupIds?: string[];
   hiddenFromPortal?: boolean;
+  restricted?: boolean;
+  isLocked?: boolean;
+  canCreate?: boolean;
 }
 
 export const MOCK_REQUEST_TYPES: MockRequestType[] = [
@@ -195,6 +198,9 @@ export const MOCK_REQUEST_TYPES: MockRequestType[] = [
   {
     id: "108",
     name: "AWS / Cloud Infrastructure Permissions",
+    restricted: true,
+    isLocked: true,
+    canCreate: false,
     description: "Request IAM roles, BigQuery dataset access, Kubernetes cluster permissions, or Cloud Console access.",
     group: "Work Orders",
     serviceDeskId: "4",
