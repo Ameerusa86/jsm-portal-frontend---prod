@@ -164,6 +164,10 @@ function HelpCenterContent() {
         if (targetUrl.includes("/portal/4/")) {
           targetUrl = targetUrl.replace("/portal/4/", `/${deskId}/`);
         }
+        // Prevent 404s from non-existent mock IDs (e.g. /create/100, /create/101) on live Jira
+        if (/\/create\/(1\d\d|2\d\d|3\d\d|5\d\d)$/.test(targetUrl)) {
+          targetUrl = `${prodDomain}/servicedesk/customer/portal/${deskId}`;
+        }
         if (!targetUrl.startsWith("http")) {
           targetUrl = `${prodDomain}${targetUrl.startsWith("/") ? "" : "/"}${targetUrl}`;
         }

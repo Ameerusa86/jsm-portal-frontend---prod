@@ -442,19 +442,22 @@ function ArticleViewerContent() {
 
     if (USE_NATIVE_PORTAL && articleData?.baseUrl) {
       if (finalRequestTypeId && serviceDeskId) {
-        window.open(
-          `${articleData.baseUrl}/servicedesk/customer/portal/${serviceDeskId}/create/${finalRequestTypeId}`,
-          "_blank",
-        );
+        const isMockId = /^(1\d\d|2\d\d|3\d\d|5\d\d)$/.test(String(finalRequestTypeId));
+        const targetUrl = isMockId
+          ? `${articleData.baseUrl}/servicedesk/customer/portal/${serviceDeskId}`
+          : `${articleData.baseUrl}/servicedesk/customer/portal/${serviceDeskId}/create/${finalRequestTypeId}`;
+        window.open(targetUrl, "_blank", "noopener,noreferrer");
       } else if (serviceDeskId) {
         window.open(
           `${articleData.baseUrl}/servicedesk/customer/portal/${serviceDeskId}`,
           "_blank",
+          "noopener,noreferrer",
         );
       } else {
         window.open(
           `${articleData.baseUrl}/servicedesk/customer/portals`,
           "_blank",
+          "noopener,noreferrer",
         );
       }
     } else {

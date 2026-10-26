@@ -37,5 +37,14 @@ export async function GET(request: Request) {
     );
   }
 
+  const requestTypeId = searchParams.get("requestTypeId");
+  const groupId = searchParams.get("groupId");
+  if (requestTypeId && !/^(1\d\d|2\d\d|3\d\d|5\d\d)$/.test(requestTypeId)) {
+    if (groupId) {
+      redirect(`${baseUrl}/servicedesk/customer/portal/${serviceDeskId}/group/${groupId}/create/${requestTypeId}`);
+    }
+    redirect(`${baseUrl}/servicedesk/customer/portal/${serviceDeskId}/create/${requestTypeId}`);
+  }
+
   redirect(`${baseUrl}/servicedesk/customer/portal/${serviceDeskId}`);
 }
