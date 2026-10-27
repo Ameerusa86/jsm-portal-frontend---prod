@@ -24,7 +24,8 @@ const matchesCategory = (actual?: string, expected?: string) => {
     words.has("it") ||
     words.has("technology") ||
     words.has("information") ||
-    words.has("techology");
+    words.has("solutions") ||
+    words.has("technology");
 
   if (isITAlias(expectedWords)) {
     return isITAlias(actualWords);
@@ -89,7 +90,9 @@ const isPortalVisibleRequestType = (
 
   // 3. When active portal groups exist for the service desk, require at least one group match
   if (activeGroupMap && Object.keys(activeGroupMap).length > 0) {
-    const hasValidPortalGroup = rt.groupIds.some((gid) => Boolean(activeGroupMap[String(gid)]));
+    const hasValidPortalGroup = rt.groupIds.some((gid) =>
+      Boolean(activeGroupMap[String(gid)]),
+    );
     if (!hasValidPortalGroup) {
       return false;
     }
@@ -105,17 +108,24 @@ export async function GET(req: NextRequest) {
   const serviceDeskIdParam = searchParams.get("serviceDeskId");
   const spaceCategory = searchParams.get("spaceCategory");
   const includeHidden = searchParams.get("includeHidden") === "true";
-  const serviceDeskId = serviceDeskIdParam || (spaceCategory ? "all" : undefined);
+  const serviceDeskId =
+    serviceDeskIdParam || (spaceCategory ? "all" : undefined);
 
   // If credentials are not configured, seamlessly return mock data filtered by space
   if (!authCtx.isConfigured || !serviceDeskId) {
-    let mockList: RequestTypeWithGroup[] = MOCK_REQUEST_TYPES
-      .filter((rt) => includeHidden || (!rt.hiddenFromPortal && (rt.groupIds ? rt.groupIds.length > 0 : true)))
-      .map((rt) => {
+    let mockList: RequestTypeWithGroup[] = MOCK_REQUEST_TYPES.filter(
+      (rt) =>
+        includeHidden ||
+        (!rt.hiddenFromPortal && (rt.groupIds ? rt.groupIds.length > 0 : true)),
+    ).map((rt) => {
       const space = MOCK_SPACES.find(
         (s) => String(s.id) === String(rt.serviceDeskId || "4"),
       );
-      const deskId = resolveCustomerPortalId(rt.serviceDeskId, space?.projectKey, space?.projectName);
+      const deskId = resolveCustomerPortalId(
+        rt.serviceDeskId,
+        space?.projectKey,
+        space?.projectName,
+      );
       const fallbackUrl = `https://emsmc1.atlassian.net/servicedesk/customer/portal/${deskId}/create/${rt.id}`;
 
       return {
@@ -124,7 +134,11 @@ export async function GET(req: NextRequest) {
         spaceName: space?.projectName || "Information Technology",
         spaceKey: space?.projectKey || "IT",
         portalUrl: rt.portalUrl || fallbackUrl,
-        isLocked: Boolean(rt.canCreate === false || rt.restricted === true || rt.isLocked === true),
+        isLocked: Boolean(
+          rt.canCreate === false ||
+          rt.restricted === true ||
+          rt.isLocked === true,
+        ),
         restricted: rt.restricted ?? Boolean(rt.isLocked),
         canCreate: rt.canCreate ?? !Boolean(rt.isLocked),
       };
@@ -136,7 +150,9 @@ export async function GET(req: NextRequest) {
       );
     } else if (spaceCategory) {
       const itSpaceIds = new Set(["1", "4"]);
-      mockList = mockList.filter((rt) => rt.serviceDeskId && itSpaceIds.has(rt.serviceDeskId));
+      mockList = mockList.filter(
+        (rt) => rt.serviceDeskId && itSpaceIds.has(rt.serviceDeskId),
+      );
     }
 
     return NextResponse.json(mockList);
@@ -157,7 +173,8 @@ export async function GET(req: NextRequest) {
 
     const baseUrl =
       process.env.JIRA_BASE_URL?.replace(/\/+$/, "") ||
-      (authCtx.baseUrl.startsWith("http") && !authCtx.baseUrl.includes("api.atlassian.com")
+      (authCtx.baseUrl.startsWith("http") &&
+      !authCtx.baseUrl.includes("api.atlassian.com")
         ? authCtx.baseUrl.replace(/\/+$/, "")
         : "https://emsmc1.atlassian.net");
 
@@ -205,7 +222,12 @@ export async function GET(req: NextRequest) {
                 const proj = (await projRes.json()) as {
                   projectCategory?: { name?: string };
                 };
-                if (matchesCategory(proj.projectCategory?.name, "Information Technology")) {
+                if (
+                  matchesCategory(
+                    proj.projectCategory?.name,
+                    "Information Technology",
+                  )
+                ) {
                   isIT = true;
                 }
               }
@@ -215,11 +237,17 @@ export async function GET(req: NextRequest) {
           }
         }
       } catch (err) {
-        console.warn(`Could not verify service desk ${serviceDeskId} details:`, err);
+        console.warn(
+          `Could not verify service desk ${serviceDeskId} details:`,
+          err,
+        );
       }
 
       // If URL explicitly asked for spaceCategory=Information Technology, treat as IT
-      if (spaceCategory && matchesCategory(spaceCategory, "Information Technology")) {
+      if (
+        spaceCategory &&
+        matchesCategory(spaceCategory, "Information Technology")
+      ) {
         isIT = true;
       }
 
@@ -231,7 +259,10 @@ export async function GET(req: NextRequest) {
 
       if (!rtRes.ok) {
         const text = await rtRes.text().catch(() => "");
-        console.error(`Failed to fetch request types for SD ${serviceDeskId}:`, text);
+        console.error(
+          `Failed to fetch request types for SD ${serviceDeskId}:`,
+          text,
+        );
         return NextResponse.json([]);
       }
 
@@ -259,13 +290,18 @@ export async function GET(req: NextRequest) {
           }
         }
       } catch (err) {
-        console.warn(`Failed to fetch native portal groups for SD ${serviceDeskId}:`, err);
+        console.warn(
+          `Failed to fetch native portal groups for SD ${serviceDeskId}:`,
+          err,
+        );
       }
 
       // 4. Filter out request types that are marked as Hidden from Portal in JSM
       const visibleTypes = includeHidden
         ? rawTypes
-        : rawTypes.filter((rt) => isPortalVisibleRequestType(rt, nativeGroupMap));
+        : rawTypes.filter((rt) =>
+            isPortalVisibleRequestType(rt, nativeGroupMap),
+          );
 
       // 5. Map request types
       const mappedTypes: RequestTypeWithGroup[] = visibleTypes.map((rt) => {
@@ -305,7 +341,11 @@ export async function GET(req: NextRequest) {
           }
         }
 
-        const targetPortalId = resolveCustomerPortalId(serviceDeskId, singleSdProjectKey, singleSdProjectName);
+        const targetPortalId = resolveCustomerPortalId(
+          serviceDeskId,
+          singleSdProjectKey,
+          singleSdProjectName,
+        );
         const portalUrl = `${baseUrl}/servicedesk/customer/portal/${targetPortalId}/create/${rt.id}`;
 
         return {
@@ -315,10 +355,16 @@ export async function GET(req: NextRequest) {
           group: groupName,
           portalUrl,
           serviceDeskId: String(serviceDeskId),
-          spaceName: singleSdProjectName || (isIT ? "Information Technology" : undefined),
+          spaceName:
+            singleSdProjectName ||
+            (isIT ? "Information Technology" : undefined),
           spaceKey: singleSdProjectKey || (isIT ? "IT" : undefined),
-          isLocked: Boolean(rt.canCreate === false || rt.restricted === true || rt.restrictionStatus === "RESTRICTED"),
-          restricted: rt.restricted ?? (rt.restrictionStatus === "RESTRICTED"),
+          isLocked: Boolean(
+            rt.canCreate === false ||
+            rt.restricted === true ||
+            rt.restrictionStatus === "RESTRICTED",
+          ),
+          restricted: rt.restricted ?? rt.restrictionStatus === "RESTRICTED",
           restrictionStatus: rt.restrictionStatus,
           canCreate: rt.canCreate,
         };
@@ -451,7 +497,7 @@ export async function GET(req: NextRequest) {
 
       // Filter out request types marked as Hidden from Portal in JSM
       const visibleTypes = includeHidden
-        ? (rtData.values || [])
+        ? rtData.values || []
         : (rtData.values || []).filter((rt: JiraRequestTypeItem) =>
             isPortalVisibleRequestType(rt, nativeGroupMap),
           );
@@ -491,7 +537,11 @@ export async function GET(req: NextRequest) {
           }
         }
 
-        const targetPortalId = resolveCustomerPortalId(currentSdId, sd.projectKey, sd.projectName);
+        const targetPortalId = resolveCustomerPortalId(
+          currentSdId,
+          sd.projectKey,
+          sd.projectName,
+        );
         const portalUrl = `${baseUrl}/servicedesk/customer/portal/${targetPortalId}/create/${rt.id}`;
 
         return {
@@ -503,8 +553,12 @@ export async function GET(req: NextRequest) {
           serviceDeskId: currentSdId,
           spaceName: sd.projectName,
           spaceKey: sd.projectKey,
-          isLocked: Boolean(rt.canCreate === false || rt.restricted === true || rt.restrictionStatus === "RESTRICTED"),
-          restricted: rt.restricted ?? (rt.restrictionStatus === "RESTRICTED"),
+          isLocked: Boolean(
+            rt.canCreate === false ||
+            rt.restricted === true ||
+            rt.restrictionStatus === "RESTRICTED",
+          ),
+          restricted: rt.restricted ?? rt.restrictionStatus === "RESTRICTED",
           restrictionStatus: rt.restrictionStatus,
           canCreate: rt.canCreate,
         };
