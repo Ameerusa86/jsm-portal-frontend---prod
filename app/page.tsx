@@ -98,6 +98,7 @@ function HelpCenterContent() {
     filteredTypes,
     availableBoards,
     categoriesWithCounts,
+    projectSections,
     groupedRequests,
     searchDropdownResults,
   } = useRequestCatalog({
@@ -379,6 +380,7 @@ function HelpCenterContent() {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             filteredTypes={filteredTypes}
+            projectSections={projectSections}
             groupedRequests={groupedRequests}
             kbResults={kbResults}
             kbLoading={kbLoading}

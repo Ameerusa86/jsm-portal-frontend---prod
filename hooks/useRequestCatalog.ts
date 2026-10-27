@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { JsmSpace, RequestTypeWithGroup } from "@/types/jsm";
+import { JsmSpace, RequestTypeWithGroup, CatalogGroup, ProjectGroupSection } from "@/types/jsm";
 
 const normalizeCategoryName = (value?: string) =>
   (value ?? "")
@@ -304,23 +304,70 @@ export function useRequestCatalog({
     return result;
   }, [enrichedBaseRequestTypes]);
 
-  const groupedRequests = useMemo(() => {
-    return filteredTypes.reduce(
-      (acc, rt) => {
-        const groupName = rt.portalGroup || rt.group || "General Requests";
-        const sdId = rt.serviceDeskId ? String(rt.serviceDeskId) : "general";
-        // When viewing across multiple service desks (e.g. all IT boards),
-        // scope group key per service desk to prevent cross-team contamination
-        const isMultiSpaceView = !spaceParamId || spaceParamId === "all";
-        const groupKey = isMultiSpaceView ? `${sdId}:::${groupName}` : groupName;
+  const projectSections = useMemo<ProjectGroupSection[]>(() => {
+    const projectMap = new Map<
+      string,
+      {
+        serviceDeskId: string;
+        projectName: string;
+        projectKey?: string;
+        category?: string;
+        groupMap: Map<string, CatalogGroup>;
+      }
+    >();
 
-        if (!acc[groupKey]) acc[groupKey] = [];
-        acc[groupKey].push(rt);
-        return acc;
-      },
-      {} as Record<string, RequestTypeWithGroup[]>,
-    );
-  }, [filteredTypes, spaceParamId]);
+    for (const rt of filteredTypes) {
+      const sdId = rt.serviceDeskId ? String(rt.serviceDeskId) : "general";
+      const space = spaces.find((s) => String(s.id) === sdId);
+      const projectName = rt.spaceName || space?.projectName || "General Service Desk";
+      const projectKey = rt.spaceKey || (space?.projectKey as string | undefined);
+      const category = space?.category;
+      const groupName = rt.portalGroup || rt.group || "General Requests";
+      const groupKey = `${sdId}__${groupName}`;
+
+      if (!projectMap.has(sdId)) {
+        projectMap.set(sdId, {
+          serviceDeskId: sdId,
+          projectName,
+          projectKey,
+          category,
+          groupMap: new Map(),
+        });
+      }
+
+      const pEntry = projectMap.get(sdId)!;
+      if (!pEntry.groupMap.has(groupKey)) {
+        pEntry.groupMap.set(groupKey, {
+          groupKey,
+          groupName,
+          serviceDeskId: sdId,
+          spaceName: projectName,
+          spaceKey: projectKey,
+          requestTypes: [],
+        });
+      }
+
+      pEntry.groupMap.get(groupKey)!.requestTypes.push(rt);
+    }
+
+    return Array.from(projectMap.values()).map((p) => ({
+      serviceDeskId: p.serviceDeskId,
+      projectName: p.projectName,
+      projectKey: p.projectKey,
+      category: p.category,
+      groups: Array.from(p.groupMap.values()),
+    }));
+  }, [filteredTypes, spaces]);
+
+  const groupedRequests = useMemo(() => {
+    const map: Record<string, RequestTypeWithGroup[]> = {};
+    for (const p of projectSections) {
+      for (const g of p.groups) {
+        map[g.groupKey] = g.requestTypes;
+      }
+    }
+    return map;
+  }, [projectSections]);
 
   return {
     requestTypes: enrichedBaseRequestTypes,
@@ -333,6 +380,7 @@ export function useRequestCatalog({
     filteredTypes,
     availableBoards,
     categoriesWithCounts,
+    projectSections,
     groupedRequests,
     searchDropdownResults,
   };

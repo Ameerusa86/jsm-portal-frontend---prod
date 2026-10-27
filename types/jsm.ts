@@ -83,6 +83,23 @@ export interface RequestTypeWithGroup extends RequestType {
   hiddenFromPortal?: boolean;
 }
 
+export interface CatalogGroup {
+  groupKey: string;
+  groupName: string;
+  serviceDeskId: string;
+  spaceName: string;
+  spaceKey?: string;
+  requestTypes: RequestTypeWithGroup[];
+}
+
+export interface ProjectGroupSection {
+  serviceDeskId: string;
+  projectName: string;
+  projectKey?: string;
+  category?: string;
+  groups: CatalogGroup[];
+}
+
 export interface SubmitPayload {
   serviceDeskId?: string;
   requestTypeId?: string;
