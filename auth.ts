@@ -129,7 +129,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       authorization: {
         params: {
           scope:
-            "read:me read:jira-user read:jira-work write:jira-work read:servicedesk-request write:servicedesk-request read:knowledgebase:jira-service-management read:confluence-space.summary read:confluence-content.summary offline_access",
+            "read:me read:account read:jira-user read:jira-work write:jira-work read:servicedesk-request write:servicedesk-request read:knowledgebase:jira-service-management read:confluence-space.summary read:confluence-content.summary offline_access",
           prompt: "consent",
           audience: "api.atlassian.com",
         },
