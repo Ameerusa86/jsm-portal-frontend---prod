@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import Atlassian from "next-auth/providers/atlassian";
-import Credentials from "next-auth/providers/credentials";
 import type { JWT } from "next-auth/jwt";
 
 /**
@@ -132,92 +131,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/login",
   },
   providers: [
-    Credentials({
-      id: "customer-email",
-      name: "Work Email",
-      credentials: {
-        email: { label: "Work Email", type: "email" },
-        name: { label: "Full Name (Optional)", type: "text" },
-      },
-      async authorize(credentials) {
-        const rawEmail = String(credentials?.email || "")
-          .trim()
-          .toLowerCase();
-        if (!rawEmail || !rawEmail.includes("@")) {
-          return null;
-        }
-
-        const rawName = String(credentials?.name || "").trim();
-        const fallbackName =
-          rawName ||
-          rawEmail
-            .split("@")[0]
-            .replace(/[._-]+/g, " ")
-            .replace(/\b\w/g, (c) => c.toUpperCase());
-
-        let resolvedId = rawEmail;
-        let resolvedName = fallbackName;
-        let resolvedImage: string | undefined;
-
-        // If Service Account credentials are set, look up existing JSM Customer / Jira user profile
-        const { JIRA_BASE_URL, JIRA_USER_EMAIL, JIRA_API_TOKEN } = process.env;
-        if (JIRA_USER_EMAIL && JIRA_API_TOKEN) {
-          const baseUrl = (
-            JIRA_BASE_URL && !JIRA_BASE_URL.includes("sandbox")
-              ? JIRA_BASE_URL
-              : "https://emsmc1.atlassian.net"
-          )
-            .trim()
-            .replace(/\/+$/, "");
-
-          try {
-            const basicAuth = Buffer.from(
-              `${JIRA_USER_EMAIL.trim()}:${JIRA_API_TOKEN.trim()}`,
-            ).toString("base64");
-            const res = await fetch(
-              `${baseUrl}/rest/api/3/user/search?query=${encodeURIComponent(rawEmail)}&maxResults=5`,
-              {
-                headers: {
-                  Authorization: `Basic ${basicAuth}`,
-                  Accept: "application/json",
-                },
-                cache: "no-store",
-              },
-            );
-            if (res.ok) {
-              const users = (await res.json()) as Array<{
-                accountId?: string;
-                displayName?: string;
-                emailAddress?: string;
-                avatarUrls?: Record<string, string>;
-              }>;
-              if (Array.isArray(users) && users.length > 0) {
-                const match =
-                  users.find(
-                    (u) => (u.emailAddress || "").toLowerCase() === rawEmail,
-                  ) || users[0];
-                if (match.accountId) resolvedId = match.accountId;
-                if (match.displayName && !rawName) {
-                  resolvedName = match.displayName;
-                }
-                if (match.avatarUrls?.["48x48"]) {
-                  resolvedImage = match.avatarUrls["48x48"];
-                }
-              }
-            }
-          } catch {
-            // Ignore lookup failure and proceed with email identity
-          }
-        }
-
-        return {
-          id: resolvedId,
-          email: rawEmail,
-          name: resolvedName,
-          image: resolvedImage,
-        };
-      },
-    }),
     Atlassian({
       clientId,
       clientSecret,
@@ -231,7 +144,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, account, user }) {
+    async jwt({ token, account }) {
       const configuredBaseUrl = (
         process.env.JIRA_BASE_URL &&
         !process.env.JIRA_BASE_URL.includes("sandbox")
@@ -241,18 +154,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         .trim()
         .replace(/\/+$/, "");
 
-      // 1a. Direct Customer / Work Email login (for unlicensed / portal-only users)
-      if (account?.provider === "customer-email" && user) {
-        token.accountId = user.id;
-        token.email = user.email;
-        token.name = user.name;
-        token.picture = user.image;
-        token.siteUrl = configuredBaseUrl;
-        token.error = undefined;
-        return token;
-      }
-
-      // 1b. Initial Atlassian OAuth login: extract tokens and retrieve Production Cloud ID (if site scopes are used)
+      // 1. Initial login: extract tokens and retrieve Production Cloud ID (if site scopes are used)
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
@@ -338,17 +240,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.siteUrl = "https://emsmc1.atlassian.net";
       }
 
-      // 2. If token does not use expiring OAuth tokens (e.g. customer-email session), return as-is
-      if (!token.expiresAt || !token.refreshToken) {
+      // 2. Return current token if it has not expired yet (with 60-second safety window)
+      if (token.expiresAt && Date.now() < token.expiresAt * 1000 - 60000) {
         return token;
       }
 
-      // 3. Return current OAuth token if it has not expired yet (with 60-second safety window)
-      if (Date.now() < token.expiresAt * 1000 - 60000) {
-        return token;
-      }
-
-      // 4. Token expired -> refresh it
+      // 3. Token expired -> refresh it
       return refreshAccessToken(token);
     },
     async session({ session, token }) {

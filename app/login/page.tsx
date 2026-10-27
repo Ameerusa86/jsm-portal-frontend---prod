@@ -9,8 +9,6 @@ import {
   Loader2,
   ArrowRight,
   Lock,
-  Mail,
-  User,
 } from "lucide-react";
 import {
   Card,
@@ -30,10 +28,6 @@ function LoginContent() {
   const errorParam = searchParams.get("error");
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isEmailLoading, setIsEmailLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [localError, setLocalError] = useState<string | null>(null);
 
   // If already authenticated, redirect to callbackUrl or home
   useEffect(() => {
@@ -44,44 +38,11 @@ function LoginContent() {
 
   const handleSignIn = async () => {
     try {
-      setLocalError(null);
       setIsLoading(true);
       await signIn("atlassian", { callbackUrl });
     } catch (err) {
       console.error("Sign in error:", err);
       setIsLoading(false);
-    }
-  };
-
-  const handleEmailSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedEmail = email.trim().toLowerCase();
-    if (!trimmedEmail || !trimmedEmail.includes("@")) {
-      setLocalError("Please enter a valid work email address.");
-      return;
-    }
-
-    try {
-      setLocalError(null);
-      setIsEmailLoading(true);
-      const res = await signIn("customer-email", {
-        email: trimmedEmail,
-        name: fullName.trim(),
-        redirect: false,
-        callbackUrl,
-      });
-
-      if (res?.error) {
-        setLocalError("Unable to sign in with that email address. Please try again.");
-        setIsEmailLoading(false);
-      } else {
-        router.replace(callbackUrl);
-        router.refresh();
-      }
-    } catch (err) {
-      console.error("Email sign in error:", err);
-      setLocalError("An unexpected error occurred during sign in.");
-      setIsEmailLoading(false);
     }
   };
 
@@ -162,105 +123,28 @@ function LoginContent() {
                 Welcome to Service Desk
               </CardTitle>
               <CardDescription className="text-sm text-slate-400 mt-2 leading-relaxed">
-                Sign in with your work email or Atlassian account to browse IT services, submit requests, and track your tickets.
+                Please sign in with your Atlassian account to access IT services, submit requests, and manage tickets.
               </CardDescription>
             </CardHeader>
 
             <CardContent className="p-0">
               {/* Error Banner */}
-              {(localError || errorMessage) && (
+              {errorMessage && (
                 <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2.5">
                   <AlertCircle className="size-4 text-rose-400 shrink-0 mt-0.5" />
-                  <span className="leading-relaxed">
-                    {localError || errorMessage}
-                  </span>
+                  <span className="leading-relaxed">{errorMessage}</span>
                 </div>
               )}
 
-              {/* Direct Work Email / Customer Portal Sign In (No Jira/Confluence License Needed) */}
-              <form onSubmit={handleEmailSignIn} className="space-y-3.5 mb-5">
-                <div>
-                  <label
-                    htmlFor="portal-email"
-                    className="block text-xs font-medium text-slate-300 mb-1.5"
-                  >
-                    Work Email Address
-                  </label>
-                  <div className="relative">
-                    <Mail className="size-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      id="portal-email"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@company.com"
-                      disabled={isEmailLoading || isLoading}
-                      className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-950/80 border border-slate-800 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="portal-name"
-                    className="block text-xs font-medium text-slate-400 mb-1.5"
-                  >
-                    Full Name <span className="text-slate-500">(Optional)</span>
-                  </label>
-                  <div className="relative">
-                    <User className="size-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      id="portal-name"
-                      type="text"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Jane Doe"
-                      disabled={isEmailLoading || isLoading}
-                      className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-950/80 border border-slate-800 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  variant="default"
-                  size="lg"
-                  disabled={isEmailLoading || isLoading}
-                  className="w-full h-12 cursor-pointer text-sm font-semibold gap-2.5 shadow-lg shadow-blue-600/25 active:scale-[0.98] group bg-blue-600 hover:bg-blue-500 mt-1"
-                >
-                  {isEmailLoading ? (
-                    <>
-                      <Loader2 className="size-4 animate-spin text-white" />
-                      <span>Signing in to Portal...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Continue with Work Email</span>
-                      <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform shrink-0" />
-                    </>
-                  )}
-                </Button>
-              </form>
-
-              {/* Divider */}
-              <div className="relative my-5 flex items-center justify-center">
-                <div className="w-full border-t border-slate-800" />
-                <span className="bg-slate-900 px-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 shrink-0">
-                  Or sign in with SSO
-                </span>
-                <div className="w-full border-t border-slate-800" />
-              </div>
-
-              {/* Atlassian OAuth Sign In Button */}
+              {/* Sign In Button */}
               <div className="space-y-4">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="default"
                   size="lg"
                   onClick={handleSignIn}
-                  disabled={isLoading || isEmailLoading}
-                  className="w-full h-11 cursor-pointer text-sm font-semibold gap-3 border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-100 active:scale-[0.98] group"
+                  disabled={isLoading}
+                  className="w-full h-12 cursor-pointer text-sm font-semibold gap-3 shadow-lg shadow-blue-600/25 active:scale-[0.98] group bg-blue-600 hover:bg-blue-500"
                 >
                   {isLoading ? (
                     <>
@@ -271,13 +155,14 @@ function LoginContent() {
                     <>
                       {/* Atlassian Official Symbol SVG */}
                       <svg
-                        className="size-4 fill-current shrink-0 text-blue-400"
+                        className="size-4 fill-current shrink-0"
                         viewBox="0 0 32 32"
                         aria-hidden="true"
                       >
                         <path d="M15.54 13.06c-.4 0-.82.17-1.1.48L5.7 23.36c-.45.5-.3 1.29.3 1.6l4.63 2.37c.36.19.8.14 1.1-.14l6.19-6.38a1.35 1.35 0 0 0 .39-.96v-5.42c0-.75-.6-1.37-1.37-1.37h-.4zm.92-8.38c-.76 0-1.38.62-1.38 1.38v5.42c0 .36.14.71.39.96l6.19 6.38c.3.28.74.33 1.1.14l4.63-2.37c.6-.31.75-1.1.3-1.6L19.05 5.16a1.52 1.52 0 0 0-1.1-.48h-1.49z" />
                       </svg>
                       <span>Sign In with Atlassian</span>
+                      <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform shrink-0" />
                     </>
                   )}
                 </Button>
