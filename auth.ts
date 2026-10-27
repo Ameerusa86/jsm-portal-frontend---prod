@@ -116,6 +116,14 @@ const clientSecret =
   process.env.ATLASSIAN_CLIENT_SECRET ||
   "";
 
+// Request ONLY User Identity ("read:me offline_access") by default so that
+// employees/customers WITHOUT a paid Jira, JSM Agent, or Confluence seat
+// never get blocked by Atlassian's "Access Denied" product license screen.
+// All backend Jira/JSM/Confluence API requests execute via the Service Account
+// (JIRA_USER_EMAIL + JIRA_API_TOKEN) on behalf of the authenticated user.
+const oauthScopes =
+  process.env.ATLASSIAN_OAUTH_SCOPES || "read:me offline_access";
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: authSecret,
   trustHost: true,
@@ -128,8 +136,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret,
       authorization: {
         params: {
-          scope:
-            "read:me read:jira-user read:jira-work write:jira-work read:servicedesk-request write:servicedesk-request read:knowledgebase:jira-service-management read:confluence-space.summary read:confluence-content.summary offline_access",
+          scope: oauthScopes,
           prompt: "consent",
           audience: "api.atlassian.com",
         },
@@ -147,11 +154,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         .trim()
         .replace(/\/+$/, "");
 
-      // 1. Initial login: extract tokens and retrieve Production Cloud ID
+      // 1. Initial login: extract tokens and retrieve Production Cloud ID (if site scopes are used)
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
+        token.accountId = account.providerAccountId || token.sub;
         token.siteUrl = configuredBaseUrl;
 
         console.log(
@@ -162,10 +170,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         console.log(
           `   OAuth Client ID:          "${clientId ? clientId.substring(0, 10) + "..." : "Not set"}"`,
         );
+        console.log(`   OAuth Scopes:             "${oauthScopes}"`);
 
-        // Fetch accessible resources (Atlassian Cloud sites)
+        // Fetch accessible resources only if product scopes beyond read:me are requested
+        const hasProductScopes =
+          oauthScopes.includes("jira") ||
+          oauthScopes.includes("servicedesk") ||
+          oauthScopes.includes("confluence");
+
         try {
-          if (account.access_token) {
+          if (account.access_token && hasProductScopes) {
             const res = await fetch(
               "https://api.atlassian.com/oauth/token/accessible-resources",
               {
@@ -189,39 +203,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                   configuredBaseUrl,
                 );
 
-                console.log(
-                  `   Atlassian authorized site(s) (${resources.length}):`,
-                );
-                resources.forEach((r, idx) => {
-                  console.log(
-                    `     [${idx + 1}] ID: ${r.id} | Name: "${r.name}" | URL: "${r.url}"`,
-                  );
-                });
-                console.log(
-                  `   Selected Production Site:  ${targetResource?.url} (${targetResource?.name}) [Cloud ID: ${targetResource?.id}]`,
-                );
-
                 if (targetResource) {
                   token.cloudId = targetResource.id;
                   token.siteUrl = targetResource.url.replace(/\/+$/, "");
                 } else {
-                  console.warn(
-                    "   ⚠️ [Atlassian OAuth] No production site matched in accessible-resources. Token cloudId unset.",
-                  );
                   token.cloudId = undefined;
                   token.siteUrl = configuredBaseUrl;
                 }
-              } else {
-                console.warn(
-                  "   ⚠️ Warning: Atlassian returned 0 accessible resources! Check user site permissions.",
-                );
               }
-            } else {
-              const errBody = await res.text();
-              console.error(
-                `   ❌ Failed to fetch accessible-resources: HTTP ${res.status} - ${errBody}`,
-              );
             }
+          } else {
+            console.log(
+              "   ℹ️ Identity-only OAuth active (read:me). Backend API calls will use Service Account Basic Auth.",
+            );
           }
         } catch (err: unknown) {
           console.error(
@@ -257,6 +251,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       session.accessToken = token.accessToken;
       session.cloudId = token.cloudId;
+      if (session.user && (token.accountId || token.sub)) {
+        session.user.id = (token.accountId || token.sub) as string;
+      }
       session.siteUrl =
         token.siteUrl && !token.siteUrl.includes("sandbox")
           ? token.siteUrl

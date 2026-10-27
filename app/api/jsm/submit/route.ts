@@ -216,9 +216,17 @@ export async function POST(req: Request) {
       requestFieldValues: standardPayload,
     };
 
-    // Include raiseOnBehalfOf if provided for Basic auth
-    if (userEmail && userEmail !== authCtx.userEmail && authCtx.authType === "basic") {
-      requestBody.raiseOnBehalfOf = userEmail;
+    const requesterEmail = (userEmail || authCtx.userEmail || "").trim();
+    const serviceAccountEmail = (process.env.JIRA_USER_EMAIL || "").trim();
+
+    // Include raiseOnBehalfOf when using Service Account Basic Auth so the ticket
+    // is assigned to the logged-in portal user as the Reporter
+    if (
+      requesterEmail &&
+      authCtx.authType === "basic" &&
+      requesterEmail.toLowerCase() !== serviceAccountEmail.toLowerCase()
+    ) {
+      requestBody.raiseOnBehalfOf = requesterEmail;
     }
 
     let createRes = await fetch(
@@ -234,10 +242,77 @@ export async function POST(req: Request) {
       },
     );
 
-    // If request failed because of raiseOnBehalfOf, retry without raiseOnBehalfOf
+    // If raiseOnBehalfOf failed because the user isn't registered as a JSM customer yet,
+    // attempt to auto-provision the customer in JSM and retry with raiseOnBehalfOf
+    if (!createRes.ok && requestBody.raiseOnBehalfOf) {
+      try {
+        const custRes = await fetch(
+          `${authCtx.baseUrl}/rest/servicedeskapi/customer`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: authCtx.authHeader,
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              "X-ExperimentalApi": "opt-in",
+            },
+            body: JSON.stringify({
+              email: requesterEmail,
+              displayName: authCtx.userName || requesterEmail.split("@")[0],
+            }),
+          },
+        );
+        if (custRes.ok) {
+          const custData = (await custRes.json()) as { accountId?: string };
+          if (custData.accountId) {
+            await fetch(
+              `${authCtx.baseUrl}/rest/servicedeskapi/servicedesk/${sdId}/customer`,
+              {
+                method: "POST",
+                headers: {
+                  Authorization: authCtx.authHeader,
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                  "X-ExperimentalApi": "opt-in",
+                },
+                body: JSON.stringify({ accountIds: [custData.accountId] }),
+              },
+            ).catch(() => {});
+          }
+        }
+
+        // Retry with raiseOnBehalfOf after ensuring customer exists
+        createRes = await fetch(
+          `${authCtx.baseUrl}/rest/servicedeskapi/request`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: authCtx.authHeader,
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify(requestBody),
+          },
+        );
+      } catch {
+        // Ignore auto-customer creation error and proceed to fallback
+      }
+    }
+
+    // If request still failed with raiseOnBehalfOf, retry without raiseOnBehalfOf
+    // and record the requester's identity in the ticket description
     if (!createRes.ok && requestBody.raiseOnBehalfOf) {
       console.warn("Retrying ticket creation without raiseOnBehalfOf parameter...");
       delete requestBody.raiseOnBehalfOf;
+      const requesterTag = `*Requested by*: ${
+        authCtx.userName
+          ? `${authCtx.userName} (${requesterEmail})`
+          : requesterEmail
+      }`;
+      standardPayload.description = standardPayload.description
+        ? `${requesterTag}\n\n${String(standardPayload.description)}`
+        : requesterTag;
+
       createRes = await fetch(
         `${authCtx.baseUrl}/rest/servicedeskapi/request`,
         {
