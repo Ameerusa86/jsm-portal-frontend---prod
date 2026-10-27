@@ -50,6 +50,7 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
   // Cancellation state
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   // Copy feedback
   const [copiedKey, setCopiedKey] = useState(false);
@@ -181,6 +182,7 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
   const handleCancelTicket = async () => {
     if (!ticketKey || cancelling) return;
     setCancelling(true);
+    setCancelError(null);
 
     try {
       const res = await fetch(
@@ -198,19 +200,38 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
       }
 
       if (detail) {
+        const updatedComments = data.cancellationRequested
+          ? [
+              ...(detail.comments || []),
+              {
+                id: `cancel-${Date.now()}`,
+                author: {
+                  displayName: "You (Reporter)",
+                  isAgent: false,
+                },
+                body: "⚠️ [Cancellation Request] The reporter has requested to cancel this request as it is no longer needed.",
+                created: new Date().toISOString(),
+                isPublic: true,
+              },
+            ]
+          : detail.comments;
+
         setDetail({
           ...detail,
-          status: "Canceled",
+          status: data.status || "Canceled",
           statusCategory: "DONE",
+          comments: updatedComments,
         });
       }
 
       setShowCancelConfirm(false);
       if (onTicketUpdated) {
-        onTicketUpdated(ticketKey, "Canceled");
+        onTicketUpdated(ticketKey, data.status || "Canceled");
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to cancel request");
+      const msg = err instanceof Error ? err.message : "Failed to cancel request";
+      setCancelError(msg);
+      alert(msg);
     } finally {
       setCancelling(false);
     }
@@ -598,7 +619,7 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
 
               {/* Danger Zone: Cancel Request */}
               {!isClosed && (
-                <div className="p-4 rounded-2xl border border-destructive/20 bg-destructive/10 space-y-2 mt-6">
+                <div className="p-4 rounded-2xl border border-destructive/20 bg-destructive/10 space-y-3 mt-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-bold text-destructive">
@@ -615,7 +636,10 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setShowCancelConfirm(true)}
+                        onClick={() => {
+                          setCancelError(null);
+                          setShowCancelConfirm(true);
+                        }}
                         className="cursor-pointer border-destructive/30 text-destructive hover:bg-destructive/10"
                       >
                         Cancel Request
@@ -626,7 +650,10 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => setShowCancelConfirm(false)}
+                          onClick={() => {
+                            setCancelError(null);
+                            setShowCancelConfirm(false);
+                          }}
                           disabled={cancelling}
                           className="cursor-pointer"
                         >
@@ -645,6 +672,11 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                       </div>
                     )}
                   </div>
+                  {cancelError && (
+                    <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+                      {cancelError}
+                    </div>
+                  )}
                 </div>
               )}
             </>
