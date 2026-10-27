@@ -179,7 +179,51 @@ export async function GET(req: Request) {
   if (authCtx.authType === "oauth") {
     jqlClauses.push("reporter = currentUser()");
   } else if (authCtx.userEmail) {
-    jqlClauses.push(`reporter = "${authCtx.userEmail.replace(/"/g, '\\"')}"`);
+    const cleanEmail = authCtx.userEmail.replace(/"/g, '\\"');
+    const resolvedAccountIds = new Set<string>();
+
+    // Resolve Jira/JSM customer accountId(s) for the logged-in user's email
+    try {
+      const userSearchRes = await fetch(
+        `${authCtx.baseUrl}/rest/api/3/user/search?query=${encodeURIComponent(
+          authCtx.userEmail
+        )}&maxResults=10`,
+        {
+          headers: {
+            Authorization: authCtx.authHeader,
+            Accept: "application/json",
+          },
+          cache: "no-store",
+        }
+      );
+      if (userSearchRes.ok) {
+        const users = (await userSearchRes.json()) as Array<{
+          accountId?: string;
+          emailAddress?: string;
+        }>;
+        if (Array.isArray(users)) {
+          users.forEach((u) => {
+            if (u.accountId) {
+              resolvedAccountIds.add(u.accountId);
+            }
+          });
+        }
+      }
+    } catch {
+      // Ignore user lookup error and fall back to email/accountId
+    }
+
+    if (resolvedAccountIds.size > 0) {
+      const idList = Array.from(resolvedAccountIds)
+        .map((id) => `"${id.replace(/"/g, '\\"')}"`)
+        .join(", ");
+      jqlClauses.push(
+        `(reporter in (${idList}) OR description ~ "${cleanEmail}")`
+      );
+    } else {
+      // User may already exist by email or via description tag if not yet indexed in Jira user search
+      jqlClauses.push(`reporter = "${cleanEmail}"`);
+    }
   }
 
   if (spaceParam && spaceParam !== "all") {
@@ -233,30 +277,52 @@ export async function GET(req: Request) {
     let issues: JiraSearchResponse["issues"] = [];
 
     if (!response.ok) {
-      // Fallback standard search endpoint for Jira Cloud
-      const fallbackResponse = await fetch(
-        `${authCtx.baseUrl}/rest/api/3/search?jql=${encodeURIComponent(
-          jql
-        )}&maxResults=${limitParam}&fields=${fields}`,
-        {
-          headers: {
-            Authorization: authCtx.authHeader,
-            Accept: "application/json",
-          },
-          cache: "no-store",
-        }
-      );
-
-      if (fallbackResponse.ok) {
-        const fallbackData = (await fallbackResponse.json()) as JiraSearchResponse;
-        issues = fallbackData.issues || [];
-      } else {
-        const errData = await response.json().catch(() => ({}));
-        console.warn(
-          "Jira search API failed, falling back to mock tickets:",
-          errData
+      // If reporter = "email" failed with 400 (because this brand-new user has never created a Jira ticket yet),
+      // try searching by description tag or return an empty ticket list for this new user
+      if (response.status === 400 && authCtx.userEmail) {
+        const cleanEmail = authCtx.userEmail.replace(/"/g, '\\"');
+        const descJql = `description ~ "${cleanEmail}" ORDER BY created DESC`;
+        const descRes = await fetch(
+          `${authCtx.baseUrl}/rest/api/3/search/jql?jql=${encodeURIComponent(
+            descJql
+          )}&maxResults=${limitParam}&fields=${fields}`,
+          {
+            headers: {
+              Authorization: authCtx.authHeader,
+              Accept: "application/json",
+            },
+            cache: "no-store",
+          }
         );
-        return NextResponse.json(MOCK_TICKETS);
+        if (descRes.ok) {
+          const descData = (await descRes.json()) as JiraSearchResponse;
+          issues = descData.issues || [];
+        } else {
+          return NextResponse.json([]);
+        }
+      } else {
+        // Fallback standard search endpoint for Jira Cloud
+        const fallbackResponse = await fetch(
+          `${authCtx.baseUrl}/rest/api/3/search?jql=${encodeURIComponent(
+            jql
+          )}&maxResults=${limitParam}&fields=${fields}`,
+          {
+            headers: {
+              Authorization: authCtx.authHeader,
+              Accept: "application/json",
+            },
+            cache: "no-store",
+          }
+        );
+
+        if (fallbackResponse.ok) {
+          const fallbackData = (await fallbackResponse.json()) as JiraSearchResponse;
+          issues = fallbackData.issues || [];
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          console.warn("Jira search API returned error:", errData);
+          return NextResponse.json([]);
+        }
       }
     } else {
       const data = (await response.json()) as JiraSearchResponse;
