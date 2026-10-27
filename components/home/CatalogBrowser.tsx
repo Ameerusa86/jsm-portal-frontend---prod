@@ -413,6 +413,7 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                           key={groupName}
                           groupName={groupName}
                           requestTypes={groupTypes}
+                          spaceName={currentSpace?.projectName || (isITSection ? "Information Technology" : undefined) || groupTypes[0]?.spaceName}
                           variant="list"
                           onClick={() => setSelectedGroup(groupName)}
                         />
@@ -425,6 +426,7 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                           key={groupName}
                           groupName={groupName}
                           requestTypes={groupTypes}
+                          spaceName={currentSpace?.projectName || (isITSection ? "Information Technology" : undefined) || groupTypes[0]?.spaceName}
                           variant="grid"
                           onClick={() => setSelectedGroup(groupName)}
                         />
@@ -439,92 +441,111 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                   const theme = getGroupTheme(selectedGroup);
                   const GroupIcon = theme.icon;
                   const allGroupNames = Object.keys(groupedRequests);
+                  const activeSpaceName =
+                    currentSpace?.projectName ||
+                    (isITSection ? "Information Technology" : undefined) ||
+                    activeGroupTypes[0]?.spaceName;
 
                   return (
                     <div className="space-y-6">
-                      {/* Navigation Breadcrumb Bar */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
-                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                          <button
-                            type="button"
+                      {/* Clean, Unified Group Header Card */}
+                      <Card className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-5">
+                        {/* Top Meta Bar: Breadcrumbs & Back Button */}
+                        <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-100 flex-wrap">
+                          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedGroup(null)}
+                              className="text-blue-600 hover:text-blue-700 hover:underline cursor-pointer flex items-center gap-1 font-bold"
+                            >
+                              <ArrowLeft className="size-3.5" />
+                              <span>All Groups</span>
+                            </button>
+                            <span>/</span>
+                            <span className="text-slate-900 font-bold">{selectedGroup}</span>
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => setSelectedGroup(null)}
-                            className="hover:text-blue-700 text-blue-600 transition-colors cursor-pointer flex items-center gap-1 font-bold"
+                            className="cursor-pointer text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border-slate-200/90 rounded-xl h-8 px-3 gap-1.5 shadow-2xs"
                           >
                             <ArrowLeft className="size-3.5" />
-                            <span>All Groups</span>
-                          </button>
-                          <span>/</span>
-                          <span className="text-slate-900 font-bold">{selectedGroup}</span>
+                            <span>Back to group cards</span>
+                          </Button>
                         </div>
 
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedGroup(null)}
-                          className="self-start sm:self-auto cursor-pointer rounded-xl h-8 px-3 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border-slate-200/90 shadow-2xs gap-1.5"
-                        >
-                          <ArrowLeft className="size-3.5" />
-                          <span>Back to all groups</span>
-                        </Button>
-                      </div>
-
-                      {/* Active Group Header & Switcher Pills */}
-                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
-                        <div className="flex items-center gap-3.5">
+                        {/* Main Group Info: Icon, Title, Badges & Description */}
+                        <div className="flex items-start gap-4">
                           <div
                             className={cn(
-                              "size-12 rounded-xl flex items-center justify-center shrink-0 shadow-2xs",
+                              "size-12 sm:size-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm mt-0.5",
                               theme.bg
                             )}
                           >
-                            <GroupIcon className="size-6 text-white" />
+                            <GroupIcon className="size-6 sm:size-7 text-white" />
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                              <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
                                 {selectedGroup}
                               </h2>
                               <Badge
-                                variant="secondary"
+                                variant="outline"
                                 className={cn(
-                                  "px-2.5 py-0.5 rounded-full text-xs font-semibold",
+                                  "px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-2xs",
                                   theme.badgeBg
                                 )}
                               >
                                 {activeGroupTypes.length}{" "}
-                                {activeGroupTypes.length === 1 ? "request" : "requests"}
+                                {activeGroupTypes.length === 1 ? "request type" : "request types"}
                               </Badge>
+                              {activeSpaceName && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-slate-600 bg-slate-100 border border-slate-200/80 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                                >
+                                  {activeSpaceName}
+                                </Badge>
+                              )}
                             </div>
-                            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                              Showing request types available in {selectedGroup}.
+                            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-3xl">
+                              Browse and raise requests available under{" "}
+                              <span className="font-semibold text-slate-700">{selectedGroup}</span>.
                             </p>
                           </div>
                         </div>
 
-                        {/* Quick Group Switcher Pills */}
+                        {/* Dedicated Group Switcher Row */}
                         {allGroupNames.length > 1 && (
-                          <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 no-scrollbar">
-                            {allGroupNames.map((gName) => {
-                              const isCur = gName === selectedGroup;
-                              return (
-                                <button
-                                  key={gName}
-                                  type="button"
-                                  onClick={() => setSelectedGroup(gName)}
-                                  className={cn(
-                                    "px-3 py-1 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer border",
-                                    isCur
-                                      ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
-                                      : "bg-white text-slate-600 hover:text-slate-900 border-slate-200/90 hover:bg-slate-50"
-                                  )}
-                                >
-                                  {gName}
-                                </button>
-                              );
-                            })}
+                          <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center gap-2.5">
+                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+                              Filter by group:
+                            </span>
+                            <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 no-scrollbar flex-wrap">
+                              {allGroupNames.map((gName) => {
+                                const isCur = gName === selectedGroup;
+                                return (
+                                  <button
+                                    key={gName}
+                                    type="button"
+                                    onClick={() => setSelectedGroup(gName)}
+                                    className={cn(
+                                      "px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer border",
+                                      isCur
+                                        ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                                        : "bg-slate-50 text-slate-600 hover:text-slate-900 border-slate-200/80 hover:bg-slate-100"
+                                    )}
+                                  >
+                                    {gName}
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
                         )}
-                      </div>
+                      </Card>
 
                       {/* Request Type Cards */}
                       {viewMode === "list" ? (

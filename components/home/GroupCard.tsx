@@ -27,6 +27,7 @@ interface GroupCardProps {
   groupName: string;
   requestTypes: RequestTypeWithGroup[];
   onClick: () => void;
+  spaceName?: string;
   variant?: "grid" | "list";
 }
 
@@ -236,11 +237,17 @@ export const GroupCard: React.FC<GroupCardProps> = ({
   groupName,
   requestTypes,
   onClick,
+  spaceName,
   variant = "grid",
 }) => {
   const count = requestTypes.length;
   const theme = getGroupTheme(groupName);
   const Icon = theme.icon;
+
+  const resolvedSpaceName =
+    spaceName ||
+    requestTypes.find((r) => r.spaceName)?.spaceName ||
+    "Information Technology";
 
   // Build a preview of service names included in this group
   const previewNames = requestTypes.slice(0, 3).map((r) => r.name);
@@ -285,9 +292,19 @@ export const GroupCard: React.FC<GroupCardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center text-xs font-bold text-blue-600 gap-1 sm:self-center shrink-0 group-hover:translate-x-1 transition-transform">
-          <span>View {count} services</span>
-          <ArrowRight className="size-4" />
+        <div className="flex items-center gap-3 shrink-0 sm:self-center">
+          {resolvedSpaceName && (
+            <Badge
+              variant="outline"
+              className="hidden sm:inline-flex text-[11px] font-semibold bg-slate-50 text-slate-600 border-slate-200"
+            >
+              {resolvedSpaceName}
+            </Badge>
+          )}
+          <div className="flex items-center text-xs font-bold text-blue-600 gap-1 group-hover:translate-x-1 transition-transform">
+            <span>View {count} services</span>
+            <ArrowRight className="size-4" />
+          </div>
         </div>
       </Card>
     );
@@ -337,10 +354,15 @@ export const GroupCard: React.FC<GroupCardProps> = ({
         )}
       </div>
 
-      {/* Card Footer: Explore Action Link */}
-      <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-600">
-        <span>Explore services</span>
-        <div className="flex items-center gap-1 group-hover:translate-x-1.5 transition-transform">
+      {/* Card Footer: Space Name & Action */}
+      <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
+        <span
+          className="text-slate-500 font-medium truncate max-w-[170px] sm:max-w-[210px]"
+          title={resolvedSpaceName}
+        >
+          {resolvedSpaceName}
+        </span>
+        <div className="flex items-center gap-1 text-blue-600 font-bold group-hover:translate-x-1.5 transition-transform shrink-0">
           <span>View all</span>
           <ArrowRight className="size-4" />
         </div>
