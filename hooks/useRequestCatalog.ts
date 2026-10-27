@@ -274,7 +274,7 @@ export function useRequestCatalog({
       let boardMatch = true;
       if (boardFilter !== "all") {
         const space = spaces.find((s) => String(s.id) === String(rt.serviceDeskId));
-        const bName = space ? space.projectName : "Other Boards";
+        const bName = space ? space.projectName : rt.spaceName || "Other Boards";
         boardMatch = bName === boardFilter;
       }
 
@@ -308,13 +308,19 @@ export function useRequestCatalog({
     return filteredTypes.reduce(
       (acc, rt) => {
         const groupName = rt.portalGroup || rt.group || "General Requests";
-        if (!acc[groupName]) acc[groupName] = [];
-        acc[groupName].push(rt);
+        const sdId = rt.serviceDeskId ? String(rt.serviceDeskId) : "general";
+        // When viewing across multiple service desks (e.g. all IT boards),
+        // scope group key per service desk to prevent cross-team contamination
+        const isMultiSpaceView = !spaceParamId || spaceParamId === "all";
+        const groupKey = isMultiSpaceView ? `${sdId}:::${groupName}` : groupName;
+
+        if (!acc[groupKey]) acc[groupKey] = [];
+        acc[groupKey].push(rt);
         return acc;
       },
       {} as Record<string, RequestTypeWithGroup[]>,
     );
-  }, [filteredTypes]);
+  }, [filteredTypes, spaceParamId]);
 
   return {
     requestTypes: enrichedBaseRequestTypes,

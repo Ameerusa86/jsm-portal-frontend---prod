@@ -73,10 +73,37 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
   const [viewGrouping, setViewGrouping] = React.useState<"groups" | "all">("groups");
   const [selectedGroup, setSelectedGroup] = React.useState<string | null>(null);
 
-  // Automatically reset selected group when changing space or category tab
+  // Automatically reset selected group when changing space, category tab, or board filter
   React.useEffect(() => {
     setSelectedGroup(null);
-  }, [selectedCategory, spaceParamId, spaceCategoryParam]);
+  }, [selectedCategory, spaceParamId, spaceCategoryParam, boardFilter]);
+
+  const getGroupDetails = React.useCallback(
+    (groupKey: string, groupTypes: RequestTypeWithGroup[]) => {
+      const firstRt = groupTypes[0];
+      let groupName =
+        firstRt?.portalGroup ||
+        firstRt?.group ||
+        "General Requests";
+      if (groupKey.includes(":::")) {
+        const parts = groupKey.split(":::");
+        if (parts.length > 1 && parts[1]) {
+          groupName = parts.slice(1).join(":::");
+        }
+      }
+      const space = spaces.find(
+        (s) => String(s.id) === String(firstRt?.serviceDeskId)
+      );
+      const spaceName =
+        currentSpace?.projectName ||
+        firstRt?.spaceName ||
+        space?.projectName ||
+        (isITSection ? "Information Technology" : undefined);
+
+      return { groupName, spaceName };
+    },
+    [spaces, currentSpace, isITSection]
+  );
 
   return (
     <div className="space-y-8 sm:space-y-10 w-full max-w-7xl mx-auto">
@@ -340,8 +367,8 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
               {viewMode === "list" ? (
                 <div className="flex flex-col gap-3 w-full">
                   {filteredTypes.map((rt) => {
-                    const space = spaces.find((s) => s.id === rt.serviceDeskId);
-                    const boardName = space ? space.projectName : undefined;
+                    const space = spaces.find((s) => String(s.id) === String(rt.serviceDeskId));
+                    const boardName = rt.spaceName || space?.projectName;
                     return (
                       <ServiceCard
                         key={rt.id}
@@ -357,8 +384,8 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 w-full">
                   {filteredTypes.map((rt) => {
-                    const space = spaces.find((s) => s.id === rt.serviceDeskId);
-                    const boardName = space ? space.projectName : undefined;
+                    const space = spaces.find((s) => String(s.id) === String(rt.serviceDeskId));
+                    const boardName = rt.spaceName || space?.projectName;
                     return (
                       <ServiceCard
                         key={rt.id}
@@ -408,29 +435,35 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
 
                   {viewMode === "list" ? (
                     <div className="flex flex-col gap-3 w-full">
-                      {Object.entries(groupedRequests).map(([groupName, groupTypes]) => (
-                        <GroupCard
-                          key={groupName}
-                          groupName={groupName}
-                          requestTypes={groupTypes}
-                          spaceName={currentSpace?.projectName || (isITSection ? "Information Technology" : undefined) || groupTypes[0]?.spaceName}
-                          variant="list"
-                          onClick={() => setSelectedGroup(groupName)}
-                        />
-                      ))}
+                      {Object.entries(groupedRequests).map(([groupKey, groupTypes]) => {
+                        const { groupName, spaceName } = getGroupDetails(groupKey, groupTypes);
+                        return (
+                          <GroupCard
+                            key={groupKey}
+                            groupName={groupName}
+                            requestTypes={groupTypes}
+                            spaceName={spaceName}
+                            variant="list"
+                            onClick={() => setSelectedGroup(groupKey)}
+                          />
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 w-full">
-                      {Object.entries(groupedRequests).map(([groupName, groupTypes]) => (
-                        <GroupCard
-                          key={groupName}
-                          groupName={groupName}
-                          requestTypes={groupTypes}
-                          spaceName={currentSpace?.projectName || (isITSection ? "Information Technology" : undefined) || groupTypes[0]?.spaceName}
-                          variant="grid"
-                          onClick={() => setSelectedGroup(groupName)}
-                        />
-                      ))}
+                      {Object.entries(groupedRequests).map(([groupKey, groupTypes]) => {
+                        const { groupName, spaceName } = getGroupDetails(groupKey, groupTypes);
+                        return (
+                          <GroupCard
+                            key={groupKey}
+                            groupName={groupName}
+                            requestTypes={groupTypes}
+                            spaceName={spaceName}
+                            variant="grid"
+                            onClick={() => setSelectedGroup(groupKey)}
+                          />
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -438,13 +471,11 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                 /* SUBCASE B: Selected Group Drilled-Down View */
                 (() => {
                   const activeGroupTypes = groupedRequests[selectedGroup] || [];
-                  const theme = getGroupTheme(selectedGroup);
+                  const { groupName: activeGroupName, spaceName: activeSpaceName } =
+                    getGroupDetails(selectedGroup, activeGroupTypes);
+                  const theme = getGroupTheme(activeGroupName);
                   const GroupIcon = theme.icon;
-                  const allGroupNames = Object.keys(groupedRequests);
-                  const activeSpaceName =
-                    currentSpace?.projectName ||
-                    (isITSection ? "Information Technology" : undefined) ||
-                    activeGroupTypes[0]?.spaceName;
+                  const allGroupEntries = Object.entries(groupedRequests);
 
                   return (
                     <div className="space-y-6">
@@ -462,7 +493,13 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                               <span>All Groups</span>
                             </button>
                             <span>/</span>
-                            <span className="text-slate-900 font-bold">{selectedGroup}</span>
+                            {activeSpaceName && !currentSpace && (
+                              <>
+                                <span className="text-slate-600 font-semibold">{activeSpaceName}</span>
+                                <span>/</span>
+                              </>
+                            )}
+                            <span className="text-slate-900 font-bold">{activeGroupName}</span>
                           </div>
 
                           <Button
@@ -489,7 +526,7 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                           <div className="min-w-0 flex-1 space-y-1.5">
                             <div className="flex items-center gap-2.5 flex-wrap">
                               <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-                                {selectedGroup}
+                                {activeGroupName}
                               </h2>
                               <Badge
                                 variant="outline"
@@ -512,33 +549,50 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                             </div>
                             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-3xl">
                               Browse and raise requests available under{" "}
-                              <span className="font-semibold text-slate-700">{selectedGroup}</span>.
+                              <span className="font-semibold text-slate-700">{activeGroupName}</span>
+                              {activeSpaceName ? (
+                                <span>
+                                  {" "}in <span className="font-semibold text-slate-700">{activeSpaceName}</span>
+                                </span>
+                              ) : null}.
                             </p>
                           </div>
                         </div>
 
                         {/* Dedicated Group Switcher Row */}
-                        {allGroupNames.length > 1 && (
+                        {allGroupEntries.length > 1 && (
                           <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center gap-2.5">
                             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
                               Filter by group:
                             </span>
                             <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 no-scrollbar flex-wrap">
-                              {allGroupNames.map((gName) => {
-                                const isCur = gName === selectedGroup;
+                              {allGroupEntries.map(([gKey, gTypes]) => {
+                                const isCur = gKey === selectedGroup;
+                                const { groupName: gName, spaceName: gSpace } = getGroupDetails(gKey, gTypes);
+                                const hasDuplicateName = allGroupEntries.some(([otherKey, otherTypes]) => {
+                                  if (otherKey === gKey) return false;
+                                  const { groupName: otherName } = getGroupDetails(otherKey, otherTypes);
+                                  return otherName.toLowerCase() === gName.toLowerCase();
+                                });
+
                                 return (
                                   <button
-                                    key={gName}
+                                    key={gKey}
                                     type="button"
-                                    onClick={() => setSelectedGroup(gName)}
+                                    onClick={() => setSelectedGroup(gKey)}
                                     className={cn(
-                                      "px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer border",
+                                      "px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer border flex items-center gap-1.5",
                                       isCur
                                         ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
                                         : "bg-slate-50 text-slate-600 hover:text-slate-900 border-slate-200/80 hover:bg-slate-100"
                                     )}
                                   >
-                                    {gName}
+                                    <span>{gName}</span>
+                                    {hasDuplicateName && gSpace && (
+                                      <span className={cn("text-[10px] font-normal", isCur ? "text-blue-100" : "text-slate-400")}>
+                                        ({gSpace})
+                                      </span>
+                                    )}
                                   </button>
                                 );
                               })}
@@ -551,8 +605,8 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                       {viewMode === "list" ? (
                         <div className="flex flex-col gap-3 w-full">
                           {activeGroupTypes.map((rt) => {
-                            const space = spaces.find((s) => s.id === rt.serviceDeskId);
-                            const boardName = space ? space.projectName : undefined;
+                            const space = spaces.find((s) => String(s.id) === String(rt.serviceDeskId));
+                            const boardName = rt.spaceName || space?.projectName;
                             return (
                               <ServiceCard
                                 key={rt.id}
@@ -568,8 +622,8 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                       ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 w-full">
                           {activeGroupTypes.map((rt) => {
-                            const space = spaces.find((s) => s.id === rt.serviceDeskId);
-                            const boardName = space ? space.projectName : undefined;
+                            const space = spaces.find((s) => String(s.id) === String(rt.serviceDeskId));
+                            const boardName = rt.spaceName || space?.projectName;
                             return (
                               <ServiceCard
                                 key={rt.id}
@@ -593,61 +647,73 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
           {/* MODE 2: Show All Cards Flat / Grouped Sections */}
           {filteredTypes.length > 0 && !searchQuery && !localSearchQuery && viewGrouping === "all" && (
             <div className="space-y-12">
-              {Object.entries(groupedRequests).map(([groupName, groupTypes]) => (
-                <div key={groupName} className="space-y-4">
-                  {/* Section Header */}
-                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-3.5">
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                        {groupName}
-                      </h2>
-                      <Badge
-                        variant="secondary"
-                        className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 h-auto"
-                      >
-                        {groupTypes.length}
-                      </Badge>
-                    </div>
-                  </div>
+              {Object.entries(groupedRequests).map(([groupKey, groupTypes]) => {
+                const { groupName, spaceName } = getGroupDetails(groupKey, groupTypes);
 
-                  {/* Render in Selected View Mode: Grid or List */}
-                  {viewMode === "list" ? (
-                    <div className="flex flex-col gap-3 w-full">
-                      {groupTypes.map((rt) => {
-                        const space = spaces.find((s) => s.id === rt.serviceDeskId);
-                        const boardName = space ? space.projectName : undefined;
-                        return (
-                          <ServiceCard
-                            key={rt.id}
-                            requestType={rt}
-                            boardName={boardName}
-                            isIT={Boolean(isITSection)}
-                            onClick={() => handleSelectType(rt)}
-                            variant="list"
-                          />
-                        );
-                      })}
+                return (
+                  <div key={groupKey} className="space-y-4">
+                    {/* Section Header */}
+                    <div className="flex items-center justify-between border-b border-slate-200/80 pb-3.5">
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                          {groupName}
+                        </h2>
+                        {spaceName && !currentSpace && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs font-semibold bg-slate-50 text-slate-600 border-slate-200"
+                          >
+                            {spaceName}
+                          </Badge>
+                        )}
+                        <Badge
+                          variant="secondary"
+                          className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 h-auto"
+                        >
+                          {groupTypes.length}
+                        </Badge>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 w-full">
-                      {groupTypes.map((rt) => {
-                        const space = spaces.find((s) => s.id === rt.serviceDeskId);
-                        const boardName = space ? space.projectName : undefined;
-                        return (
-                          <ServiceCard
-                            key={rt.id}
-                            requestType={rt}
-                            boardName={boardName}
-                            isIT={Boolean(isITSection)}
-                            onClick={() => handleSelectType(rt)}
-                            variant="grid"
-                          />
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              ))}
+
+                    {/* Render in Selected View Mode: Grid or List */}
+                    {viewMode === "list" ? (
+                      <div className="flex flex-col gap-3 w-full">
+                        {groupTypes.map((rt) => {
+                          const space = spaces.find((s) => String(s.id) === String(rt.serviceDeskId));
+                          const boardName = rt.spaceName || space?.projectName;
+                          return (
+                            <ServiceCard
+                              key={rt.id}
+                              requestType={rt}
+                              boardName={boardName}
+                              isIT={Boolean(isITSection)}
+                              onClick={() => handleSelectType(rt)}
+                              variant="list"
+                            />
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 w-full">
+                        {groupTypes.map((rt) => {
+                          const space = spaces.find((s) => String(s.id) === String(rt.serviceDeskId));
+                          const boardName = rt.spaceName || space?.projectName;
+                          return (
+                            <ServiceCard
+                              key={rt.id}
+                              requestType={rt}
+                              boardName={boardName}
+                              isIT={Boolean(isITSection)}
+                              onClick={() => handleSelectType(rt)}
+                              variant="grid"
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

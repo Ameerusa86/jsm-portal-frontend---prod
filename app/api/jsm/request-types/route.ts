@@ -214,7 +214,7 @@ export async function GET(req: NextRequest) {
 
       return {
         ...rt,
-        serviceDeskId: deskId,
+        serviceDeskId: String(rt.serviceDeskId || deskId),
         spaceName: space?.projectName || "Information Technology",
         spaceKey: space?.projectKey || "IT",
         portalUrl: rt.portalUrl || fallbackUrl,
