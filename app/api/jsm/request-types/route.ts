@@ -46,6 +46,90 @@ const matchesCategory = (actual?: string, expected?: string) => {
  * is hosted at customer portal ID 4 (/servicedesk/customer/portal/4).
  * All other service desks use their native serviceDeskId directly.
  */
+export function inferPortalGroup(name: string, description?: string, category?: string): string {
+  const text = `${name} ${description || ""}`.toLowerCase();
+  if (
+    text.includes("password") ||
+    text.includes("mfa") ||
+    text.includes("vpn") ||
+    text.includes("access") ||
+    text.includes("account") ||
+    text.includes("login") ||
+    text.includes("credential") ||
+    text.includes("permission")
+  ) {
+    return "Logins & Accounts";
+  }
+  if (
+    text.includes("laptop") ||
+    text.includes("computer") ||
+    text.includes("monitor") ||
+    text.includes("hardware") ||
+    text.includes("equipment") ||
+    text.includes("repair") ||
+    text.includes("workstation")
+  ) {
+    return "Computers & Hardware";
+  }
+  if (
+    text.includes("software") ||
+    text.includes("license") ||
+    text.includes("tool") ||
+    text.includes("saas") ||
+    text.includes("app") ||
+    text.includes("github")
+  ) {
+    return "Applications & Software";
+  }
+  if (
+    text.includes("badge") ||
+    text.includes("building") ||
+    text.includes("office") ||
+    text.includes("desk") ||
+    text.includes("facility")
+  ) {
+    return "Facilities & Access";
+  }
+  if (
+    text.includes("database") ||
+    text.includes("sql") ||
+    text.includes("table") ||
+    text.includes("schema") ||
+    text.includes("warehouse")
+  ) {
+    return "Data & Systems";
+  }
+  if (
+    text.includes("outage") ||
+    text.includes("down") ||
+    text.includes("incident") ||
+    text.includes("wifi") ||
+    text.includes("network") ||
+    text.includes("problem")
+  ) {
+    return "Incidents & Outages";
+  }
+  if (
+    text.includes("report") ||
+    text.includes("data") ||
+    text.includes("pipeline") ||
+    text.includes("automation") ||
+    text.includes("dashboard") ||
+    text.includes("etl")
+  ) {
+    return "Data & Analytics";
+  }
+  if (
+    text.includes("suggest") ||
+    text.includes("idea") ||
+    text.includes("feedback") ||
+    text.includes("improv")
+  ) {
+    return "Feedback & Ideas";
+  }
+  return category === "Work Orders" ? "General Work Orders" : "General Support";
+}
+
 export function resolveCustomerPortalId(
   serviceDeskId?: string | number | null,
   projectKey?: string | null,
@@ -269,7 +353,7 @@ export async function GET(req: NextRequest) {
 
       // 5. Map request types
       const mappedTypes: RequestTypeWithGroup[] = visibleTypes.map((rt) => {
-        let groupName = "General Requests";
+        let itCategory = "Work Orders";
 
         if (isIT) {
           // Keep the 4 IT categories intact for IT teams
@@ -281,28 +365,34 @@ export async function GET(req: NextRequest) {
 
           switch (categoryKey) {
             case "WORK_ORDERS":
-              groupName = "Work Orders";
+              itCategory = "Work Orders";
               break;
             case "PROBLEMS":
-              groupName = "Problems";
+              itCategory = "Problems";
               break;
             case "AUTOMATIONS":
-              groupName = "Automations and Reports";
+              itCategory = "Automations and Reports";
               break;
             case "SUGGESTIONS":
-              groupName = "Suggestions";
+              itCategory = "Suggestions";
               break;
           }
-        } else {
-          // Native Jira Portal Groups configured in Jira for this board
-          if (rt.groupIds && rt.groupIds.length > 0) {
-            for (const gid of rt.groupIds) {
-              if (nativeGroupMap[String(gid)]) {
-                groupName = nativeGroupMap[String(gid)];
-                break;
-              }
+        }
+
+        let specificGroup = "";
+        if (rt.groupIds && rt.groupIds.length > 0) {
+          for (const gid of rt.groupIds) {
+            if (nativeGroupMap[String(gid)]) {
+              specificGroup = nativeGroupMap[String(gid)];
+              break;
             }
           }
+        }
+
+        if (!specificGroup) {
+          specificGroup = isIT
+            ? inferPortalGroup(rt.name, rt.description, itCategory)
+            : "General Requests";
         }
 
         const targetPortalId = resolveCustomerPortalId(serviceDeskId, singleSdProjectKey, singleSdProjectName);
@@ -312,7 +402,9 @@ export async function GET(req: NextRequest) {
           id: String(rt.id),
           name: rt.name,
           description: rt.description,
-          group: groupName,
+          category: isIT ? itCategory : undefined,
+          group: specificGroup,
+          portalGroup: specificGroup,
           portalUrl,
           serviceDeskId: String(serviceDeskId),
           spaceName: singleSdProjectName || (isIT ? "Information Technology" : undefined),
@@ -457,7 +549,7 @@ export async function GET(req: NextRequest) {
           );
 
       const mapped = visibleTypes.map((rt: JiraRequestTypeItem) => {
-        let groupName = "General Requests";
+        let itCategory = "Work Orders";
 
         if (isIT) {
           const categoryKey = classifyRequestType({
@@ -468,27 +560,34 @@ export async function GET(req: NextRequest) {
 
           switch (categoryKey) {
             case "WORK_ORDERS":
-              groupName = "Work Orders";
+              itCategory = "Work Orders";
               break;
             case "PROBLEMS":
-              groupName = "Problems";
+              itCategory = "Problems";
               break;
             case "AUTOMATIONS":
-              groupName = "Automations and Reports";
+              itCategory = "Automations and Reports";
               break;
             case "SUGGESTIONS":
-              groupName = "Suggestions";
+              itCategory = "Suggestions";
               break;
           }
-        } else {
-          if (rt.groupIds && rt.groupIds.length > 0) {
-            for (const gid of rt.groupIds) {
-              if (nativeGroupMap[String(gid)]) {
-                groupName = nativeGroupMap[String(gid)];
-                break;
-              }
+        }
+
+        let specificGroup = "";
+        if (rt.groupIds && rt.groupIds.length > 0) {
+          for (const gid of rt.groupIds) {
+            if (nativeGroupMap[String(gid)]) {
+              specificGroup = nativeGroupMap[String(gid)];
+              break;
             }
           }
+        }
+
+        if (!specificGroup) {
+          specificGroup = isIT
+            ? inferPortalGroup(rt.name, rt.description, itCategory)
+            : "General Requests";
         }
 
         const targetPortalId = resolveCustomerPortalId(currentSdId, sd.projectKey, sd.projectName);
@@ -498,7 +597,9 @@ export async function GET(req: NextRequest) {
           id: String(rt.id),
           name: rt.name,
           description: rt.description,
-          group: groupName,
+          category: isIT ? itCategory : undefined,
+          group: specificGroup,
+          portalGroup: specificGroup,
           portalUrl,
           serviceDeskId: currentSdId,
           spaceName: sd.projectName,

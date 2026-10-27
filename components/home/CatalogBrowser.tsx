@@ -1,14 +1,16 @@
 "use client";
 
 import React from "react";
-import { ArrowRight, FileText, Search, ArrowLeft, Layers, ShieldCheck } from "lucide-react";
+import { ArrowRight, FileText, Search, ArrowLeft, Layers, ShieldCheck, FolderTree } from "lucide-react";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { ServiceCard } from "@/components/ServiceCard";
+import { GroupCard, getGroupTheme } from "@/components/home/GroupCard";
 import { JsmSpace, KnowledgeBaseArticle, RequestTypeWithGroup } from "@/types/jsm";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface CatalogBrowserProps {
   spaceParamId?: string | null;
@@ -67,6 +69,14 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
   }, [spaceParamId, spaces]);
 
   const isITSection = spaceCategoryParam && spaceParamId === "all";
+
+  const [viewGrouping, setViewGrouping] = React.useState<"groups" | "all">("groups");
+  const [selectedGroup, setSelectedGroup] = React.useState<string | null>(null);
+
+  // Automatically reset selected group when changing space or category tab
+  React.useEffect(() => {
+    setSelectedGroup(null);
+  }, [selectedCategory, spaceParamId, spaceCategoryParam]);
 
   return (
     <div className="space-y-8 sm:space-y-10 w-full max-w-7xl mx-auto">
@@ -153,11 +163,17 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
           selectedCategory={selectedCategory}
           onSelectCategory={(category) => {
             setSelectedCategory(category);
+            setSelectedGroup(null);
             setLocalSearchQuery("");
             setSearchQuery("");
           }}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          viewGrouping={viewGrouping}
+          onViewGroupingChange={(mode) => {
+            setViewGrouping(mode);
+            if (mode === "all") setSelectedGroup(null);
+          }}
         />
 
         {/* Board Dropdown and Search Filters */}
@@ -304,8 +320,257 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
               </Card>
             )}
 
-          {/* Grouped Services Sections */}
-          {filteredTypes.length > 0 && (
+          {/* Active Search Results: Show directly */}
+          {filteredTypes.length > 0 && (searchQuery || localSearchQuery) && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-200/80 pb-3.5">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                    Search Results
+                  </h2>
+                  <Badge
+                    variant="secondary"
+                    className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 h-auto"
+                  >
+                    {filteredTypes.length} {filteredTypes.length === 1 ? "match" : "matches"}
+                  </Badge>
+                </div>
+              </div>
+
+              {viewMode === "list" ? (
+                <div className="flex flex-col gap-3 w-full">
+                  {filteredTypes.map((rt) => {
+                    const space = spaces.find((s) => s.id === rt.serviceDeskId);
+                    const boardName = space ? space.projectName : undefined;
+                    return (
+                      <ServiceCard
+                        key={rt.id}
+                        requestType={rt}
+                        boardName={boardName}
+                        isIT={Boolean(isITSection)}
+                        onClick={() => handleSelectType(rt)}
+                        variant="list"
+                      />
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 w-full">
+                  {filteredTypes.map((rt) => {
+                    const space = spaces.find((s) => s.id === rt.serviceDeskId);
+                    const boardName = space ? space.projectName : undefined;
+                    return (
+                      <ServiceCard
+                        key={rt.id}
+                        requestType={rt}
+                        boardName={boardName}
+                        isIT={Boolean(isITSection)}
+                        onClick={() => handleSelectType(rt)}
+                        variant="grid"
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* MODE 1: Show Per Group (Grouped Mode, not searching) */}
+          {filteredTypes.length > 0 && !searchQuery && !localSearchQuery && viewGrouping === "groups" && (
+            <>
+              {/* SUBCASE A: Group Cards Grid (No group clicked yet) */}
+              {!selectedGroup ? (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-3.5">
+                    <div className="flex items-center gap-3">
+                      <div className="size-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                        <FolderTree className="size-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2.5">
+                          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                            Service Groups
+                          </h2>
+                          <Badge
+                            variant="secondary"
+                            className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 h-auto"
+                          >
+                            {Object.keys(groupedRequests).length}{" "}
+                            {Object.keys(groupedRequests).length === 1 ? "group" : "groups"}
+                          </Badge>
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                          Click a group to explore its service requests and submit tickets.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {viewMode === "list" ? (
+                    <div className="flex flex-col gap-3 w-full">
+                      {Object.entries(groupedRequests).map(([groupName, groupTypes]) => (
+                        <GroupCard
+                          key={groupName}
+                          groupName={groupName}
+                          requestTypes={groupTypes}
+                          variant="list"
+                          onClick={() => setSelectedGroup(groupName)}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 w-full">
+                      {Object.entries(groupedRequests).map(([groupName, groupTypes]) => (
+                        <GroupCard
+                          key={groupName}
+                          groupName={groupName}
+                          requestTypes={groupTypes}
+                          variant="grid"
+                          onClick={() => setSelectedGroup(groupName)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* SUBCASE B: Selected Group Drilled-Down View */
+                (() => {
+                  const activeGroupTypes = groupedRequests[selectedGroup] || [];
+                  const theme = getGroupTheme(selectedGroup);
+                  const GroupIcon = theme.icon;
+                  const allGroupNames = Object.keys(groupedRequests);
+
+                  return (
+                    <div className="space-y-6">
+                      {/* Navigation Breadcrumb Bar */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedGroup(null)}
+                            className="hover:text-blue-700 text-blue-600 transition-colors cursor-pointer flex items-center gap-1 font-bold"
+                          >
+                            <ArrowLeft className="size-3.5" />
+                            <span>All Groups</span>
+                          </button>
+                          <span>/</span>
+                          <span className="text-slate-900 font-bold">{selectedGroup}</span>
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedGroup(null)}
+                          className="self-start sm:self-auto cursor-pointer rounded-xl h-8 px-3 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border-slate-200/90 shadow-2xs gap-1.5"
+                        >
+                          <ArrowLeft className="size-3.5" />
+                          <span>Back to all groups</span>
+                        </Button>
+                      </div>
+
+                      {/* Active Group Header & Switcher Pills */}
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+                        <div className="flex items-center gap-3.5">
+                          <div
+                            className={cn(
+                              "size-12 rounded-xl flex items-center justify-center shrink-0 shadow-2xs",
+                              theme.bg
+                            )}
+                          >
+                            <GroupIcon className="size-6 text-white" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                                {selectedGroup}
+                              </h2>
+                              <Badge
+                                variant="secondary"
+                                className={cn(
+                                  "px-2.5 py-0.5 rounded-full text-xs font-semibold",
+                                  theme.badgeBg
+                                )}
+                              >
+                                {activeGroupTypes.length}{" "}
+                                {activeGroupTypes.length === 1 ? "request" : "requests"}
+                              </Badge>
+                            </div>
+                            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                              Showing request types available in {selectedGroup}.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Quick Group Switcher Pills */}
+                        {allGroupNames.length > 1 && (
+                          <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 no-scrollbar">
+                            {allGroupNames.map((gName) => {
+                              const isCur = gName === selectedGroup;
+                              return (
+                                <button
+                                  key={gName}
+                                  type="button"
+                                  onClick={() => setSelectedGroup(gName)}
+                                  className={cn(
+                                    "px-3 py-1 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer border",
+                                    isCur
+                                      ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                                      : "bg-white text-slate-600 hover:text-slate-900 border-slate-200/90 hover:bg-slate-50"
+                                  )}
+                                >
+                                  {gName}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Request Type Cards */}
+                      {viewMode === "list" ? (
+                        <div className="flex flex-col gap-3 w-full">
+                          {activeGroupTypes.map((rt) => {
+                            const space = spaces.find((s) => s.id === rt.serviceDeskId);
+                            const boardName = space ? space.projectName : undefined;
+                            return (
+                              <ServiceCard
+                                key={rt.id}
+                                requestType={rt}
+                                boardName={boardName}
+                                isIT={Boolean(isITSection)}
+                                onClick={() => handleSelectType(rt)}
+                                variant="list"
+                              />
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 w-full">
+                          {activeGroupTypes.map((rt) => {
+                            const space = spaces.find((s) => s.id === rt.serviceDeskId);
+                            const boardName = space ? space.projectName : undefined;
+                            return (
+                              <ServiceCard
+                                key={rt.id}
+                                requestType={rt}
+                                boardName={boardName}
+                                isIT={Boolean(isITSection)}
+                                onClick={() => handleSelectType(rt)}
+                                variant="grid"
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()
+              )}
+            </>
+          )}
+
+          {/* MODE 2: Show All Cards Flat / Grouped Sections */}
+          {filteredTypes.length > 0 && !searchQuery && !localSearchQuery && viewGrouping === "all" && (
             <div className="space-y-12">
               {Object.entries(groupedRequests).map(([groupName, groupTypes]) => (
                 <div key={groupName} className="space-y-4">
@@ -313,16 +578,14 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                   <div className="flex items-center justify-between border-b border-slate-200/80 pb-3.5">
                     <div className="flex items-center gap-3">
                       <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                        {searchQuery ? "Recommended Request Types" : groupName}
+                        {groupName}
                       </h2>
-                      {!searchQuery && (
-                        <Badge
-                          variant="secondary"
-                          className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 h-auto"
-                        >
-                          {groupTypes.length}
-                        </Badge>
-                      )}
+                      <Badge
+                        variant="secondary"
+                        className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 h-auto"
+                      >
+                        {groupTypes.length}
+                      </Badge>
                     </div>
                   </div>
 
@@ -330,9 +593,7 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                   {viewMode === "list" ? (
                     <div className="flex flex-col gap-3 w-full">
                       {groupTypes.map((rt) => {
-                        const space = spaces.find(
-                          (s) => s.id === rt.serviceDeskId
-                        );
+                        const space = spaces.find((s) => s.id === rt.serviceDeskId);
                         const boardName = space ? space.projectName : undefined;
                         return (
                           <ServiceCard
@@ -349,9 +610,7 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 w-full">
                       {groupTypes.map((rt) => {
-                        const space = spaces.find(
-                          (s) => s.id === rt.serviceDeskId
-                        );
+                        const space = spaces.find((s) => s.id === rt.serviceDeskId);
                         const boardName = space ? space.projectName : undefined;
                         return (
                           <ServiceCard

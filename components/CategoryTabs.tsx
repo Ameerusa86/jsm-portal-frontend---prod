@@ -17,6 +17,7 @@ import {
   HelpCircle,
   Briefcase,
   DollarSign,
+  FolderTree,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,8 @@ interface CategoryTabsProps {
   viewMode?: "grid" | "list";
   onToggleViewMode?: (mode: "grid" | "list") => void;
   onViewModeChange?: (mode: "grid" | "list") => void;
+  viewGrouping?: "groups" | "all";
+  onViewGroupingChange?: (grouping: "groups" | "all") => void;
 }
 
 export const CategoryTabs: React.FC<CategoryTabsProps> = ({
@@ -40,6 +43,8 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
   viewMode = "grid",
   onToggleViewMode,
   onViewModeChange,
+  viewGrouping = "groups",
+  onViewGroupingChange,
 }) => {
   const effectiveActive = selectedCategory ?? activeCategory ?? "all";
   const handleToggle = onToggleViewMode ?? onViewModeChange;
@@ -155,8 +160,41 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
         })}
       </div>
 
-      {/* Right Controls: View Switcher (Grid/List) */}
-      <div className="flex items-center gap-2.5 shrink-0 self-end lg:self-auto">
+      {/* Right Controls: Grouping Toggle (By Group / All Cards) & View Switcher (Grid/List) */}
+      <div className="flex items-center gap-2.5 shrink-0 self-end lg:self-auto flex-wrap">
+        {onViewGroupingChange && (
+          <div className="inline-flex items-center p-1 bg-white border border-slate-200/90 rounded-xl shadow-xs gap-0.5">
+            <Button
+              type="button"
+              variant={viewGrouping === "groups" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => onViewGroupingChange("groups")}
+              title="Show requests organized by group"
+              className={cn(
+                "cursor-pointer text-xs font-semibold gap-1.5 h-7 px-2.5 rounded-lg",
+                viewGrouping === "groups" && "bg-slate-100 text-blue-600 shadow-2xs font-bold"
+              )}
+            >
+              <FolderTree className="size-3.5" />
+              <span>By Group</span>
+            </Button>
+            <Button
+              type="button"
+              variant={viewGrouping === "all" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => onViewGroupingChange("all")}
+              title="List all request cards directly"
+              className={cn(
+                "cursor-pointer text-xs font-semibold gap-1.5 h-7 px-2.5 rounded-lg",
+                viewGrouping === "all" && "bg-slate-100 text-blue-600 shadow-2xs font-bold"
+              )}
+            >
+              <Layers className="size-3.5" />
+              <span>All Cards</span>
+            </Button>
+          </div>
+        )}
+
         {handleToggle && (
           <div className="inline-flex items-center p-1 bg-white border border-slate-200/90 rounded-xl shadow-xs">
             <Button

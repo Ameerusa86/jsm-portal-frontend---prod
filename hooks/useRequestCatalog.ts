@@ -238,9 +238,11 @@ export function useRequestCatalog({
 
     const boards = new Set<string>();
     searchResults.forEach((rt) => {
+      const cat = rt.category || rt.group || "General Requests";
       const groupName = rt.group || "General Requests";
       if (
         selectedCategory === "all" ||
+        cat.toLowerCase() === selectedCategory.toLowerCase() ||
         groupName.toLowerCase() === selectedCategory.toLowerCase()
       ) {
         const space = spaces.find((s) => String(s.id) === String(rt.serviceDeskId));
@@ -252,9 +254,11 @@ export function useRequestCatalog({
 
   const filteredTypes = useMemo(() => {
     return searchResults.filter((rt) => {
+      const cat = rt.category || rt.group || "General Requests";
       const groupName = rt.group || "General Requests";
       const categoryMatch =
         selectedCategory === "all" ||
+        cat.toLowerCase() === selectedCategory.toLowerCase() ||
         groupName.toLowerCase() === selectedCategory.toLowerCase();
 
       let localSearchMatch = true;
@@ -262,7 +266,9 @@ export function useRequestCatalog({
         const query = localSearchQuery.toLowerCase();
         localSearchMatch =
           rt.name.toLowerCase().includes(query) ||
-          (rt.description || "").toLowerCase().includes(query);
+          (rt.description || "").toLowerCase().includes(query) ||
+          groupName.toLowerCase().includes(query) ||
+          (rt.portalGroup || "").toLowerCase().includes(query);
       }
 
       let boardMatch = true;
@@ -284,7 +290,7 @@ export function useRequestCatalog({
   const categoriesWithCounts = useMemo(() => {
     const counts: Record<string, number> = { all: enrichedBaseRequestTypes.length };
     enrichedBaseRequestTypes.forEach((rt) => {
-      const g = rt.group || "General Requests";
+      const g = rt.category || rt.group || "General Requests";
       counts[g] = (counts[g] || 0) + 1;
     });
 
@@ -301,7 +307,7 @@ export function useRequestCatalog({
   const groupedRequests = useMemo(() => {
     return filteredTypes.reduce(
       (acc, rt) => {
-        const groupName = rt.group || "General Requests";
+        const groupName = rt.portalGroup || rt.group || "General Requests";
         if (!acc[groupName]) acc[groupName] = [];
         acc[groupName].push(rt);
         return acc;

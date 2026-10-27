@@ -60,6 +60,8 @@ export interface RequestType {
   name: string;
   description?: string;
   group?: string;
+  category?: string;
+  portalGroup?: string;
   groupIds?: string[];
   portalUrl?: string;
   serviceDeskId?: string;
@@ -74,6 +76,8 @@ export interface RequestType {
 
 export interface RequestTypeWithGroup extends RequestType {
   group?: string;
+  category?: string;
+  portalGroup?: string;
   spaceName?: string;
   spaceKey?: string;
   hiddenFromPortal?: boolean;
