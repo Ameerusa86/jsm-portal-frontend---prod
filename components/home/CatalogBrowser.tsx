@@ -74,12 +74,39 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
   const isSingleSpace = Boolean(spaceParamId && spaceParamId !== "all");
 
   const [viewGrouping, setViewGrouping] = React.useState<"groups" | "all">("groups");
-  const [selectedGroup, setSelectedGroup] = React.useState<string | null>(null);
+  const [groupSelection, setGroupSelection] = React.useState(() => ({
+    selectedCategory,
+    spaceParamId,
+    spaceCategoryParam,
+    boardFilter,
+    groupKey: null as string | null,
+  }));
 
-  // Automatically reset selected group when changing space, category tab, or board filter
-  React.useEffect(() => {
-    setSelectedGroup(null);
-  }, [selectedCategory, spaceParamId, spaceCategoryParam, boardFilter]);
+  if (
+    groupSelection.selectedCategory !== selectedCategory ||
+    groupSelection.spaceParamId !== spaceParamId ||
+    groupSelection.spaceCategoryParam !== spaceCategoryParam ||
+    groupSelection.boardFilter !== boardFilter
+  ) {
+    setGroupSelection({
+      selectedCategory,
+      spaceParamId,
+      spaceCategoryParam,
+      boardFilter,
+      groupKey: null,
+    });
+  }
+
+  const selectedGroup = groupSelection.groupKey;
+  const setSelectedGroup = (groupKey: string | null) => {
+    setGroupSelection({
+      selectedCategory,
+      spaceParamId,
+      spaceCategoryParam,
+      boardFilter,
+      groupKey,
+    });
+  };
 
   // Guaranteed projectSections grouped strictly by service desk / board
   const effectiveProjectSections = React.useMemo<ProjectGroupSection[]>(() => {
