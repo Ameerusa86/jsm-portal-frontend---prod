@@ -397,7 +397,11 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
 
   // Fetch ticket details
   useEffect(() => {
-    if (!ticketKey) return;
+    if (!ticketKey) {
+      setDetail(null);
+      setError(null);
+      return;
+    }
 
     let ignore = false;
     const fetchDetail = async () => {
@@ -602,6 +606,8 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
     isCanceled;
 
   const workflowSteps = detail ? buildDynamicWorkflowSteps(detail) : [];
+
+  if (!ticketKey) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">

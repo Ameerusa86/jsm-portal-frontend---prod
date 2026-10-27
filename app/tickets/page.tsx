@@ -49,8 +49,14 @@ function TicketsContent() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Selected ticket for drawer derived directly from URL query param
-  const selectedTicketKey = searchParams.get("id");
+  // Selected ticket for drawer synchronized with URL query param
+  const [selectedTicketKey, setSelectedTicketKey] = useState<string | null>(
+    searchParams.get("id")
+  );
+
+  useEffect(() => {
+    setSelectedTicketKey(searchParams.get("id"));
+  }, [searchParams]);
 
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
@@ -380,15 +386,19 @@ function TicketsContent() {
 
   // Drawer handlers
   const handleSelectTicket = (ticket: TicketItem) => {
+    setSelectedTicketKey(ticket.key);
     const params = new URLSearchParams(window.location.search);
     params.set("id", ticket.key);
-    router.replace(`/tickets?${params.toString()}`);
+    const qs = params.toString();
+    router.replace(qs ? `/tickets?${qs}` : "/tickets", { scroll: false });
   };
 
   const handleCloseDrawer = () => {
+    setSelectedTicketKey(null);
     const params = new URLSearchParams(window.location.search);
     params.delete("id");
-    router.replace(`/tickets?${params.toString()}`);
+    const qs = params.toString();
+    router.replace(qs ? `/tickets?${qs}` : "/tickets", { scroll: false });
   };
 
   const handleTicketStatusUpdated = (key: string, newStatus: string) => {
