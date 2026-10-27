@@ -2,12 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import {
-  Plus,
-  Download,
-  ExternalLink,
-  Ticket,
-} from "lucide-react";
+import { Plus, Download, ExternalLink, Ticket } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -37,23 +32,6 @@ export const TicketsHeader: React.FC<TicketsHeaderProps> = ({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 shrink-0">
-        {/* Subtle Live Auto-Update status badge */}
-        {isAutoUpdating && (
-          <Badge
-            variant="outline"
-            className="gap-2 px-3 py-1.5 bg-slate-50/80 border-slate-200 text-slate-600 text-xs font-medium"
-            title="Tickets update automatically in real-time"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="hidden sm:inline text-slate-600 font-semibold text-[11px]">
-              Live Updates
-            </span>
-          </Badge>
-        )}
-
         {/* Export CSV button */}
         <Button
           type="button"
@@ -75,7 +53,7 @@ export const TicketsHeader: React.FC<TicketsHeaderProps> = ({
           rel="noopener noreferrer"
           className={cn(
             buttonVariants({ variant: "outline", size: "sm" }),
-            "h-10 px-3.5 border-slate-200 text-slate-700 hover:text-slate-900 shadow-2xs group font-semibold"
+            "h-10 px-3.5 border-slate-200 text-slate-700 hover:text-slate-900 shadow-2xs group font-semibold",
           )}
           title="Open Jira's native customer requests portal in a new tab"
         >
@@ -89,7 +67,7 @@ export const TicketsHeader: React.FC<TicketsHeaderProps> = ({
           href="/"
           className={cn(
             buttonVariants({ variant: "default", size: "sm" }),
-            "h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm shadow-blue-600/20"
+            "h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm shadow-blue-600/20",
           )}
         >
           <Plus className="w-4 h-4 mr-1.5" />
