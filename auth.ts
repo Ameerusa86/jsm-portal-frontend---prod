@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import Atlassian from "next-auth/providers/atlassian";
+import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import type { JWT } from "next-auth/jwt";
 
 /**
@@ -116,6 +117,27 @@ const clientSecret =
   process.env.ATLASSIAN_CLIENT_SECRET ||
   "";
 
+const msClientId =
+  process.env.AUTH_MICROSOFT_ENTRA_ID_ID ||
+  process.env.AZURE_AD_CLIENT_ID ||
+  process.env.MICROSOFT_CLIENT_ID ||
+  "";
+const msClientSecret =
+  process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET ||
+  process.env.AZURE_AD_CLIENT_SECRET ||
+  process.env.MICROSOFT_CLIENT_SECRET ||
+  "";
+const msTenantId =
+  process.env.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID ||
+  process.env.AZURE_AD_TENANT_ID ||
+  process.env.MICROSOFT_TENANT_ID ||
+  "";
+const msIssuer =
+  process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER ||
+  (msTenantId
+    ? `https://login.microsoftonline.com/${msTenantId}/v2.0`
+    : "https://login.microsoftonline.com/organizations/v2.0");
+
 // Request ONLY User Identity ("read:me offline_access") by default so that
 // employees/customers WITHOUT a paid Jira, JSM Agent, or Confluence seat
 // never get blocked by Atlassian's "Access Denied" product license screen.
@@ -131,6 +153,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/login",
   },
   providers: [
+    MicrosoftEntraID({
+      clientId: msClientId,
+      clientSecret: msClientSecret,
+      issuer: msIssuer,
+    }),
     Atlassian({
       clientId,
       clientSecret,
@@ -144,7 +171,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, profile, user }) {
       const configuredBaseUrl = (
         process.env.JIRA_BASE_URL &&
         !process.env.JIRA_BASE_URL.includes("sandbox")
@@ -154,7 +181,39 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         .trim()
         .replace(/\/+$/, "");
 
-      // 1. Initial login: extract tokens and retrieve Production Cloud ID (if site scopes are used)
+      // 1a. Microsoft 365 / Entra ID SSO login (for all company employees, no Jira license required)
+      if (account?.provider === "microsoft-entra-id") {
+        const oidcProfile = profile as
+          | {
+              email?: string;
+              preferred_username?: string;
+              upn?: string;
+              name?: string;
+              sub?: string;
+            }
+          | undefined;
+
+        const resolvedEmail =
+          user?.email ||
+          oidcProfile?.email ||
+          oidcProfile?.preferred_username ||
+          oidcProfile?.upn ||
+          token.email;
+
+        token.email = resolvedEmail;
+        token.name = user?.name || oidcProfile?.name || token.name;
+        token.accountId =
+          user?.id || account.providerAccountId || oidcProfile?.sub || token.sub;
+        token.siteUrl = configuredBaseUrl;
+        // Do not store Microsoft OAuth tokens in Atlassian token fields
+        token.accessToken = undefined;
+        token.refreshToken = undefined;
+        token.expiresAt = undefined;
+        token.error = undefined;
+        return token;
+      }
+
+      // 1b. Initial Atlassian OAuth login: extract tokens and retrieve Production Cloud ID (if site scopes are used)
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
@@ -240,12 +299,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.siteUrl = "https://emsmc1.atlassian.net";
       }
 
-      // 2. Return current token if it has not expired yet (with 60-second safety window)
-      if (token.expiresAt && Date.now() < token.expiresAt * 1000 - 60000) {
+      // 2. If session does not use Atlassian refresh tokens (e.g. Microsoft Entra ID SSO), return as-is
+      if (!token.expiresAt || !token.refreshToken) {
         return token;
       }
 
-      // 3. Token expired -> refresh it
+      // 3. Return current Atlassian token if it has not expired yet (with 60-second safety window)
+      if (Date.now() < token.expiresAt * 1000 - 60000) {
+        return token;
+      }
+
+      // 4. Token expired -> refresh it
       return refreshAccessToken(token);
     },
     async session({ session, token }) {

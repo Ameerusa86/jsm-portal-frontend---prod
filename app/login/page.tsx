@@ -28,6 +28,7 @@ function LoginContent() {
   const errorParam = searchParams.get("error");
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isMicrosoftLoading, setIsMicrosoftLoading] = useState(false);
 
   // If already authenticated, redirect to callbackUrl or home
   useEffect(() => {
@@ -35,6 +36,16 @@ function LoginContent() {
       router.replace(callbackUrl);
     }
   }, [status, session, callbackUrl, router]);
+
+  const handleMicrosoftSignIn = async () => {
+    try {
+      setIsMicrosoftLoading(true);
+      await signIn("microsoft-entra-id", { callbackUrl });
+    } catch (err) {
+      console.error("Microsoft sign in error:", err);
+      setIsMicrosoftLoading(false);
+    }
+  };
 
   const handleSignIn = async () => {
     try {
@@ -123,7 +134,7 @@ function LoginContent() {
                 Welcome to Service Desk
               </CardTitle>
               <CardDescription className="text-sm text-slate-400 mt-2 leading-relaxed">
-                Please sign in with your Atlassian account to access IT services, submit requests, and manage tickets.
+                Please sign in with your Microsoft 365 work account or Atlassian account to access IT services, submit requests, and manage tickets.
               </CardDescription>
             </CardHeader>
 
@@ -136,15 +147,58 @@ function LoginContent() {
                 </div>
               )}
 
-              {/* Sign In Button */}
-              <div className="space-y-4">
+              {/* Sign In Buttons */}
+              <div className="space-y-3.5">
+                {/* Microsoft 365 / Entra ID SSO Button */}
                 <Button
                   type="button"
                   variant="default"
                   size="lg"
-                  onClick={handleSignIn}
-                  disabled={isLoading}
+                  onClick={handleMicrosoftSignIn}
+                  disabled={isMicrosoftLoading || isLoading}
                   className="w-full h-12 cursor-pointer text-sm font-semibold gap-3 shadow-lg shadow-blue-600/25 active:scale-[0.98] group bg-blue-600 hover:bg-blue-500"
+                >
+                  {isMicrosoftLoading ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin text-white" />
+                      <span>Connecting to Microsoft 365...</span>
+                    </>
+                  ) : (
+                    <>
+                      {/* Official Microsoft 4-Square Logo SVG */}
+                      <svg
+                        className="size-4 shrink-0"
+                        viewBox="0 0 21 21"
+                        aria-hidden="true"
+                      >
+                        <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+                        <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+                        <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+                        <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+                      </svg>
+                      <span>Sign In with Microsoft 365</span>
+                      <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                    </>
+                  )}
+                </Button>
+
+                {/* Divider */}
+                <div className="relative py-1.5 flex items-center justify-center">
+                  <div className="w-full border-t border-slate-800" />
+                  <span className="bg-slate-900 px-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 shrink-0">
+                    Or
+                  </span>
+                  <div className="w-full border-t border-slate-800" />
+                </div>
+
+                {/* Atlassian OAuth Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  onClick={handleSignIn}
+                  disabled={isLoading || isMicrosoftLoading}
+                  className="w-full h-11 cursor-pointer text-sm font-semibold gap-3 border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-100 active:scale-[0.98] group"
                 >
                   {isLoading ? (
                     <>
@@ -155,14 +209,13 @@ function LoginContent() {
                     <>
                       {/* Atlassian Official Symbol SVG */}
                       <svg
-                        className="size-4 fill-current shrink-0"
+                        className="size-4 fill-current shrink-0 text-blue-400"
                         viewBox="0 0 32 32"
                         aria-hidden="true"
                       >
                         <path d="M15.54 13.06c-.4 0-.82.17-1.1.48L5.7 23.36c-.45.5-.3 1.29.3 1.6l4.63 2.37c.36.19.8.14 1.1-.14l6.19-6.38a1.35 1.35 0 0 0 .39-.96v-5.42c0-.75-.6-1.37-1.37-1.37h-.4zm.92-8.38c-.76 0-1.38.62-1.38 1.38v5.42c0 .36.14.71.39.96l6.19 6.38c.3.28.74.33 1.1.14l4.63-2.37c.6-.31.75-1.1.3-1.6L19.05 5.16a1.52 1.52 0 0 0-1.1-.48h-1.49z" />
                       </svg>
                       <span>Sign In with Atlassian</span>
-                      <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform shrink-0" />
                     </>
                   )}
                 </Button>
