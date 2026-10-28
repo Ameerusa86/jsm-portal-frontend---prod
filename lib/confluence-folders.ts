@@ -6,7 +6,7 @@
  * viewing to specific Confluence folders (or parent pages).
  *
  * HOW TO MANAGE FOLDERS:
- * - Add a new folder: append an object with `{ id, name, url }` to
+ * - We can add a new folder: append an object with `{ id, name, url }` to
  *   `ALLOWED_CONFLUENCE_FOLDERS` below.
  * - Temporarily disable a folder: set `enabled: false` on that entry.
  * - Delete a folder: remove its object from `ALLOWED_CONFLUENCE_FOLDERS`.
@@ -81,7 +81,9 @@ export const ALLOWED_CONFLUENCE_FOLDERS: ConfluenceFolderConfig[] = [
  * - Page URLs: ".../wiki/spaces/KEY/pages/123456789/..."
  * - Legacy query URLs: "...?pageId=123456789"
  */
-export function extractConfluenceFolderId(input?: string | null): string | null {
+export function extractConfluenceFolderId(
+  input?: string | null,
+): string | null {
   if (!input) return null;
   const trimmed = input.trim();
   if (!trimmed) return null;

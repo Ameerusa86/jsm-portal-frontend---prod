@@ -3,7 +3,11 @@
 import React, { RefObject } from "react";
 import { Search, X } from "lucide-react";
 import { QuickSearchDropdown } from "@/components/QuickSearchDropdown";
-import { JsmSpace, KnowledgeBaseArticle, RequestTypeWithGroup } from "@/types/jsm";
+import {
+  JsmSpace,
+  KnowledgeBaseArticle,
+  RequestTypeWithGroup,
+} from "@/types/jsm";
 import { Button } from "@/components/ui/button";
 
 interface HeroSearchProps {
@@ -55,7 +59,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
       ? spaceCategoryParam === "Information Technology"
         ? "Technology Solutions"
         : spaceCategoryParam
-      : "Welcome to the EMS|MC Help Center";
+      : "Welcome to EMS|MC Help Center|Welcome to EMS|MC Help Center";
 
   const displaySubtitle = currentSpace
     ? `Search across all articles and request types, or browse services in ${currentSpace.projectName}.`

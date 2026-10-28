@@ -265,7 +265,7 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={handleHomeClick}
               className="flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl transition-all cursor-pointer group py-1 min-h-[44px]"
-              aria-label="EMSMC Help Center Home"
+              aria-label="EMSWelcome to EMS|MC Help Center Home"
             >
               <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-white group-hover:text-blue-400 transition-colors">
                 EMS|MC
@@ -299,7 +299,7 @@ export const Header: React.FC<HeaderProps> = ({
                     "flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer min-h-[40px] text-slate-300 hover:text-white hover:bg-slate-800",
                     spacesOpen
                       ? "bg-slate-800 border-blue-500/60 text-white shadow-sm ring-2 ring-blue-500/20"
-                      : "bg-slate-800/60 sm:bg-transparent border-slate-800 sm:border-transparent"
+                      : "bg-slate-800/60 sm:bg-transparent border-slate-800 sm:border-transparent",
                   )}
                   aria-label="Browse Portals and Spaces"
                 >
@@ -314,7 +314,9 @@ export const Header: React.FC<HeaderProps> = ({
                   <ChevronDown
                     className={cn(
                       "size-3.5 shrink-0 transition-transform duration-200",
-                      spacesOpen ? "rotate-180 text-blue-400" : "text-slate-400"
+                      spacesOpen
+                        ? "rotate-180 text-blue-400"
+                        : "text-slate-400",
                     )}
                   />
                 </Button>
@@ -403,7 +405,7 @@ export const Header: React.FC<HeaderProps> = ({
                               "flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all group",
                               isCurrent
                                 ? "bg-blue-600/15 border border-blue-500/30 text-white"
-                                : "text-slate-200 hover:bg-slate-800/90 hover:text-white"
+                                : "text-slate-200 hover:bg-slate-800/90 hover:text-white",
                             )}
                           >
                             <div className="flex items-center gap-3 min-w-0">
@@ -411,7 +413,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 className={cn(
                                   "size-8 rounded-lg flex items-center justify-center border shrink-0 transition-transform group-hover:scale-105",
                                   theme.bg,
-                                  theme.color
+                                  theme.color,
                                 )}
                               >
                                 <Icon className="size-4" />
@@ -474,7 +476,7 @@ export const Header: React.FC<HeaderProps> = ({
               href="/tickets"
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" }),
-                "gap-1.5 sm:gap-2 px-3 sm:px-3.5 h-10 rounded-xl border-blue-500/30 hover:border-blue-400 bg-blue-600/10 hover:bg-blue-600/20 text-blue-300 hover:text-white text-xs sm:text-sm font-semibold transition-all shrink-0 group shadow-xs"
+                "gap-1.5 sm:gap-2 px-3 sm:px-3.5 h-10 rounded-xl border-blue-500/30 hover:border-blue-400 bg-blue-600/10 hover:bg-blue-600/20 text-blue-300 hover:text-white text-xs sm:text-sm font-semibold transition-all shrink-0 group shadow-xs",
               )}
               title="Custom tickets page with advanced filtering & sorting"
             >
@@ -496,7 +498,7 @@ export const Header: React.FC<HeaderProps> = ({
                 rel="noopener noreferrer"
                 className={cn(
                   buttonVariants({ variant: "outline", size: "sm" }),
-                  "gap-1.5 sm:gap-2 px-3 sm:px-3.5 h-10 rounded-xl border-slate-700/90 hover:border-blue-500/50 bg-slate-800/60 hover:bg-slate-800 text-slate-200 hover:text-white text-xs sm:text-sm font-semibold transition-all shrink-0 group shadow-xs"
+                  "gap-1.5 sm:gap-2 px-3 sm:px-3.5 h-10 rounded-xl border-slate-700/90 hover:border-blue-500/50 bg-slate-800/60 hover:bg-slate-800 text-slate-200 hover:text-white text-xs sm:text-sm font-semibold transition-all shrink-0 group shadow-xs",
                 )}
                 title="View all your Jira tickets and requests"
               >
@@ -532,7 +534,7 @@ export const Header: React.FC<HeaderProps> = ({
                     "gap-2 px-2.5 sm:px-3 h-10 rounded-xl border text-xs sm:text-sm font-medium transition-all cursor-pointer",
                     dropdownOpen
                       ? "bg-slate-800 border-blue-500/50 text-white shadow-sm ring-2 ring-blue-500/20"
-                      : "bg-slate-800 hover:bg-slate-750 border-slate-700/80 text-slate-200"
+                      : "bg-slate-800 hover:bg-slate-750 border-slate-700/80 text-slate-200",
                   )}
                   aria-label="User Profile Menu"
                 >
@@ -557,7 +559,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <ChevronDown
                     className={cn(
                       "size-3.5 text-slate-400 shrink-0 transition-transform duration-200",
-                      dropdownOpen ? "rotate-180 text-blue-400" : ""
+                      dropdownOpen ? "rotate-180 text-blue-400" : "",
                     )}
                   />
                 </Button>
@@ -614,7 +616,10 @@ export const Header: React.FC<HeaderProps> = ({
                         size="sm"
                         onClick={() => {
                           setDropdownOpen(false);
-                          signOut({ callbackUrl: "/login", redirectTo: "/login" });
+                          signOut({
+                            callbackUrl: "/login",
+                            redirectTo: "/login",
+                          });
                         }}
                         className="w-full justify-start gap-2.5 px-3 py-2 text-xs text-rose-300 hover:bg-rose-500/10 hover:text-rose-200 rounded-xl cursor-pointer h-auto"
                       >
@@ -766,7 +771,7 @@ export const Header: React.FC<HeaderProps> = ({
                       className={cn(
                         "size-8 rounded-lg flex items-center justify-center border shrink-0",
                         theme.bg,
-                        theme.color
+                        theme.color,
                       )}
                     >
                       <Icon className="size-4" />
