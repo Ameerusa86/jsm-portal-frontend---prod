@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getJiraAuthContext } from "@/lib/jira";
+import { getConfluenceFolderLockContext } from "@/lib/confluence-folders";
 
 export const dynamic = "force-dynamic";
 
@@ -248,6 +249,37 @@ interface JsmRawArticle {
   [key: string]: unknown;
 }
 
+interface ConfluenceCqlResult {
+  content?: {
+    id?: string | number;
+    type?: string;
+    title?: string;
+    space?: {
+      key?: string;
+      name?: string;
+    };
+  };
+  title?: string;
+  excerpt?: string;
+  resultGlobalContainer?: {
+    title?: string;
+  };
+}
+
+function escapeCqlTerm(term: string): string {
+  return term.replace(/\\/g, "\\\\").replace(/"/g, '\\"').trim();
+}
+
+function cleanSnippetText(raw?: string): string {
+  if (!raw) return "";
+  return raw
+    .replace(/@@@hl@@@/g, "")
+    .replace(/@@@endhl@@@/g, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -261,6 +293,7 @@ export async function GET(request: NextRequest) {
       isConfigured,
       authHeader,
       baseUrl,
+      siteUrl,
       serviceDeskId: defaultServiceDeskId,
     } = await getJiraAuthContext();
 
@@ -282,8 +315,148 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ results: [] });
     }
 
-    // 2. Fetch from JSM Service Desk Knowledge Base API
-    // This API strictly queries ONLY the Confluence space(s) linked to this service desk in JSM.
+    // 2. Check if Confluence Folder Lock is active
+    const folderLock = getConfluenceFolderLockContext(serviceDeskId);
+
+    if (folderLock.isLocked) {
+      // If strict lock is active but 0 folder IDs are configured, block all articles
+      if (folderLock.folderIds.length === 0) {
+        return NextResponse.json({
+          results: [],
+          serviceDeskId,
+          lockedFolderIds: [],
+          source: "confluence-folder-lock",
+        });
+      }
+
+      const wikiBaseUrl = (siteUrl || process.env.JIRA_BASE_URL || baseUrl)
+        .replace(/\/+$/, "")
+        .replace(/\/wiki$/, "");
+
+      const { JIRA_USER_EMAIL, JIRA_API_TOKEN } = process.env;
+      const wikiAuthHeader =
+        JIRA_USER_EMAIL && JIRA_API_TOKEN
+          ? `Basic ${Buffer.from(
+              `${JIRA_USER_EMAIL.trim()}:${JIRA_API_TOKEN.trim()}`,
+            ).toString("base64")}`
+          : authHeader;
+
+      const folderList = folderLock.folderIds.join(", ");
+      const folderClause = `(ancestor IN (${folderList}) OR id IN (${folderList}))`;
+
+      const terms =
+        cleanKeywords.length > 0
+          ? cleanKeywords
+          : [sanitizedText || query.trim()];
+      const termClauses = terms
+        .map((t) => escapeCqlTerm(t))
+        .filter(Boolean)
+        .map((t) => `(title ~ "${t}" OR text ~ "${t}")`);
+
+      if (termClauses.length === 0) {
+        return NextResponse.json({ results: [] });
+      }
+
+      // Primary CQL: require all substantive keywords within the locked folders
+      const primaryCql = `type = page AND ${folderClause} AND (${termClauses.join(
+        " AND ",
+      )})`;
+      const primaryUrl = `${wikiBaseUrl}/wiki/rest/api/search?cql=${encodeURIComponent(
+        primaryCql,
+      )}&excerpt=highlight&limit=15&expand=content.space`;
+
+      let cqlRes = await fetch(primaryUrl, {
+        method: "GET",
+        headers: {
+          Authorization: wikiAuthHeader,
+          Accept: "application/json",
+        },
+        next: { revalidate: 60 },
+      });
+
+      let cqlResults: ConfluenceCqlResult[] = [];
+      if (cqlRes.ok) {
+        const cqlData = await cqlRes.json();
+        cqlResults = (cqlData.results || []) as ConfluenceCqlResult[];
+      }
+
+      // Fallback CQL: if multi-keyword AND query returned 0 matches, try OR across keywords inside locked folders
+      if (cqlResults.length === 0 && termClauses.length > 1) {
+        const fallbackCql = `type = page AND ${folderClause} AND (${termClauses.join(
+          " OR ",
+        )})`;
+        const fallbackUrl = `${wikiBaseUrl}/wiki/rest/api/search?cql=${encodeURIComponent(
+          fallbackCql,
+        )}&excerpt=highlight&limit=15&expand=content.space`;
+
+        cqlRes = await fetch(fallbackUrl, {
+          method: "GET",
+          headers: {
+            Authorization: wikiAuthHeader,
+            Accept: "application/json",
+          },
+          next: { revalidate: 60 },
+        });
+
+        if (cqlRes.ok) {
+          const fallbackData = await cqlRes.json();
+          cqlResults = (fallbackData.results || []) as ConfluenceCqlResult[];
+        }
+      }
+
+      const seenIds = new Set<string>();
+      const lockedArticles = cqlResults
+        .filter((item) => {
+          const pageId = String(item.content?.id || "");
+          if (!pageId || seenIds.has(pageId)) return false;
+          seenIds.add(pageId);
+
+          const spaceKey = item.content?.space?.key;
+          const spaceName =
+            item.content?.space?.name || item.resultGlobalContainer?.title;
+          const title = item.title || item.content?.title;
+
+          return !isComplianceOrRestricted({
+            title,
+            spaceKey,
+            spaceName,
+          });
+        })
+        .map((item) => {
+          const pageId = String(item.content?.id || "");
+          const spaceKey = item.content?.space?.key;
+          const title = cleanSnippetText(item.title || item.content?.title);
+          const excerpt = cleanSnippetText(item.excerpt);
+
+          let portalUrl = `/article/${pageId}?serviceDeskId=${serviceDeskId}`;
+          if (!requestedServiceDeskId) {
+            portalUrl += "&fromHome=true";
+          }
+
+          return {
+            id: pageId,
+            title,
+            excerpt,
+            source: {
+              pageId,
+              spaceKey,
+              type: "confluence",
+            },
+            spaceKey,
+            portalUrl,
+          };
+        });
+
+      return NextResponse.json({
+        results: lockedArticles,
+        serviceDeskId,
+        lockedFolderIds: folderLock.folderIds,
+        source: "confluence-folder-lock",
+      });
+    }
+
+    // 3. Default (Unrestricted) Mode: Fetch from JSM Service Desk Knowledge Base API
+    // This API queries the entire Confluence space(s) linked to this service desk in JSM.
     const cleanBaseUrl = baseUrl.replace(/\/+$/, "");
     const jsmUrl = `${cleanBaseUrl}/rest/servicedeskapi/servicedesk/${encodeURIComponent(
       serviceDeskId,
@@ -349,7 +522,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. Format and filter articles
+    // 4. Format and filter articles
     const seenIds = new Set<string>();
     const articles = rawResults
       .filter((item) => {
@@ -366,23 +539,8 @@ export async function GET(request: NextRequest) {
       })
       .map((item) => {
         const pageId = String(item.source?.pageId || item.id);
-
-        const title = (item.title || "")
-          .replace(/@@@hl@@@/g, "")
-          .replace(/@@@endhl@@@/g, "")
-          .replace(/<[^>]+>/g, " ")
-          .replace(/\s+/g, " ")
-          .trim();
-
-        let excerpt = item.excerpt || "";
-        if (excerpt) {
-          excerpt = excerpt
-            .replace(/@@@hl@@@/g, "")
-            .replace(/@@@endhl@@@/g, "")
-            .replace(/<[^>]+>/g, " ")
-            .replace(/\s+/g, " ")
-            .trim();
-        }
+        const title = cleanSnippetText(item.title);
+        const excerpt = cleanSnippetText(item.excerpt);
 
         let portalUrl = `/article/${pageId}?serviceDeskId=${serviceDeskId}`;
         if (!requestedServiceDeskId) {

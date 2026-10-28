@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getConfluenceFolderLockContext } from "@/lib/confluence-folders";
 
 export const dynamic = "force-dynamic";
 
@@ -7,6 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const articleId = searchParams.get("articleId");
+    const serviceDeskId = searchParams.get("serviceDeskId");
 
     if (!articleId) {
       return NextResponse.json({ error: "articleId is missing" }, { status: 400 });
@@ -30,12 +32,23 @@ export async function GET(request: NextRequest) {
     }
 
     const cleanBaseUrl = rawBaseUrl.replace(/\/+$/, "").replace(/\/wiki$/, "");
-    
-    // Confluence API using Basic Auth
-    // Expand body.view for content, metadata.labels to parse rt-* labels, plus version, history, space
-    const apiUrl = `${cleanBaseUrl}/wiki/rest/api/content/${articleId}?expand=body.view,metadata.labels,version,history.lastUpdated,space`;
-    
     const basicAuthHeader = `Basic ${Buffer.from(`${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}`).toString("base64")}`;
+
+    // Check if Confluence Folder Lock is active
+    const folderLock = getConfluenceFolderLockContext(serviceDeskId);
+    if (folderLock.isLocked && folderLock.folderIds.length === 0) {
+      return NextResponse.json(
+        {
+          error: "Access restricted: No Confluence Knowledge Base folders are currently enabled.",
+          status: 403,
+        },
+        { status: 403 }
+      );
+    }
+
+    // Confluence API using Basic Auth
+    // Expand body.view for content, metadata.labels to parse rt-* labels, plus version, history, space, ancestors
+    const apiUrl = `${cleanBaseUrl}/wiki/rest/api/content/${encodeURIComponent(articleId)}?expand=body.view,metadata.labels,version,history.lastUpdated,space,ancestors`;
 
     const response = await fetch(apiUrl, {
       method: "GET",
@@ -65,6 +78,81 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
+
+    // Enforce Confluence Folder Lock if configured
+    if (folderLock.isLocked && folderLock.folderIds.length > 0) {
+      const allowedSet = new Set(folderLock.folderIds.map(String));
+      const v1Ancestors: Array<{ id?: string | number }> = Array.isArray(data.ancestors)
+        ? data.ancestors
+        : [];
+
+      let isAllowed =
+        allowedSet.has(String(articleId)) ||
+        v1Ancestors.some((ancestor) => ancestor?.id && allowedSet.has(String(ancestor.id)));
+
+      // Fallback check via Confluence v2 ancestors API & CQL (in case v1 `ancestors` omitted `type: "folder"` nodes)
+      if (!isAllowed) {
+        try {
+          const v2Res = await fetch(
+            `${cleanBaseUrl}/wiki/api/v2/pages/${encodeURIComponent(articleId)}/ancestors`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: basicAuthHeader,
+                Accept: "application/json",
+              },
+            }
+          );
+          if (v2Res.ok) {
+            const v2Data = await v2Res.json();
+            const v2Ancestors: Array<{ id?: string | number }> = Array.isArray(v2Data?.results)
+              ? v2Data.results
+              : [];
+            isAllowed = v2Ancestors.some(
+              (ancestor) => ancestor?.id && allowedSet.has(String(ancestor.id))
+            );
+          }
+        } catch {
+          // Proceed to CQL verification fallback if v2 endpoint is unavailable
+        }
+      }
+
+      if (!isAllowed && /^\d+$/.test(String(articleId))) {
+        try {
+          const folderList = folderLock.folderIds.join(", ");
+          const verifyCql = `id = ${articleId} AND (ancestor IN (${folderList}) OR id IN (${folderList}))`;
+          const cqlVerifyRes = await fetch(
+            `${cleanBaseUrl}/wiki/rest/api/search?cql=${encodeURIComponent(verifyCql)}&limit=1`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: basicAuthHeader,
+                Accept: "application/json",
+              },
+            }
+          );
+          if (cqlVerifyRes.ok) {
+            const cqlVerifyData = await cqlVerifyRes.json();
+            if (Array.isArray(cqlVerifyData?.results) && cqlVerifyData.results.length > 0) {
+              isAllowed = true;
+            }
+          }
+        } catch {
+          // Ignore network error on fallback check
+        }
+      }
+
+      if (!isAllowed) {
+        return NextResponse.json(
+          {
+            error: "This article is outside the authorized Confluence Knowledge Base folders for this portal.",
+            status: 403,
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     let htmlContent = data.body?.view?.value || "<p>No content available.</p>";
     const title = data.title || "Knowledge Base Article";
 
