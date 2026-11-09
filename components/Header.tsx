@@ -265,7 +265,6 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={handleHomeClick}
               className="flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl transition-all cursor-pointer group py-1 min-h-[44px]"
-              aria-label="EMSWelcome to EMS|MC Help Center Home"
             >
               <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-white group-hover:text-blue-400 transition-colors">
                 EMS|MC

@@ -59,7 +59,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
       ? spaceCategoryParam === "Information Technology"
         ? "Technology Solutions"
         : spaceCategoryParam
-      : "Welcome to EMS|MC Help Center|Welcome to EMS|MC Help Center";
+      : "Welcome to EMS|MC Help Center";
 
   const displaySubtitle = currentSpace
     ? `Search across all articles and request types, or browse services in ${currentSpace.projectName}.`
