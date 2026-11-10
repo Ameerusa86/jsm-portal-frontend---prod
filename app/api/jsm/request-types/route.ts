@@ -48,6 +48,18 @@ const matchesCategory = (actual?: string, expected?: string) => {
  */
 export function inferPortalGroup(name: string, description?: string, category?: string): string {
   const text = `${name} ${description || ""}`.toLowerCase();
+
+  // 1. Employee Lifecycle & Account Transitions
+  if (
+    text.includes("winddown") ||
+    text.includes("wind down") ||
+    text.includes("wind-down") ||
+    /\b(terms?|terminat(e|ed|ion|ing)|offboard(ing)?|onboard(ing)?|new\s+hire)\b/i.test(text)
+  ) {
+    return "Logins & Accounts";
+  }
+
+  // 2. Passwords, Logins, Accounts & Access
   if (
     text.includes("password") ||
     text.includes("mfa") ||
@@ -60,6 +72,8 @@ export function inferPortalGroup(name: string, description?: string, category?: 
   ) {
     return "Logins & Accounts";
   }
+
+  // 3. Hardware & Computers
   if (
     text.includes("laptop") ||
     text.includes("computer") ||
@@ -71,6 +85,8 @@ export function inferPortalGroup(name: string, description?: string, category?: 
   ) {
     return "Computers & Hardware";
   }
+
+  // 4. Applications & Software
   if (
     text.includes("software") ||
     text.includes("license") ||
@@ -81,6 +97,8 @@ export function inferPortalGroup(name: string, description?: string, category?: 
   ) {
     return "Applications & Software";
   }
+
+  // 5. Facilities & Badges
   if (
     text.includes("badge") ||
     text.includes("building") ||
@@ -90,6 +108,8 @@ export function inferPortalGroup(name: string, description?: string, category?: 
   ) {
     return "Facilities & Access";
   }
+
+  // 6. Data & Systems
   if (
     text.includes("database") ||
     text.includes("sql") ||
@@ -99,7 +119,10 @@ export function inferPortalGroup(name: string, description?: string, category?: 
   ) {
     return "Data & Systems";
   }
+
+  // 7. Incidents & Outages
   if (
+    category === "Problems" ||
     text.includes("outage") ||
     text.includes("down") ||
     text.includes("incident") ||
@@ -109,17 +132,22 @@ export function inferPortalGroup(name: string, description?: string, category?: 
   ) {
     return "Incidents & Outages";
   }
+
+  // 8. Data & Analytics (Automations / Reports)
   if (
-    text.includes("report") ||
-    text.includes("data") ||
-    text.includes("pipeline") ||
+    category === "Automations and Reports" ||
     text.includes("automation") ||
     text.includes("dashboard") ||
-    text.includes("etl")
+    text.includes("etl") ||
+    text.includes("pipeline") ||
+    /\b(bi\s+report|custom\s+report|scheduled\s+report|power\s*bi|tableau|analytics|report\s+request)\b/i.test(text)
   ) {
     return "Data & Analytics";
   }
+
+  // 9. Suggestions / Feedback
   if (
+    category === "Suggestions" ||
     text.includes("suggest") ||
     text.includes("idea") ||
     text.includes("feedback") ||
@@ -127,6 +155,7 @@ export function inferPortalGroup(name: string, description?: string, category?: 
   ) {
     return "Feedback & Ideas";
   }
+
   return category === "Work Orders" ? "General Work Orders" : "General Support";
 }
 
@@ -355,6 +384,16 @@ export async function GET(req: NextRequest) {
 
       // 5. Map request types
       const mappedTypes: RequestTypeWithGroup[] = visibleTypes.map((rt) => {
+        let specificGroup = "";
+        if (rt.groupIds && rt.groupIds.length > 0) {
+          for (const gid of rt.groupIds) {
+            if (nativeGroupMap[String(gid)]) {
+              specificGroup = nativeGroupMap[String(gid)];
+              break;
+            }
+          }
+        }
+
         let itCategory = "Work Orders";
 
         if (isIT) {
@@ -363,6 +402,7 @@ export async function GET(req: NextRequest) {
             name: rt.name,
             description: rt.description,
             helpText: rt.helpText,
+            group: specificGroup,
           });
 
           switch (categoryKey) {
@@ -378,16 +418,6 @@ export async function GET(req: NextRequest) {
             case "SUGGESTIONS":
               itCategory = "Suggestions";
               break;
-          }
-        }
-
-        let specificGroup = "";
-        if (rt.groupIds && rt.groupIds.length > 0) {
-          for (const gid of rt.groupIds) {
-            if (nativeGroupMap[String(gid)]) {
-              specificGroup = nativeGroupMap[String(gid)];
-              break;
-            }
           }
         }
 
@@ -561,6 +591,16 @@ export async function GET(req: NextRequest) {
           );
 
       const mapped = visibleTypes.map((rt: JiraRequestTypeItem) => {
+        let specificGroup = "";
+        if (rt.groupIds && rt.groupIds.length > 0) {
+          for (const gid of rt.groupIds) {
+            if (nativeGroupMap[String(gid)]) {
+              specificGroup = nativeGroupMap[String(gid)];
+              break;
+            }
+          }
+        }
+
         let itCategory = "Work Orders";
 
         if (isIT) {
@@ -568,6 +608,7 @@ export async function GET(req: NextRequest) {
             name: rt.name,
             description: rt.description,
             helpText: rt.helpText,
+            group: specificGroup,
           });
 
           switch (categoryKey) {
@@ -583,16 +624,6 @@ export async function GET(req: NextRequest) {
             case "SUGGESTIONS":
               itCategory = "Suggestions";
               break;
-          }
-        }
-
-        let specificGroup = "";
-        if (rt.groupIds && rt.groupIds.length > 0) {
-          for (const gid of rt.groupIds) {
-            if (nativeGroupMap[String(gid)]) {
-              specificGroup = nativeGroupMap[String(gid)];
-              break;
-            }
           }
         }
 
