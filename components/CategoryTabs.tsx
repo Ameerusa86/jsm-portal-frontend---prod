@@ -33,6 +33,7 @@ interface CategoryTabsProps {
   onViewModeChange?: (mode: "grid" | "list") => void;
   viewGrouping?: "groups" | "all";
   onViewGroupingChange?: (grouping: "groups" | "all") => void;
+  hideCategories?: boolean;
 }
 
 export const CategoryTabs: React.FC<CategoryTabsProps> = ({
@@ -45,6 +46,7 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
   onViewModeChange,
   viewGrouping = "groups",
   onViewGroupingChange,
+  hideCategories = false,
 }) => {
   const effectiveActive = selectedCategory ?? activeCategory ?? "all";
   const handleToggle = onToggleViewMode ?? onViewModeChange;
@@ -117,51 +119,63 @@ export const CategoryTabs: React.FC<CategoryTabsProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div
+      className={cn(
+        "w-full flex flex-col lg:flex-row lg:items-center gap-4",
+        hideCategories ? "justify-end" : "justify-between"
+      )}
+    >
       {/* Category Pills (horizontally scrollable on small screens) */}
-      <div className="flex overflow-x-auto sm:flex-wrap items-center gap-2 pb-2 sm:pb-0 flex-1 no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0">
-        {categories.map((cat) => {
-          const isActive = effectiveActive === cat.name;
-          const Icon = getCategoryIcon(cat.name);
+      {!hideCategories && (
+        <div className="flex overflow-x-auto sm:flex-wrap items-center gap-2 pb-2 sm:pb-0 flex-1 no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0">
+          {categories.map((cat) => {
+            const isActive = effectiveActive === cat.name;
+            const Icon = getCategoryIcon(cat.name);
 
-          return (
-            <Button
-              key={cat.name}
-              variant={isActive ? "default" : "outline"}
-              size="sm"
-              onClick={() => onSelectCategory(cat.name)}
-              className={cn(
-                "cursor-pointer gap-2 shrink-0 rounded-xl h-9 font-medium shadow-xs",
-                isActive
-                  ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600 shadow-sm font-semibold"
-                  : "bg-white text-slate-600 hover:text-slate-900 border-slate-200/90 hover:border-slate-300 hover:bg-slate-50/80"
-              )}
-            >
-              <Icon
+            return (
+              <Button
+                key={cat.name}
+                variant={isActive ? "default" : "outline"}
+                size="sm"
+                onClick={() => onSelectCategory(cat.name)}
                 className={cn(
-                  "size-4 transition-colors",
-                  isActive ? "text-white" : "text-slate-400 group-hover:text-slate-600"
-                )}
-              />
-              <span>{cat.name === "all" ? "All Services" : cat.name}</span>
-              <Badge
-                variant="secondary"
-                className={cn(
-                  "px-1.5 py-0 text-[11px] font-semibold h-4 min-w-4 rounded-full",
+                  "cursor-pointer gap-2 shrink-0 rounded-xl h-9 font-medium shadow-xs",
                   isActive
-                    ? "bg-blue-700/80 text-white"
-                    : "bg-slate-100 text-slate-500"
+                    ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600 shadow-sm font-semibold"
+                    : "bg-white text-slate-600 hover:text-slate-900 border-slate-200/90 hover:border-slate-300 hover:bg-slate-50/80"
                 )}
               >
-                {cat.count}
-              </Badge>
-            </Button>
-          );
-        })}
-      </div>
+                <Icon
+                  className={cn(
+                    "size-4 transition-colors",
+                    isActive ? "text-white" : "text-slate-400 group-hover:text-slate-600"
+                  )}
+                />
+                <span>{cat.name === "all" ? "All Services" : cat.name}</span>
+                <Badge
+                  variant="secondary"
+                  className={cn(
+                    "px-1.5 py-0 text-[11px] font-semibold h-4 min-w-4 rounded-full",
+                    isActive
+                      ? "bg-blue-700/80 text-white"
+                      : "bg-slate-100 text-slate-500"
+                  )}
+                >
+                  {cat.count}
+                </Badge>
+              </Button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Right Controls: Grouping Toggle (By Group / All Cards) & View Switcher (Grid/List) */}
-      <div className="flex items-center gap-2.5 shrink-0 self-end lg:self-auto flex-wrap">
+      <div
+        className={cn(
+          "flex items-center gap-2.5 shrink-0 flex-wrap",
+          hideCategories ? "self-end" : "self-end lg:self-auto"
+        )}
+      >
         {onViewGroupingChange && (
           <div className="inline-flex items-center p-1 bg-white border border-slate-200/90 rounded-xl shadow-xs gap-0.5">
             <Button

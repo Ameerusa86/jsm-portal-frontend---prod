@@ -175,27 +175,10 @@ export function useRequestCatalog({
       return scoped;
     }
 
-    // 2. If viewing a department/category (e.g. 4 IT cards with spaceCategory=Information Technology)
+    // 2. If viewing a department/category (e.g. 4 IT cards with spaceCategory=Information Technology),
+    // the server endpoint `/api/jsm/request-types?spaceCategory=...` already returns the scoped catalog.
     if (spaceCategoryParam) {
-      if (spacesLoading) {
-        return [];
-      }
-
-      if (spaces.length === 0) {
-        return requestTypes;
-      }
-
-      const filtered = requestTypes.filter((rt) => {
-        const space = spaces.find(
-          (s) => String(s.id) === String(rt.serviceDeskId),
-        );
-
-        return space
-          ? matchesCategory(space.category, spaceCategoryParam)
-          : matchesCategory("Information Technology", spaceCategoryParam);
-      });
-
-      return filtered;
+      return requestTypes;
     }
 
     return requestTypes;

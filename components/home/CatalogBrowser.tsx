@@ -16,6 +16,8 @@ import {
   Sparkles,
   Check,
   X,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { ServiceCard } from "@/components/ServiceCard";
@@ -488,60 +490,138 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
 
       {/* FILTER TABS & SEARCH CONTROLS */}
       <div className="space-y-4">
-        {/* Category Tabs & View Switcher */}
-        <CategoryTabs
-          categories={categoriesWithCounts}
-          selectedCategory={selectedCategory}
-          onSelectCategory={(category) => {
-            setSelectedCategory(category);
-            setSelectedGroup(null);
-            setLocalSearchQuery("");
-            setSearchQuery("");
-          }}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          viewGrouping={viewGrouping}
-          onViewGroupingChange={(mode) => {
-            setViewGrouping(mode);
-            if (mode === "all") setSelectedGroup(null);
-          }}
-        />
+        {/* Category Tabs & View Switcher - Only shown on non-IT spaces since Technology Solutions has its dedicated 4 Solution Pillars above */}
+        {!isIT && (
+          <CategoryTabs
+            categories={categoriesWithCounts}
+            selectedCategory={selectedCategory}
+            onSelectCategory={(category) => {
+              setSelectedCategory(category);
+              setSelectedGroup(null);
+              setLocalSearchQuery("");
+              setSearchQuery("");
+            }}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            viewGrouping={viewGrouping}
+            onViewGroupingChange={(mode) => {
+              setViewGrouping(mode);
+              if (mode === "all") setSelectedGroup(null);
+            }}
+          />
+        )}
 
-        {/* Board Dropdown and Search Filters */}
+        {/* Board Dropdown and Search Filters (plus View Mode & Grouping Toggles for IT) */}
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-          {/* Board Selector */}
-          {availableBoards.length > 0 && (
-            <div className="w-full sm:w-72">
-              <select
-                aria-label="Filter by Service Board"
-                value={boardFilter}
-                onChange={(e) => setBoardFilter(e.target.value)}
-                className="w-full h-10 px-3.5 py-2 bg-white border border-slate-200/90 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 shadow-2xs"
-              >
-                <option value="all">All Service Boards</option>
-                {availableBoards.map((board) => (
-                  <option key={board} value={board}>
-                    {board}
-                  </option>
-                ))}
-              </select>
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-1">
+            {/* Board Selector - Only show when there is more than 1 board to avoid redundant 1-item selector */}
+            {availableBoards.length > 1 && (
+              <div className="w-full sm:w-72">
+                <select
+                  aria-label="Filter by Service Board"
+                  value={boardFilter}
+                  onChange={(e) => setBoardFilter(e.target.value)}
+                  className="w-full h-10 px-3.5 py-2 bg-white border border-slate-200/90 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 shadow-2xs"
+                >
+                  <option value="all">All Service Boards</option>
+                  {availableBoards.map((board) => (
+                    <option key={board} value={board}>
+                      {board}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Quick Filter Input */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="size-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Input
+                type="text"
+                placeholder={
+                  isIT && selectedCategory !== "all"
+                    ? `Search ${selectedCategory.toLowerCase()} services...`
+                    : isIT
+                    ? "Search IT services..."
+                    : "Search request types in this category..."
+                }
+                value={localSearchQuery}
+                onChange={(e) => {
+                  setLocalSearchQuery(e.target.value);
+                  setSearchQuery(e.target.value);
+                }}
+                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200/90 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 shadow-2xs h-10"
+              />
+            </div>
+          </div>
+
+          {/* On IT page: View Grouping & View Mode Controls placed on the single toolbar */}
+          {isIT && (
+            <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto flex-wrap">
+              <div className="inline-flex items-center p-1 bg-white border border-slate-200/90 rounded-xl shadow-xs gap-0.5">
+                <Button
+                  type="button"
+                  variant={viewGrouping === "groups" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewGrouping("groups")}
+                  title="Show requests organized by group"
+                  className={cn(
+                    "cursor-pointer text-xs font-semibold gap-1.5 h-7 px-2.5 rounded-lg",
+                    viewGrouping === "groups" && "bg-slate-100 text-blue-600 shadow-2xs font-bold"
+                  )}
+                >
+                  <FolderTree className="size-3.5" />
+                  <span>By Group</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={viewGrouping === "all" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => {
+                    setViewGrouping("all");
+                    setSelectedGroup(null);
+                  }}
+                  title="List all request cards directly"
+                  className={cn(
+                    "cursor-pointer text-xs font-semibold gap-1.5 h-7 px-2.5 rounded-lg",
+                    viewGrouping === "all" && "bg-slate-100 text-blue-600 shadow-2xs font-bold"
+                  )}
+                >
+                  <Layers className="size-3.5" />
+                  <span>All Cards</span>
+                </Button>
+              </div>
+
+              <div className="inline-flex items-center p-1 bg-white border border-slate-200/90 rounded-xl shadow-xs">
+                <Button
+                  type="button"
+                  variant={viewMode === "grid" ? "secondary" : "ghost"}
+                  size="icon-xs"
+                  onClick={() => setViewMode("grid")}
+                  title="Grid View"
+                  className={cn(
+                    "cursor-pointer",
+                    viewMode === "grid" && "bg-slate-100 text-blue-600 shadow-xs"
+                  )}
+                >
+                  <LayoutGrid className="size-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant={viewMode === "list" ? "secondary" : "ghost"}
+                  size="icon-xs"
+                  onClick={() => setViewMode("list")}
+                  title="List View"
+                  className={cn(
+                    "cursor-pointer",
+                    viewMode === "list" && "bg-slate-100 text-blue-600 shadow-xs"
+                  )}
+                >
+                  <List className="size-3.5" />
+                </Button>
+              </div>
             </div>
           )}
-
-          {/* Quick Filter Input */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="size-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <Input
-              type="text"
-              placeholder="Search request types in this category..."
-              value={localSearchQuery}
-              onChange={(e) => {
-                setLocalSearchQuery(e.target.value);
-                setSearchQuery(e.target.value);
-              }}
-              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200/90 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 shadow-2xs h-10"
-            />
-          </div>
         </div>
       </div>
 
