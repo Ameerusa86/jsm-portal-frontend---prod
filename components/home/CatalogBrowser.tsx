@@ -925,17 +925,12 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                           {isCollapsed ? (
                             <div
                               onClick={() => toggleProjectCollapse(project.serviceDeskId)}
-                              className="py-3 px-4 bg-white/80 hover:bg-white rounded-xl border border-slate-200/80 flex items-center justify-between text-xs text-slate-600 cursor-pointer shadow-2xs transition-colors"
+                              title="Click to expand board"
+                              className="py-2.5 px-4 bg-white/70 hover:bg-white rounded-xl border border-slate-200/70 hover:border-blue-300/80 flex items-center gap-2 text-xs text-slate-600 cursor-pointer shadow-2xs transition-colors group/collapsed"
                             >
-                              <div className="flex items-center gap-2">
-                                <FolderTree className="size-3.5 text-slate-400" />
-                                <span>
-                                  <span className="font-semibold text-slate-700">{project.groups.length} service {project.groups.length === 1 ? "group" : "groups"}</span> collapsed ({totalRequestsInProject} total service requests)
-                                </span>
-                              </div>
-                              <span className="text-blue-600 font-semibold hover:underline flex items-center gap-1">
-                                <span>Expand board</span>
-                                <ChevronDown className="size-3 -rotate-90" />
+                              <FolderTree className="size-3.5 text-slate-400 group-hover/collapsed:text-blue-500 transition-colors" />
+                              <span>
+                                <span className="font-semibold text-slate-700">{project.groups.length} service {project.groups.length === 1 ? "group" : "groups"}</span> collapsed ({totalRequestsInProject} total service requests)
                               </span>
                             </div>
                           ) : viewMode === "list" ? (
@@ -1241,17 +1236,12 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                       {isProjectCollapsed ? (
                         <div
                           onClick={() => toggleProjectCollapse(project.serviceDeskId)}
-                          className="py-3 px-4 bg-white/80 hover:bg-white rounded-xl border border-slate-200/80 flex items-center justify-between text-xs text-slate-600 cursor-pointer shadow-2xs transition-colors"
+                          title="Click to expand board"
+                          className="py-2.5 px-4 bg-white/70 hover:bg-white rounded-xl border border-slate-200/70 hover:border-blue-300/80 flex items-center gap-2 text-xs text-slate-600 cursor-pointer shadow-2xs transition-colors group/collapsed"
                         >
-                          <div className="flex items-center gap-2">
-                            <FolderTree className="size-3.5 text-slate-400" />
-                            <span>
-                              <span className="font-semibold text-slate-700">{project.groups.length} service {project.groups.length === 1 ? "group" : "groups"}</span> collapsed ({totalRequestsInProject} total service requests)
-                            </span>
-                          </div>
-                          <span className="text-blue-600 font-semibold hover:underline flex items-center gap-1">
-                            <span>Expand board</span>
-                            <ChevronDown className="size-3 -rotate-90" />
+                          <FolderTree className="size-3.5 text-slate-400 group-hover/collapsed:text-blue-500 transition-colors" />
+                          <span>
+                            <span className="font-semibold text-slate-700">{project.groups.length} service {project.groups.length === 1 ? "group" : "groups"}</span> collapsed ({totalRequestsInProject} total service requests)
                           </span>
                         </div>
                       ) : (
@@ -1325,14 +1315,11 @@ export const CatalogBrowser: React.FC<CatalogBrowserProps> = ({
                                 {isGroupCollapsed ? (
                                   <div
                                     onClick={() => toggleGroupCollapse(group.groupKey)}
-                                    className="py-2.5 px-3 bg-slate-50 hover:bg-slate-100/80 rounded-lg border border-dashed border-slate-200 flex items-center justify-between text-xs text-slate-500 cursor-pointer transition-colors"
+                                    title="Click to expand group"
+                                    className="py-2 px-3 bg-slate-50 hover:bg-white rounded-lg border border-dashed border-slate-200 hover:border-blue-300/80 flex items-center gap-2 text-xs text-slate-500 cursor-pointer transition-colors"
                                   >
                                     <span>
                                       <span className="font-semibold text-slate-700">{group.requestTypes.length}</span> {group.requestTypes.length === 1 ? "service request" : "service requests"} hidden in {group.groupName}
-                                    </span>
-                                    <span className="text-blue-600 font-semibold hover:underline flex items-center gap-1">
-                                      <span>Show services</span>
-                                      <ChevronDown className="size-3 -rotate-90" />
                                     </span>
                                   </div>
                                 ) : viewMode === "list" ? (
