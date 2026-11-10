@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getJiraAuthContext } from "@/lib/jira";
-import { MOCK_SPACES } from "@/lib/mock-data";
 
 type JiraProject = {
   id?: string | number;
@@ -23,7 +22,10 @@ export async function GET() {
   const authCtx = await getJiraAuthContext();
 
   if (!authCtx.isConfigured) {
-    return NextResponse.json({ values: MOCK_SPACES });
+    return NextResponse.json(
+      { error: "Jira credentials are not configured", values: [] },
+      { status: 401 },
+    );
   }
 
   try {
@@ -73,18 +75,18 @@ export async function GET() {
     // Attach category and resolved portalId to each service desk
     const enrichedValues = (data.values || []).map((sd: JiraServiceDesk) => {
       const isIT =
-        String(sd.id) === '1' ||
-        String(sd.id) === '4' ||
-        String(sd.projectKey || '').toUpperCase() === 'ITSD' ||
-        String(sd.projectKey || '').toUpperCase() === 'IT';
+        String(sd.id) === "1" ||
+        String(sd.id) === "4" ||
+        String(sd.projectKey || "").toUpperCase() === "ITSD" ||
+        String(sd.projectKey || "").toUpperCase() === "IT";
 
       return {
         ...sd,
-        portalId: isIT ? '4' : String(sd.id),
+        portalId: isIT ? "4" : String(sd.id),
         category:
           sd.projectId !== undefined
-            ? projectMap[String(sd.projectId)] || 'Uncategorized'
-            : 'Uncategorized',
+            ? projectMap[String(sd.projectId)] || "Uncategorized"
+            : "Uncategorized",
       };
     });
 

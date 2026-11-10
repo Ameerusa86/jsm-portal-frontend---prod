@@ -50,13 +50,11 @@ export async function POST(
   const { id: ticketKey } = await params;
   const authCtx = await getJiraAuthContext();
 
-  // 1. Simulation for Mock Mode (Credentials not configured)
   if (!authCtx.isConfigured) {
-    return NextResponse.json({
-      success: true,
-      status: "Canceled",
-      method: "mock",
-    });
+    return NextResponse.json(
+      { error: "Jira credentials are not configured" },
+      { status: 401 },
+    );
   }
 
   const authHeaders: Record<string, string> = {

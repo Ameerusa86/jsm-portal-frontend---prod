@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MOCK_REQUEST_TYPES, MOCK_SPACES } from "@/lib/mock-data";
 import { getJiraAuthContext } from "@/lib/jira";
 import { JiraRequestTypeItem, RequestTypeWithGroup } from "@/types/jsm";
 import { classifyRequestType } from "@/lib/classifier";
@@ -195,51 +194,18 @@ export async function GET(req: NextRequest) {
   const serviceDeskId =
     serviceDeskIdParam || (spaceCategory ? "all" : undefined);
 
-  // If credentials are not configured, seamlessly return mock data filtered by space
-  if (!authCtx.isConfigured || !serviceDeskId) {
-    let mockList: RequestTypeWithGroup[] = MOCK_REQUEST_TYPES.filter(
-      (rt) =>
-        includeHidden ||
-        (!rt.hiddenFromPortal && (rt.groupIds ? rt.groupIds.length > 0 : true)),
-    ).map((rt) => {
-      const space = MOCK_SPACES.find(
-        (s) => String(s.id) === String(rt.serviceDeskId || "4"),
-      );
-      const deskId = resolveCustomerPortalId(
-        rt.serviceDeskId,
-        space?.projectKey,
-        space?.projectName,
-      );
-      const fallbackUrl = `https://emsmc1.atlassian.net/servicedesk/customer/portal/${deskId}/create/${rt.id}`;
+  if (!authCtx.isConfigured) {
+    return NextResponse.json(
+      { error: "Jira credentials are not configured" },
+      { status: 401 },
+    );
+  }
 
-      return {
-        ...rt,
-        serviceDeskId: String(rt.serviceDeskId || deskId),
-        spaceName: space?.projectName || "Information Technology",
-        spaceKey: space?.projectKey || "IT",
-        portalUrl: rt.portalUrl || fallbackUrl,
-        isLocked: Boolean(
-          rt.canCreate === false ||
-          rt.restricted === true ||
-          rt.isLocked === true,
-        ),
-        restricted: rt.restricted ?? Boolean(rt.isLocked),
-        canCreate: rt.canCreate ?? !Boolean(rt.isLocked),
-      };
-    });
-
-    if (serviceDeskId && serviceDeskId !== "all") {
-      mockList = mockList.filter(
-        (rt) => String(rt.serviceDeskId) === String(serviceDeskId),
-      );
-    } else if (spaceCategory) {
-      const itSpaceIds = new Set(["1", "4"]);
-      mockList = mockList.filter(
-        (rt) => rt.serviceDeskId && itSpaceIds.has(rt.serviceDeskId),
-      );
-    }
-
-    return NextResponse.json(mockList);
+  if (!serviceDeskId) {
+    return NextResponse.json(
+      { error: "serviceDeskId or spaceCategory parameter is required" },
+      { status: 400 },
+    );
   }
 
   try {

@@ -115,7 +115,6 @@ export interface SubmitResponse {
   issueKey?: string;
   issueId?: string;
   error?: string;
-  isMock?: boolean;
 }
 
 export interface JiraRequestTypeGroup {
@@ -273,7 +272,6 @@ export interface TicketDetail {
   serviceDeskId?: string;
   portalUrl?: string;
   backendUrl?: string;
-  isMock?: boolean;
 }
 
 export interface JsmSpace {

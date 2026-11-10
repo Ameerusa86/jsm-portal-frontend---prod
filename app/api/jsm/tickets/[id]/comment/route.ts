@@ -23,23 +23,11 @@ export async function POST(
       );
     }
 
-    // Mock simulation if credentials are not configured
     if (!authCtx.isConfigured) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      return NextResponse.json({
-        success: true,
-        comment: {
-          id: `mock-${Date.now()}`,
-          author: {
-            displayName: authCtx.userName || "You (Employee)",
-            emailAddress: authCtx.userEmail || "employee@company.com",
-            isAgent: false,
-          },
-          body: body.trim(),
-          created: new Date().toISOString(),
-          isPublic: true,
-        },
-      });
+      return NextResponse.json(
+        { error: "Jira credentials are not configured" },
+        { status: 401 }
+      );
     }
 
     // Post to Atlassian Service Desk Customer Comment API

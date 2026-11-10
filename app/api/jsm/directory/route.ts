@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getJiraAuthContext } from "@/lib/jira";
 import { Choice } from "@/types/jsm";
-import { MOCK_USERS, MOCK_GROUPS } from "@/lib/mock-data";
 
 interface JiraUserItem {
   accountId?: string;
@@ -31,47 +30,13 @@ export async function GET(request: Request) {
     );
   }
 
-  // Filter mock directory helper
-  const getMockChoices = (): Choice[] => {
-    const q = query.toLowerCase();
-    if (type === "user") {
-      const filtered = MOCK_USERS.filter(
-        (u) =>
-          !q ||
-          u.displayName.toLowerCase().includes(q) ||
-          u.emailAddress.toLowerCase().includes(q) ||
-          (u.role && u.role.toLowerCase().includes(q)),
-      );
-      return filtered.map((u) => ({
-        id: u.accountId,
-        value: u.accountId,
-        accountId: u.accountId,
-        label: u.displayName,
-        name: u.displayName,
-        email: u.emailAddress,
-        avatarUrl: u.avatarUrl,
-      }));
-    } else {
-      const filtered = MOCK_GROUPS.filter(
-        (g) =>
-          !q ||
-          g.name.toLowerCase().includes(q) ||
-          (g.description && g.description.toLowerCase().includes(q)),
-      );
-      return filtered.map((g) => ({
-        id: g.groupId || g.name,
-        value: g.name,
-        label: g.name,
-        name: g.name,
-      }));
-    }
-  };
-
   const authCtx = await getJiraAuthContext();
 
-  // If live credentials are not configured, return mock users/groups
   if (!authCtx.isConfigured) {
-    return NextResponse.json({ choices: getMockChoices() });
+    return NextResponse.json(
+      { error: "Jira credentials are not configured.", choices: [] },
+      { status: 401 },
+    );
   }
 
   try {
@@ -171,10 +136,6 @@ export async function GET(request: Request) {
             });
           }
         });
-      } else {
-        // Fallback to matching mock users if Jira returned no live users
-        const mockFallback = getMockChoices();
-        return NextResponse.json({ choices: mockFallback });
       }
     } else {
       // Group search
@@ -214,18 +175,16 @@ export async function GET(request: Request) {
             });
           }
         });
-      } else {
-        // Fallback to matching mock groups if Jira returned no live groups
-        const mockFallback = getMockChoices();
-        return NextResponse.json({ choices: mockFallback });
       }
     }
 
     return NextResponse.json({ choices });
   } catch (error: unknown) {
     console.error("Directory search failed:", error);
-    // Return mock choices as graceful error recovery
-    return NextResponse.json({ choices: getMockChoices() });
+    return NextResponse.json(
+      { error: "Failed to search directory.", choices: [] },
+      { status: 500 },
+    );
   }
 }
 

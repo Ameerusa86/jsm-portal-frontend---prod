@@ -1,9 +1,5 @@
 // app/api/jsm/fields/[id]/route.ts
 import { NextResponse } from "next/server";
-import {
-  MOCK_FIELDS_BY_REQUEST_TYPE,
-  DEFAULT_MOCK_FIELDS,
-} from "@/lib/mock-data";
 import { getJiraAuthContext, getCloudId } from "@/lib/jira";
 import {
   Choice,
@@ -170,16 +166,16 @@ export async function GET(
   const serviceDeskId =
     searchParams.get("serviceDeskId") || authCtx.serviceDeskId;
 
-  // Fallback to mock data if credentials are not configured
   if (!authCtx.isConfigured || !serviceDeskId) {
-    console.info(
-      `ℹ️ Serving mock form fields for request type: ${requestTypeId}`,
+    return NextResponse.json(
+      {
+        error: !authCtx.isConfigured
+          ? "Jira credentials are not configured"
+          : "Service desk ID is required",
+        fields: [],
+      },
+      { status: 400 },
     );
-    const mockData = MOCK_FIELDS_BY_REQUEST_TYPE[requestTypeId] || {
-      formId: `mock-form-${requestTypeId}`,
-      fields: DEFAULT_MOCK_FIELDS,
-    };
-    return NextResponse.json(mockData);
   }
 
   let standardFields: JsmField[] = [];

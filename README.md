@@ -2,7 +2,7 @@
 
 A customer portal for **Jira Service Management (JSM)** built with **Next.js 16 (App Router)**, **TypeScript**, **Tailwind CSS**, and **Atlassian REST APIs**.
 
-Features include Atlassian OAuth 2.0 (3LO) Single Sign-On, ProForma (Jira Forms) attached form rendering, Confluence Knowledge Base search and native article rendering, JSM request type catalog, customer ticket management with status timelines, and an offline mock mode for testing and local development.
+Features include Atlassian OAuth 2.0 (3LO) Single Sign-On, ProForma (Jira Forms) attached form rendering, Confluence Knowledge Base search and native article rendering, JSM request type catalog, and customer ticket management with status timelines.
 
 ---
 
@@ -37,7 +37,6 @@ flowchart TD
     F --> G{API Request Type}
     G -- JSM Request / Ticket Lookups --> H[User Bearer Token + Cloud ID]
     G -- Confluence Article Body / Images --> I[Service Account Proxy: Basic Auth]
-    G -- Development Without Credentials --> J[Mock Data Fallback]
 ```
 
 ---
@@ -183,8 +182,6 @@ AUTH_SECRET=<generated-secret>
 AUTH_URL=http://localhost:3001
 AUTH_TRUST_HOST=true
 ```
-
-When live credentials are not supplied, the portal automatically loads the local mock catalog for offline development.
 
 ---
 

@@ -9,8 +9,10 @@ export async function POST(
   const authCtx = await getJiraAuthContext();
 
   if (!authCtx.isConfigured) {
-    // Mock successful participant add
-    return NextResponse.json({ success: true });
+    return NextResponse.json(
+      { error: "Jira credentials are not configured" },
+      { status: 401 }
+    );
   }
 
   try {

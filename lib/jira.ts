@@ -3,7 +3,7 @@ import { auth, resolveTargetResource } from "@/auth";
 
 export interface JiraAuthContext {
   isConfigured: boolean;
-  authType: "oauth" | "basic" | "mock";
+  authType: "oauth" | "basic" | "none";
   authHeader: string;
   baseUrl: string;
   siteUrl?: string;
@@ -31,7 +31,7 @@ export async function getCloudId(baseUrl: string): Promise<string> {
  * - Uses Service Account Basic Auth (JIRA_USER_EMAIL + JIRA_API_TOKEN) for Jira/JSM API execution
  *   when configured, allowing unlicensed portal users (without Jira/Confluence seats) to browse
  *   catalogs, read KB articles, and raise/view their own tickets seamlessly.
- * - Falls back to OAuth Bearer token (if full product scopes & cloudId are present) or Mock mode.
+ * - Falls back to OAuth Bearer token (if full product scopes & cloudId are present).
  * Strictly targets production Jira (emsmc1.atlassian.net) and rejects sandbox connections.
  */
 export async function getJiraAuthContext(): Promise<JiraAuthContext> {
@@ -158,10 +158,10 @@ export async function getJiraAuthContext(): Promise<JiraAuthContext> {
     }
   }
 
-  // 4. Fallback to mock data mode when no live Jira API credentials are configured
+  // 4. Return unconfigured context when no live Jira API credentials are configured
   return {
     isConfigured: false,
-    authType: "mock",
+    authType: "none",
     authHeader: "",
     baseUrl: "",
     siteUrl: configuredUrl,

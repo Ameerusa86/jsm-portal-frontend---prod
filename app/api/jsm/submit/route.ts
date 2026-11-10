@@ -20,22 +20,15 @@ export async function POST(req: Request) {
     
     const sdId = serviceDeskId || authCtx.serviceDeskId;
 
-    // If live credentials are not configured, simulate a successful ticket creation for local testing
     if (!authCtx.isConfigured || !sdId) {
-      console.info(
-        "ℹ️ Simulating mock ticket submission for request:",
-        requestTypeName || requestTypeId,
+      return NextResponse.json(
+        {
+          error: !authCtx.isConfigured
+            ? "Jira credentials are not configured"
+            : "Service desk ID is missing",
+        },
+        { status: 400 },
       );
-      const mockIssueNum = Math.floor(1000 + Math.random() * 9000);
-      const issueKey = `ITSD-${mockIssueNum}`;
-
-      await new Promise((resolve) => setTimeout(resolve, 350));
-
-      return NextResponse.json({
-        success: true,
-        issueKey,
-        isMock: true,
-      });
     }
 
     // 1. Separate standard Jira fields from ProForma questions
@@ -350,21 +343,6 @@ export async function POST(req: Request) {
         createText,
       );
 
-      // If the requestTypeId was a mock ID (e.g. 101, 106, 107) that doesn't exist in live Jira,
-      // fallback to mock ticket creation for a smooth developer/demo experience
-      if (createRes.status === 404 || String(requestTypeId).startsWith("10")) {
-        console.warn(
-          `Request type '${requestTypeId}' not found in live Jira Service Desk. Returning simulated ticket.`,
-        );
-        const mockIssueNum = Math.floor(1000 + Math.random() * 9000);
-        return NextResponse.json({
-          success: true,
-          issueKey: `ITSD-${mockIssueNum}`,
-          isMock: true,
-          notice: "Simulated response: request type not found in connected Jira project.",
-        });
-      }
-
       const jiraError = [
         createData.errorMessage,
         createData.i18nErrorMessage?.parameters?.[0],
@@ -386,7 +364,7 @@ export async function POST(req: Request) {
     const issueKey = createData.issueKey;
 
     // 3. Attach the ProForma form template and save answers if formId is provided
-    if (formId && !String(formId).startsWith("mock-") && issueId) {
+    if (formId && issueId) {
       try {
         const cloudId = authCtx.cloudId || (await getCloudId(authCtx.baseUrl));
         const formsApiUrl = `https://api.atlassian.com/jira/forms/cloud/${cloudId}`;

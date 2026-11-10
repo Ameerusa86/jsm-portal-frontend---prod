@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getJiraAuthContext } from "@/lib/jira";
-import { MOCK_TICKETS } from "@/lib/mock-tickets";
 import { TicketItem } from "@/types/jsm";
 
 interface JiraSearchResponse {
@@ -95,82 +94,11 @@ export async function GET(req: Request) {
 
   const authCtx = await getJiraAuthContext();
 
-  // If live Jira auth is not configured, filter and return MOCK_TICKETS dynamically
   if (!authCtx.isConfigured) {
-    let results = [...MOCK_TICKETS];
-
-    if (searchParam) {
-      const q = searchParam.toLowerCase().trim();
-      results = results.filter(
-        (t) =>
-          t.key.toLowerCase().includes(q) ||
-          t.summary.toLowerCase().includes(q) ||
-          (t.clientName || "").toLowerCase().includes(q) ||
-          (t.type || "").toLowerCase().includes(q) ||
-          (t.assignee?.displayName || "").toLowerCase().includes(q)
-      );
-    }
-
-    if (spaceParam && spaceParam !== "all") {
-      results = results.filter(
-        (t) =>
-          (t.projectKey || "").toLowerCase() === spaceParam.toLowerCase() ||
-          (t.projectName || "").toLowerCase() === spaceParam.toLowerCase() ||
-          t.projectId === spaceParam
-      );
-    }
-
-    if (statusParam && statusParam !== "all") {
-      results = results.filter((t) => {
-        const cat = resolveStatusCategory(t.statusCategory, t.status);
-        if (statusParam === "in-progress") return cat === "indeterminate";
-        if (statusParam === "waiting-support") return cat === "new";
-        if (statusParam === "waiting-customer")
-          return t.status.toLowerCase().includes("customer") || t.status.toLowerCase().includes("pending");
-        if (statusParam === "resolved") return cat === "done";
-        return t.status.toLowerCase() === statusParam.toLowerCase();
-      });
-    }
-
-    if (columnParam && valueParam) {
-      const col = columnParam.toLowerCase();
-      const val = valueParam.toLowerCase().trim();
-
-      results = results.filter((t) => {
-        if (col === "client" || col === "organization" || col === "clientname") {
-          return (t.clientName || "").toLowerCase().includes(val);
-        }
-        if (col === "assignee") {
-          return (t.assignee?.displayName || "").toLowerCase().includes(val);
-        }
-        if (col === "reporter") {
-          return (t.reporter?.displayName || "").toLowerCase().includes(val);
-        }
-        if (col === "priority") {
-          return (t.priority?.name || "").toLowerCase() === val;
-        }
-        if (col === "status") {
-          return t.status.toLowerCase().includes(val);
-        }
-        if (col === "type") {
-          return t.type.toLowerCase().includes(val);
-        }
-        if (col === "key") {
-          return t.key.toLowerCase().includes(val);
-        }
-        if (col === "summary") {
-          return t.summary.toLowerCase().includes(val);
-        }
-        return true;
-      });
-    }
-
-    results.sort(
-      (a, b) =>
-        new Date(b.created || 0).getTime() - new Date(a.created || 0).getTime()
+    return NextResponse.json(
+      { error: "Jira credentials are not configured" },
+      { status: 401 },
     );
-
-    return NextResponse.json(results.slice(0, limitParam));
   }
 
   // Construct dynamic JQL query for Jira Cloud
@@ -396,7 +324,12 @@ export async function GET(req: Request) {
 
     return NextResponse.json(mappedTickets);
   } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Unknown error occurred";
     console.error("Tickets GET error:", error);
-    return NextResponse.json(MOCK_TICKETS);
+    return NextResponse.json(
+      { error: "Failed to load tickets", details: message },
+      { status: 500 },
+    );
   }
 }

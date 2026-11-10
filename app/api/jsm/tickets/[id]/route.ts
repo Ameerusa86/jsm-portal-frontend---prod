@@ -2,7 +2,6 @@
 import { NextResponse } from "next/server";
 import { getJiraAuthContext } from "@/lib/jira";
 import { TicketDetail, TicketStatusItem, TicketCommentItem } from "@/types/jsm";
-import { getMockTicketDetail } from "@/lib/mock-tickets";
 
 interface JsmRequestResponse {
   issueId?: string;
@@ -55,14 +54,11 @@ export async function GET(
   const { id: ticketKey } = await params;
   const authCtx = await getJiraAuthContext();
 
-  // If live credentials are not configured, return a rich mock ticket detail with progression & comments
   if (!authCtx.isConfigured) {
-    const mockDetail = getMockTicketDetail(
-      ticketKey,
-      authCtx.userName,
-      authCtx.userEmail
+    return NextResponse.json(
+      { error: "Jira credentials are not configured." },
+      { status: 401 }
     );
-    return NextResponse.json(mockDetail);
   }
 
   try {
@@ -252,12 +248,12 @@ export async function GET(
 
     return NextResponse.json(detail);
   } catch (error: unknown) {
-    console.error("Ticket details API error, falling back to mock:", error);
-    const mockDetail = getMockTicketDetail(
-      ticketKey,
-      authCtx.userName,
-      authCtx.userEmail
+    const message =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("Ticket details API error:", error);
+    return NextResponse.json(
+      { error: "Failed to load ticket details", details: message },
+      { status: 500 }
     );
-    return NextResponse.json(mockDetail);
   }
 }
