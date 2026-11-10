@@ -106,10 +106,11 @@ export function classifyRequestType(req: RequestTypeClassificationInput): Catego
     return 'SUGGESTIONS';
   }
 
-  // 5. Problems / Incidents / Break-Fix
+  // 5. Problems / Incidents / Break-Fix / Troubleshooting
   const isProblem =
-    /\b(broken|not\s+working|stopped\s+working|outage|offline|failure|failed|crash(ed|es|ing)?|freeze|frozen|unresponsive|slow|degraded|glitch|bug|malfunction|hardware\s+failure|blue\s+screen|bsod|network\s+down|wifi\s+down|vpn\s+down|system\s+error|error\s+code|cannot\s+access|unable\s+to\s+access|cannot\s+login|unable\s+to\s+login|locked\s+out|troubleshoot|repair\s+request|fix\s+my)\b/i.test(combinedContent) ||
+    /\b(report\s+(an?\s+)?(issue|problem|incident|bug|outage|fault|damage)|problems?\s+with|issues?\s+with|trouble\s+with)\b/i.test(titleLower) ||
     /\b(problem|incident|outage|help\s*desk|troubleshoot|fix)\b/i.test(titleLower) ||
+    /\b(broken|not\s+working|stopped\s+working|outage|offline|is\s+down|went\s+down|down|failure|failed|crash(ed|es|ing)?|freeze|frozen|unresponsive|slow|degraded|glitch|bug|malfunction|hardware\s+failure|blue\s+screen|bsod|network\s+down|wifi\s+down|vpn\s+down|system\s+error|error\s+code|cannot\s+access|unable\s+to\s+access|cannot\s+login|unable\s+to\s+login|locked\s+out|troubleshoot|repair\s+request|fix\s+my)\b/i.test(combinedContent) ||
     /\b(system\s+issue|login\s+issue|network\s+issue|technical\s+issue|hardware\s+issue|software\s+issue|performance\s+issue|having\s+issues?|experiencing\s+issues?)\b/i.test(combinedContent);
 
   if (isProblem) {
