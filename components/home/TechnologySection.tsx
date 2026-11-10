@@ -1,19 +1,34 @@
 "use client";
 
 import React from "react";
-import { Zap, FileText, AlertCircle, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Zap, FileText, AlertCircle, Sparkles, ArrowRight } from "lucide-react";
 import { TechnologyCard } from "@/components/TechnologyCard";
 
 export const TechnologySection: React.FC = () => {
   return (
     <section>
-      <div className="mb-6 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
-          <Zap className="w-4 h-4" />
+      <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
+            <Zap className="w-4 h-4" />
+          </div>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+              Technology Solutions
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              EMS | MC IT Help Desk, Work Orders, Outages, Automations & Reports
+            </p>
+          </div>
         </div>
-        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-          Technology Solutions
-        </h2>
+        <Link
+          href="/?space=all&spaceCategory=Information%20Technology"
+          className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 group/lnk"
+        >
+          <span>View all IT services</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover/lnk:translate-x-0.5 transition-transform" />
+        </Link>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">

@@ -1,5 +1,15 @@
 // app/lib/classifier.ts
 
+// How the classifier works:
+// The classifier is used to determine the category of a request based on its name, description, and help text.
+// The classifier first checks for explicit bracket tags (e.g. [Work Order], [Problem], [Automation], [Suggestion]).
+// If no explicit bracket tags are found, the classifier checks for native Jira group routing.
+// If no native Jira group routing is found, the classifier checks for priority work orders.
+// If no priority work orders are found, the classifier checks for suggestions.
+// If no suggestions are found, the classifier checks for problems.
+// If no problems are found, the classifier checks for automations.
+// If no automations are found, the classifier returns 'WORK_ORDERS' as a fallback.
+
 export type CategoryKey = 'WORK_ORDERS' | 'PROBLEMS' | 'AUTOMATIONS' | 'SUGGESTIONS';
 
 export interface RequestTypeClassificationInput {
