@@ -105,6 +105,22 @@ export function resolveTargetResource(
   return candidates[0];
 }
 
+const ALLOWED_EMAIL_DOMAIN = "emsmc.com";
+
+/**
+ * Validates that an email address belongs strictly to the allowed organization domain (@emsmc.com).
+ */
+export function isAllowedEmail(email?: string | null): boolean {
+  if (!email || typeof email !== "string") return false;
+  const normalized = email.trim().toLowerCase();
+  const parts = normalized.split("@");
+  return (
+    parts.length === 2 &&
+    parts[0].length > 0 &&
+    parts[1] === ALLOWED_EMAIL_DOMAIN
+  );
+}
+
 const authSecret =
   process.env.AUTH_SECRET ||
   process.env.NEXTAUTH_SECRET ||
@@ -171,6 +187,40 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile }) {
+      const oidcProfile = profile as
+        | {
+            email?: string;
+            email_verified?: boolean;
+            preferred_username?: string;
+            upn?: string;
+          }
+        | undefined;
+
+      if (oidcProfile?.email_verified === false) {
+        console.warn(
+          `🚫 [Auth] Rejected unverified email login attempt via ${account?.provider || "oauth"}.`,
+        );
+        return false;
+      }
+
+      const candidateEmail =
+        account?.provider === "microsoft-entra-id"
+          ? user?.email ||
+            oidcProfile?.email ||
+            oidcProfile?.preferred_username ||
+            oidcProfile?.upn
+          : user?.email || oidcProfile?.email;
+
+      if (!isAllowedEmail(candidateEmail)) {
+        console.warn(
+          `🚫 [Auth] Rejected sign-in for unauthorized email domain (${candidateEmail || "unknown"}) via ${account?.provider || "oauth"}. Only @${ALLOWED_EMAIL_DOMAIN} is allowed.`,
+        );
+        return false;
+      }
+
+      return true;
+    },
     async jwt({ token, account, profile, user }) {
       const configuredBaseUrl = (
         process.env.JIRA_BASE_URL &&
@@ -215,6 +265,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       // 1b. Initial Atlassian OAuth login: extract tokens and retrieve Production Cloud ID (if site scopes are used)
       if (account) {
+        const atlassianProfile = profile as { email?: string; name?: string } | undefined;
+        token.email = user?.email || atlassianProfile?.email || token.email;
+        token.name = user?.name || atlassianProfile?.name || token.name;
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
@@ -294,9 +347,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return token;
       }
 
-      // Safety check on existing tokens: purge any legacy sandbox siteUrl from old cookies
+      // Safety check on existing tokens: purge any legacy sandbox siteUrl and reject non-@emsmc.com sessions
       if (!token.siteUrl || token.siteUrl.includes("sandbox")) {
         token.siteUrl = "https://emsmc1.atlassian.net";
+      }
+
+      if (!isAllowedEmail(token.email)) {
+        return {
+          ...token,
+          error: "AccessDenied",
+        };
       }
 
       // 2. If session does not use Atlassian refresh tokens (e.g. Microsoft Entra ID SSO), return as-is

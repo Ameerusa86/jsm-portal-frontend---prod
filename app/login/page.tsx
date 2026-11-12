@@ -70,7 +70,7 @@ function LoginContent() {
       case "Callback":
         return "An error occurred during Atlassian authorization. Please try again.";
       case "AccessDenied":
-        return "Access was denied. Please ensure your Atlassian account has access to this portal.";
+        return "Access denied. Only @emsmc.com email accounts are authorized to sign in to this portal.";
       case "SessionRequired":
         return "Please sign in to access the service desk.";
       default:
